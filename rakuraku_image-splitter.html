@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>らくらく画像縦分割君 | ブラウザで無料画像スライス</title>
+    
+    <meta name="description" content="ブラウザ上で画像を縦に指定ピクセルで分割できる無料ツール。スマホ対応、ドラッグ操作のプレビュー機能付き。サーバーに画像を送信しないためプライバシーも安全です。Web漫画の分割などに最適！">
+    
+    <meta property="og:title" content="画像縦分割ツール | ブラウザ完結の無料スライサー">
+    <meta property="og:description" content="アップロードした画像を任意のピクセルで縦分割し、一括保存できる無料ツールです。">
+    <meta property="og:type" content="website">
+    
+    <style>
+
+        body { font-family: sans-serif; background-color: #f4f7f6; color: #333; padding: 20px; }
+        .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.5rem; text-align: center; margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .form-group:last-child { border-bottom: none; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; }
+        input[type="file"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        
+        .cut-point-row { display: flex; align-items: center; margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
+        .cut-point-row label { margin-bottom: 0; margin-right: 15px; white-space: nowrap; font-weight: normal; width: 120px;}
+        
+        button { padding: 12px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.3s; }
+        .btn-primary { width: 100%; background-color: #007bff; color: white; margin-top: 10px; font-weight: bold;}
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-primary:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-secondary { background-color: #6c757d; color: white; padding: 8px 15px; font-size: 0.9rem; margin-bottom: 15px;}
+        .btn-secondary:hover { background-color: #5a6268; }
+
+        .preview-container { text-align: center; border: 2px dashed #ccc; padding: 10px; background: #fafafa; border-radius: 4px; margin-bottom: 20px; position: relative;}
+        
+        /* --- プレビューのキャンバスのスタイル修正 --- */
+        #previewCanvas { 
+            width: 100%; 
+            height: auto; 
+            display: block; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            cursor: crosshair; /* 基本は十字カーソル */
+            touch-action: none; /* スマホで線をなぞった時に画面がスクロールするのを防ぐ */
+        }
+        
+        #previewPlaceholder { color: #999; padding: 40px 0; }
+        
+        .info-text { font-size: 0.9rem; color: #007bff; font-weight: bold; margin-top: 5px; }
+        .slice-heights-box { background: #e9ecef; padding: 10px; border-radius: 4px; font-size: 0.9rem; margin-top: 15px; line-height: 1.5; }
+        .slice-heights-box span { display: inline-block; margin-right: 15px; color: #333; }
+
+        #resultArea { margin-top: 40px; border-top: 3px solid #007bff; padding-top: 20px; display: none; }
+        .result-item { margin-bottom: 30px; text-align: center; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .result-item img { max-width: 100%; height: auto; display: block; margin: 0 auto 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .download-btn { display: inline-block; background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .download-btn:hover { background-color: #218838; }
+        
+        .btn-warning { background-color: #ff9800; color: white; font-weight: bold; width: auto; padding: 12px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-warning:hover { background-color: #e68a00; }
+        .btn-warning:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>らくらく画像縦分割君</h1>
+    
+    <div class="form-group">
+        <label for="imageInput">1. 画像をアップロード</label>
+        <input type="file" id="imageInput" accept="image/png, image/jpeg, image/webp">
+        <div id="imageInfo" class="info-text"></div>
+    </div>
+
+    <div class="form-group" id="previewGroup" style="display: none;">
+        <label>分割プレビュー（赤い線をドラッグして調整できます）</label>
+        <div class="preview-container">
+            <div id="previewPlaceholder">画像と分割線が表示されます</div>
+            <canvas id="previewCanvas" style="display: none;"></canvas>
+        </div>
+    </div>
+
+    <div class="form-group" id="splitCountGroup" style="display: none;">
+        <label for="splitCount">2. 分割数</label>
+        <input type="number" id="splitCount" value="2" min="2" max="50">
+    </div>
+
+    <div class="form-group" id="cutPointsGroup" style="display: none;">
+        <label>3. カット位置のピクセル数を指定 (px)</label>
+        <button type="button" id="resetEvenBtn" class="btn-secondary">🔄 均等割りにリセット</button>
+        <div id="cutPointsContainer"></div>
+        <div id="sliceHeightsDisplay" class="slice-heights-box"></div>
+    </div>
+
+    <button id="processBtn" class="btn-primary" disabled>分割して画像を出力する</button>
+
+    <div id="resultArea">
+        <h2 style="text-align: center; color: #007bff;">分割結果</h2>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button id="downloadAllBtn" class="btn-warning" style="display: none;">📦 出力された画像をすべて一括保存</button>
+        </div>
+        <div id="resultContainer"></div>
+    </div>
+</div>
+
+<script>
+    let loadedImage = null;
+    const imageInput = document.getElementById('imageInput');
+    const imageInfo = document.getElementById('imageInfo');
+    const splitCountInput = document.getElementById('splitCount');
+    const cutPointsContainer = document.getElementById('cutPointsContainer');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const previewCtx = previewCanvas.getContext('2d');
+    const processBtn = document.getElementById('processBtn');
+    const resetEvenBtn = document.getElementById('resetEvenBtn');
+    const sliceHeightsDisplay = document.getElementById('sliceHeightsDisplay');
+    
+    const previewGroup = document.getElementById('previewGroup');
+    const splitCountGroup = document.getElementById('splitCountGroup');
+    const cutPointsGroup = document.getElementById('cutPointsGroup');
+    
+    const resultArea = document.getElementById('resultArea');
+    const resultContainer = document.getElementById('resultContainer');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
+
+    // --- ドラッグ操作用の変数 ---
+    let isDragging = false;
+    let draggedLineIndex = -1;
+
+    imageInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        try {
+            loadedImage = await loadImage(file);
+            imageInfo.textContent = `元の画像のサイズ: 幅 ${loadedImage.width}px / 高さ ${loadedImage.height}px`;
+            
+            previewGroup.style.display = 'block';
+            splitCountGroup.style.display = 'block';
+            cutPointsGroup.style.display = 'block';
+            resultArea.style.display = 'none';
+            downloadAllBtn.style.display = 'none';
+            processBtn.disabled = false;
+
+            generateCutInputs();
+        } catch (error) {
+            console.error(error);
+            alert('画像の読み込みに失敗しました。');
+        }
+    });
+
+    splitCountInput.addEventListener('input', () => {
+        if (loadedImage) generateCutInputs();
+    });
+
+    resetEvenBtn.addEventListener('click', () => {
+        if (loadedImage) generateCutInputs();
+    });
+
+    function calculateEvenCuts(totalHeight, count) {
+        const baseHeight = Math.floor(totalHeight / count);
+        const remainder = totalHeight % count;
+        const cuts = [];
+        let currentY = 0;
+
+        for (let i = 1; i < count; i++) {
+            const sliceHeight = baseHeight + (i <= remainder ? 1 : 0);
+            currentY += sliceHeight;
+            cuts.push(currentY);
+        }
+        return cuts;
+    }
+
+    function generateCutInputs() {
+        cutPointsContainer.innerHTML = '';
+        let count = parseInt(splitCountInput.value, 10);
+        if (isNaN(count) || count < 2) count = 2;
+        
+        const totalHeight = loadedImage.height;
+        const defaultCuts = calculateEvenCuts(totalHeight, count);
+
+        defaultCuts.forEach((cutY, index) => {
+            const row = document.createElement('div');
+            row.className = 'cut-point-row';
+            
+            const label = document.createElement('label');
+            label.textContent = `上から ${index + 1}本目の線:`;
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'cut-input';
+            input.value = cutY;
+            input.min = 1;
+            input.max = totalHeight - 1;
+            
+            input.addEventListener('input', () => {
+                drawPreview();
+                updateSliceHeights();
+            });
+
+            row.appendChild(label);
+            row.appendChild(input);
+            cutPointsContainer.appendChild(row);
+        });
+        
+        drawPreview();
+        updateSliceHeights();
+    }
+
+    function drawPreview() {
+        if (!loadedImage) return;
+
+        previewCanvas.width = loadedImage.width;
+        previewCanvas.height = loadedImage.height;
+        previewCtx.drawImage(loadedImage, 0, 0);
+
+        const inputs = document.querySelectorAll('.cut-input');
+        previewCtx.strokeStyle = 'red';
+        previewCtx.lineWidth = Math.max(3, Math.floor(loadedImage.width / 300)); 
+
+        inputs.forEach(input => {
+            const y = parseInt(input.value, 10);
+            if (!isNaN(y) && y > 0 && y < loadedImage.height) {
+                previewCtx.beginPath();
+                previewCtx.moveTo(0, y);
+                previewCtx.lineTo(loadedImage.width, y);
+                previewCtx.stroke();
+            }
+        });
+
+        document.getElementById('previewPlaceholder').style.display = 'none';
+        previewCanvas.style.display = 'block';
+    }
+
+    function updateSliceHeights() {
+        if (!loadedImage) return;
+        const totalHeight = loadedImage.height;
+        
+        let cuts = Array.from(document.querySelectorAll('.cut-input'))
+            .map(input => parseInt(input.value, 10))
+            .filter(y => !isNaN(y) && y > 0 && y < totalHeight);
+        
+        cuts.push(0);
+        cuts.push(totalHeight);
+        cuts.sort((a, b) => a - b);
+        cuts = [...new Set(cuts)];
+
+        let html = '<strong>【出力される各画像の高さ】</strong><br>';
+        for (let i = 0; i < cuts.length - 1; i++) {
+            const height = cuts[i + 1] - cuts[i];
+            html += `<span>${i + 1}枚目: <b>${height}px</b></span>`;
+        }
+        sliceHeightsDisplay.innerHTML = html;
+    }
+
+    // --- マウス/タッチ座標を画像の内部ピクセルに変換する関数 ---
+    function getPointerY(e) {
+        const rect = previewCanvas.getBoundingClientRect();
+        const scaleY = previewCanvas.height / rect.height; // 表示サイズと実サイズの比率
+        return (e.clientY - rect.top) * scaleY;
+    }
+
+    // --- カーソルがどの線の近くにあるか判定する関数 ---
+    function getHoveredLineIndex(y) {
+        const inputs = Array.from(document.querySelectorAll('.cut-input'));
+        const rect = previewCanvas.getBoundingClientRect();
+        const scaleY = previewCanvas.height / rect.height;
+        // 画面上での「15px」の範囲を当たり判定とする（どんな画像サイズでも同じ操作感にするため）
+        const tolerance = 15 * scaleY; 
+
+        for (let i = 0; i < inputs.length; i++) {
+            const lineY = parseInt(inputs[i].value, 10);
+            if (Math.abs(y - lineY) <= tolerance) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    // --- ドラッグ操作のイベント設定 (PointerEvent を使用) ---
+    previewCanvas.addEventListener('pointerdown', (e) => {
+        if (!loadedImage) return;
+        // マウスがキャンバス外に出てもドラッグを継続できるようにキャプチャ
+        previewCanvas.setPointerCapture(e.pointerId); 
+        
+        const y = getPointerY(e);
+        const lineIndex = getHoveredLineIndex(y);
+        
+        if (lineIndex !== -1) {
+            isDragging = true;
+            draggedLineIndex = lineIndex;
+            previewCanvas.style.cursor = 'ns-resize'; // 上下リサイズカーソルに変更
+        }
+    });
+
+    previewCanvas.addEventListener('pointermove', (e) => {
+        if (!loadedImage) return;
+        const y = getPointerY(e);
+
+        if (isDragging && draggedLineIndex !== -1) {
+            const inputs = Array.from(document.querySelectorAll('.cut-input'));
+            let newY = Math.round(y);
+            
+            // 線同士が交差しないように、上下の線の位置を調べて限界値を設定する
+            let minY = 1;
+            let maxY = loadedImage.height - 1;
+            
+            if (draggedLineIndex > 0) {
+                minY = parseInt(inputs[draggedLineIndex - 1].value, 10) + 1; // 上の線より下
+            }
+            if (draggedLineIndex < inputs.length - 1) {
+                maxY = parseInt(inputs[draggedLineIndex + 1].value, 10) - 1; // 下の線より上
+            }
+            
+            // 限界値の範囲内に座標を収める
+            newY = Math.max(minY, Math.min(newY, maxY));
+            
+            // 入力欄の数値を書き換え、プレビューと情報を更新
+            inputs[draggedLineIndex].value = newY;
+            drawPreview();
+            updateSliceHeights();
+            
+        } else {
+            // ドラッグしていない時は、線の近くにカーソルが来たら形を変える（ホバー効果）
+            const lineIndex = getHoveredLineIndex(y);
+            previewCanvas.style.cursor = lineIndex !== -1 ? 'ns-resize' : 'crosshair';
+        }
+    });
+
+    // ドラッグ終了処理
+    const endDrag = (e) => {
+        if(isDragging) {
+            isDragging = false;
+            draggedLineIndex = -1;
+            previewCanvas.releasePointerCapture(e.pointerId);
+            previewCanvas.style.cursor = 'crosshair';
+        }
+    };
+    previewCanvas.addEventListener('pointerup', endDrag);
+    previewCanvas.addEventListener('pointercancel', endDrag);
+
+    // 画面出力処理
+    processBtn.addEventListener('click', () => {
+        if (!loadedImage) return;
+        
+        processBtn.disabled = true;
+        processBtn.textContent = '処理中...';
+        resultContainer.innerHTML = ''; 
+        
+        setTimeout(() => {
+            try {
+                const width = loadedImage.width;
+                const totalHeight = loadedImage.height;
+
+                let cuts = Array.from(document.querySelectorAll('.cut-input'))
+                    .map(input => parseInt(input.value, 10))
+                    .filter(y => !isNaN(y) && y > 0 && y < totalHeight);
+                
+                cuts.push(0);
+                cuts.push(totalHeight);
+                cuts.sort((a, b) => a - b);
+                cuts = [...new Set(cuts)];
+
+                const workCanvas = document.createElement('canvas');
+                const workCtx = workCanvas.getContext('2d');
+                workCanvas.width = width;
+
+                for (let i = 0; i < cuts.length - 1; i++) {
+                    const startY = cuts[i];
+                    const endY = cuts[i + 1];
+                    const currentHeight = endY - startY;
+                    
+                    workCanvas.height = currentHeight;
+                    workCtx.drawImage(loadedImage, 0, startY, width, currentHeight, 0, 0, width, currentHeight);
+                    
+                    const dataUrl = workCanvas.toDataURL('image/png');
+                    const fileNumber = String(i + 1).padStart(2, '0');
+                    const fileName = `image_${fileNumber}.png`;
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'result-item';
+                    
+                    const label = document.createElement('h3');
+                    label.textContent = `${i + 1}枚目 (${width}x${currentHeight}px)`;
+                    label.style.marginTop = '0';
+                    
+                    const img = document.createElement('img');
+                    img.src = dataUrl;
+                    
+                    const downloadBtn = document.createElement('a');
+                    downloadBtn.href = dataUrl;
+                    downloadBtn.download = fileName;
+                    downloadBtn.className = 'download-btn individual-download-btn';
+                    downloadBtn.textContent = `⬇️ ${fileName} を保存`;
+
+                    itemDiv.appendChild(label);
+                    itemDiv.appendChild(img);
+                    itemDiv.appendChild(downloadBtn);
+                    resultContainer.appendChild(itemDiv);
+                }
+
+                resultArea.style.display = 'block';
+                downloadAllBtn.style.display = 'inline-block';
+                resultArea.scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error(error);
+                alert('エラーが発生しました。');
+            } finally {
+                processBtn.disabled = false;
+                processBtn.textContent = '分割して画像を出力する';
+            }
+        }, 50);
+    });
+
+    downloadAllBtn.addEventListener('click', async () => {
+        const links = document.querySelectorAll('.individual-download-btn');
+        if (links.length === 0) return;
+
+        const confirmMsg = '出力された全ての画像を順番にダウンロードします。\nブラウザから「複数ファイルのダウンロード」の許可を求められた場合は「許可」を押してください。\n\nよろしいですか？';
+        if (!confirm(confirmMsg)) return;
+
+        const originalText = downloadAllBtn.textContent;
+        downloadAllBtn.disabled = true;
+        downloadAllBtn.textContent = '📦 ダウンロード中...';
+
+        for (let i = 0; i < links.length; i++) {
+            links[i].click();
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
+        downloadAllBtn.textContent = '✅ ダウンロード完了！';
+        
+        setTimeout(() => {
+            downloadAllBtn.disabled = false;
+            downloadAllBtn.textContent = originalText;
+        }, 3000);
+    });
+
+    function loadImage(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
+</script>
+
+</body>
+</html>
