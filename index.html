@@ -3,62 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>らくらく画像分割君 | ブラウザで無料画像スライス</title>
-    
-    <meta name="description" content="ブラウザ上で画像を縦に指定ピクセルで分割できる無料ツール。スマホ対応、ドラッグ操作のプレビュー機能付き。サーバーに画像を送信しないためプライバシーも安全です。Web漫画の分割などに最適！">
-    
-    <meta property="og:title" content="画像縦分割ツール | ブラウザ完結の無料スライサー">
-    <meta property="og:description" content="アップロードした画像を任意のピクセルで縦分割し、一括保存できる無料ツールです。">
-    <meta property="og:type" content="website">
+    <meta name="description" content="ブラウザ上で画像を縦分割・グリッド分割できる無料ツール。X(Twitter)のタイムライン表示をリアルタイムプレビュー！スマホ対応、ドラッグ操作可能。サーバーに画像を送信しないためプライバシーも安全です。">
     
     <style>
-
-        body { font-family: sans-serif; background-color: #f4f7f6; color: #333; padding: 20px; }
-        .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { font-size: 1.5rem; text-align: center; margin-bottom: 20px; }
+        /* --- 基本設定 --- */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; padding: 20px; line-height: 1.6; }
+        .container { max-width: 700px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.8rem; text-align: center; margin-bottom: 20px; color: #222; }
+        
+        /* --- フォームとUI --- */
         .form-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
         .form-group:last-child { border-bottom: none; }
-        label { display: block; font-weight: bold; margin-bottom: 8px; }
-        input[type="file"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input[type="file"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
         
+        .radio-group { display: flex; gap: 15px; margin-top: 5px; }
+        .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+        
+        .grid-inputs { display: flex; gap: 15px; }
+        .grid-inputs div { flex: 1; }
+
         .cut-point-row { display: flex; align-items: center; margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
         .cut-point-row label { margin-bottom: 0; margin-right: 15px; white-space: nowrap; font-weight: normal; width: 120px;}
         
-        button { padding: 12px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.3s; }
-        .btn-primary { width: 100%; background-color: #007bff; color: white; margin-top: 10px; font-weight: bold;}
+        /* --- ボタン類 --- */
+        button { padding: 12px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { width: 100%; background-color: #007bff; color: white; margin-top: 10px; font-weight: bold; font-size: 1.1rem; padding: 15px;}
         .btn-primary:hover { background-color: #0056b3; }
         .btn-primary:disabled { background-color: #ccc; cursor: not-allowed; }
         .btn-secondary { background-color: #6c757d; color: white; padding: 8px 15px; font-size: 0.9rem; margin-bottom: 15px;}
         .btn-secondary:hover { background-color: #5a6268; }
-
-        .preview-container { text-align: center; border: 2px dashed #ccc; padding: 10px; background: #fafafa; border-radius: 4px; margin-bottom: 20px; position: relative;}
-        
-        /* --- プレビューのキャンバスのスタイル修正 --- */
-        #previewCanvas { 
-            width: 100%; 
-            height: auto; 
-            display: block; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
-            cursor: crosshair; /* 基本は十字カーソル */
-            touch-action: none; /* スマホで線をなぞった時に画面がスクロールするのを防ぐ */
-        }
-        
-        #previewPlaceholder { color: #999; padding: 40px 0; }
-        
-        .info-text { font-size: 0.9rem; color: #007bff; font-weight: bold; margin-top: 5px; }
-        .slice-heights-box { background: #e9ecef; padding: 10px; border-radius: 4px; font-size: 0.9rem; margin-top: 15px; line-height: 1.5; }
-        .slice-heights-box span { display: inline-block; margin-right: 15px; color: #333; }
-
-        #resultArea { margin-top: 40px; border-top: 3px solid #007bff; padding-top: 20px; display: none; }
-        .result-item { margin-bottom: 30px; text-align: center; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
-        .result-item img { max-width: 100%; height: auto; display: block; margin: 0 auto 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .download-btn { display: inline-block; background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold; cursor: pointer; }
-        .download-btn:hover { background-color: #218838; }
-        
-        .btn-warning { background-color: #ff9800; color: white; font-weight: bold; width: auto; padding: 12px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-warning { background-color: #ff9800; color: white; font-weight: bold; padding: 12px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .btn-warning:hover { background-color: #e68a00; }
-        .btn-warning:disabled { background-color: #ccc; box-shadow: none; cursor: not-allowed; }
+
+        /* --- 分割プレビュー（赤線） --- */
+        .preview-container { text-align: center; border: 2px dashed #ccc; padding: 10px; background: #fafafa; border-radius: 4px; margin-bottom: 20px; position: relative;}
+        #previewCanvas { width: 100%; height: auto; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.1); touch-action: none; }
+        #previewPlaceholder { color: #999; padding: 40px 0; }
+        .info-text { font-size: 0.9rem; color: #007bff; font-weight: bold; margin-top: 5px; }
+
+        /* --- リアルタイム X(Twitter) プレビュー --- */
+        #xPreviewArea { margin-top: 30px; margin-bottom: 30px; border: 2px solid #1da1f2; border-radius: 8px; padding: 20px; display: none; background-color: #f5f8fa; }
+        .x-preview-box { background: #fff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 15px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .x-dummy-header { display: flex; margin-bottom: 10px; }
+        .x-dummy-icon { width: 40px; height: 40px; background: #ccc; border-radius: 50%; margin-right: 10px; }
+        .x-dummy-text { flex: 1; }
+        .x-dummy-name { font-weight: bold; font-size: 0.9rem; }
+        .x-dummy-id { color: #657786; font-size: 0.85rem; }
+        .x-dummy-content { font-size: 0.95rem; margin-bottom: 10px; }
+        
+        #xGridContainer {
+            display: grid; gap: 2px; border-radius: 12px; overflow: hidden; border: 1px solid #cfd9de; aspect-ratio: 16 / 9;
+        }
+        /* canvasを使ってリアルタイム描画 */
+        .x-grid-item { position: relative; width: 100%; height: 100%; overflow: hidden; background: #f0f0f0; }
+        .x-grid-item canvas {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; /* キャンバスを画像のよう枠に合わせてトリミング */
+        }
+
+        #xGridContainer.x-layout-1 { display: block; aspect-ratio: auto; border: none;}
+        #xGridContainer.x-layout-1 .x-grid-item { border-radius: 12px; border: 1px solid #cfd9de; max-height: 500px; }
+        #xGridContainer.x-layout-1 canvas { position: static; height: auto; max-height: 500px; object-fit: contain; }
+        #xGridContainer.x-layout-2 { grid-template-columns: 1fr 1fr; }
+        #xGridContainer.x-layout-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        #xGridContainer.x-layout-3 .x-grid-item:nth-child(1) { grid-row: span 2; }
+        #xGridContainer.x-layout-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+        /* --- 出力結果 --- */
+        #resultArea { margin-top: 40px; border-top: 3px solid #28a745; padding-top: 20px; display: none; }
+        .result-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 20px; }
+        .result-item { text-align: center; background: #fdfdfd; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .result-item img { max-width: 100%; height: auto; display: block; margin: 0 auto 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .download-btn { display: inline-block; background-color: #28a745; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.9rem;}
+        
+        /* --- SEO対策用アコーディオン --- */
+        .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 20px; }
+        details { background: #fff; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; }
+        summary { background: #f8f9fa; padding: 15px; font-weight: bold; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+        summary::-webkit-details-marker { display: none; }
+        summary::after { content: "▼"; font-size: 0.8rem; color: #666; transition: transform 0.2s; }
+        details[open] summary::after { transform: rotate(180deg); }
+        .details-inner { padding: 20px; font-size: 0.95rem; color: #555; border-top: 1px solid #eee; }
+        .details-inner h3 { margin-top: 0; color: #333; font-size: 1.1rem; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .details-inner ul { padding-left: 20px; margin-bottom: 0; }
+        .details-inner li { margin-bottom: 10px; }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
@@ -74,100 +104,205 @@
         <div id="imageInfo" class="info-text"></div>
     </div>
 
+    <div class="form-group" id="modeGroup" style="display: none;">
+        <label>2. 分割モードを選択</label>
+        <div class="radio-group">
+            <label><input type="radio" name="splitMode" value="vertical" checked> 縦分割（自由配置）</label>
+            <label><input type="radio" name="splitMode" value="grid"> 縦＋横（均等グリッド）</label>
+        </div>
+    </div>
+
     <div class="form-group" id="previewGroup" style="display: none;">
-        <label>分割プレビュー（赤い線をドラッグして調整できます）</label>
+        <label>分割位置の調整（プレビュー）</label>
         <div class="preview-container">
-            <div id="previewPlaceholder">画像と分割線が表示されます</div>
+            <div id="previewPlaceholder">画像が表示されます</div>
             <canvas id="previewCanvas" style="display: none;"></canvas>
         </div>
     </div>
 
-    <div class="form-group" id="splitCountGroup" style="display: none;">
-        <label for="splitCount">2. 分割数</label>
-        <input type="number" id="splitCount" value="2" min="2" max="50">
+    <div id="verticalSettings" style="display: none;">
+        <div class="form-group">
+            <label for="splitCount">3. 縦の分割数</label>
+            <input type="number" id="splitCount" value="2" min="2" max="50">
+        </div>
+        <div class="form-group">
+            <label>4. カット位置のピクセル数を指定 (px) <br><small style="font-weight:normal; color:#666;">※上のプレビュー画面で赤い線を直接ドラッグして調整できます</small></label>
+            <button type="button" id="resetEvenBtn" class="btn-secondary">🔄 均等割りにリセット</button>
+            <div id="cutPointsContainer"></div>
+        </div>
     </div>
 
-    <div class="form-group" id="cutPointsGroup" style="display: none;">
-        <label>3. カット位置のピクセル数を指定 (px)</label>
-        <button type="button" id="resetEvenBtn" class="btn-secondary">🔄 均等割りにリセット</button>
-        <div id="cutPointsContainer"></div>
-        <div id="sliceHeightsDisplay" class="slice-heights-box"></div>
+    <div id="gridSettings" style="display: none;">
+        <div class="form-group grid-inputs">
+            <div>
+                <label for="gridRows">縦の分割数 (行)</label>
+                <input type="number" id="gridRows" value="2" min="1" max="20">
+            </div>
+            <div>
+                <label for="gridCols">横の分割数 (列)</label>
+                <input type="number" id="gridCols" value="2" min="1" max="20">
+            </div>
+        </div>
+        <p style="font-size: 0.85rem; color: #666; margin-top: -10px;">※グリッドモードは指定した数で均等に自動分割されます。</p>
     </div>
 
-    <button id="processBtn" class="btn-primary" disabled>分割して画像を出力する</button>
+    <div id="xPreviewArea">
+        <h2 style="text-align: center; color: #1da1f2; margin-top: 0; margin-bottom: 15px; font-size: 1.3rem;">📱 X (Twitter) 投稿時の見え方</h2>
+        <p style="text-align: center; font-size: 0.85rem; margin-top: -10px; color: #666;">※線を動かすとリアルタイムで反映されます（5枚以上の場合は先頭4枚）</p>
+        
+        <div class="x-preview-box">
+            <div class="x-dummy-header">
+                <div class="x-dummy-icon"></div>
+                <div class="x-dummy-text">
+                    <div class="x-dummy-name">あなたの名前 <span class="x-dummy-id">@your_id · 今</span></div>
+                    <div class="x-dummy-content">分割した画像を投稿するとこんな感じで表示されます！ #画像分割</div>
+                </div>
+            </div>
+            <div id="xGridContainer"></div>
+        </div>
+    </div>
+
+    <button id="processBtn" class="btn-primary" disabled>✂️ 分割して画像を出力する</button>
 
     <div id="resultArea">
-        <h2 style="text-align: center; color: #007bff;">分割結果</h2>
+        <h2 style="text-align: center; color: #28a745;">出力結果（ダウンロード）</h2>
         <div style="text-align: center; margin-bottom: 20px;">
-            <button id="downloadAllBtn" class="btn-warning" style="display: none;">📦 出力された画像をすべて一括保存</button>
+            <button id="downloadAllBtn" class="btn-warning">📦 すべて一括保存</button>
         </div>
-        <div id="resultContainer"></div>
+        <div id="resultContainer" class="result-grid"></div>
+    </div>
+
+    <div class="seo-content">
+        <details open>
+            <summary>使い方</summary>
+            <div class="details-inner">
+                <h3>簡単操作で感覚的に画像分割</h3>
+                <p>このツールは、ブラウザ上で画像を分割できるお助けツールです。</p>
+                <ol>
+                    <li><strong>画像の選択:</strong> 上部の「画像をアップロード」から、分割したい画像（JPG, PNG等）を選びます。</li>
+                    <li><strong>モードの選択:</strong> 縦方向にスライスする「縦分割モード」か、縦横に均等に切り分ける「グリッド分割モード」を選択します。</li>
+                    <li><strong>位置の調整:</strong> 縦分割モードの場合、プレビュー画面に表示される赤い線をマウスや指で上下にドラッグすることで、直感的にカット位置を微調整できます。X(Twitter)プレビュー画面で実際のタイムライン投稿イメージを確認しながら調整してください。</li>
+                    <li><strong>保存:</strong> 「分割して画像を出力する」ボタンを押すと結果が表示されます。「一括保存」ボタンで全ての画像をダウンロードできます。</li>
+                </ol>
+            </div>
+        </details>
+        <details>
+            <summary>便利な活用事例</summary>
+            <div class="details-inner">
+                <h3>クリエイターの作業を効率化する使い方</h3>
+                <ul>
+                    <li><strong>SNSへの最適化（X等）:</strong> プレビュー画面でタイムラインでの見え方を確認しながら、縦長画像を2分割や4分割（グリッド表示）の処理を効率的に行えます。</li>
+                    <li><strong>ブログ・note記事用の素材作成:</strong> noteの連載記事やブログ用に、大きな図解を16:9などの見やすい比率にスライスして配置したい場合に活躍します。</li>
+                    <li><strong>Webtoon（縦読みマンガ）の制作:</strong> 長尺の縦スクロールマンガを、アップロード先のプラットフォームの規定サイズ（高さ上限）に合わせて一括カットすることができます。</li>
+                </ul>
+            </div>
+        </details>
+        <details>
+            <summary>よくある質問（FAQ）とプライバシーポリシー</summary>
+            <div class="details-inner">
+                <h3>安全性と仕様について</h3>
+                <ul>
+                    <li><strong>Q. アップロードした画像は外部に流出・保存されませんか？</strong><br>
+                    A. はい、一切保存されません。当ツールの画像処理はすべてブラウザの内部（ローカル環境）で行われます。外部のサーバーに画像データが送信されることは物理的にないため、機密情報や未公開のイラストでも安全にご利用いただけます。</li>
+                    <li><strong>Q. スマホやタブレットでも使えますか？</strong><br>
+                    A. はい、iOSやAndroidの標準ブラウザ（SafariやChrome）で問題なく動作します。プレビューの赤い線もタッチ操作でドラッグ可能です。</li>
+                    <li><strong>Q. 商用利用は可能ですか？</strong><br>
+                    A. もちろんです、当ツールを使って分割した画像は、個人の趣味から商業用のWebマンガ、企業のSNS運用まで制限なく無料でご利用いただけます。</li>
+                </ul>
+            </div>
+        </details>
     </div>
 </div>
 
 <script>
     let loadedImage = null;
+    let currentMode = 'vertical';
+    let isDragging = false;
+    let draggedLineIndex = -1;
+
+    // UI要素の取得
     const imageInput = document.getElementById('imageInput');
     const imageInfo = document.getElementById('imageInfo');
-    const splitCountInput = document.getElementById('splitCount');
-    const cutPointsContainer = document.getElementById('cutPointsContainer');
-    const previewCanvas = document.getElementById('previewCanvas');
-    const previewCtx = previewCanvas.getContext('2d');
-    const processBtn = document.getElementById('processBtn');
-    const resetEvenBtn = document.getElementById('resetEvenBtn');
-    const sliceHeightsDisplay = document.getElementById('sliceHeightsDisplay');
+    const modeRadios = document.getElementsByName('splitMode');
     
     const previewGroup = document.getElementById('previewGroup');
-    const splitCountGroup = document.getElementById('splitCountGroup');
-    const cutPointsGroup = document.getElementById('cutPointsGroup');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const previewCtx = previewCanvas.getContext('2d');
     
+    const verticalSettings = document.getElementById('verticalSettings');
+    const gridSettings = document.getElementById('gridSettings');
+    
+    const splitCountInput = document.getElementById('splitCount');
+    const cutPointsContainer = document.getElementById('cutPointsContainer');
+    const resetEvenBtn = document.getElementById('resetEvenBtn');
+    
+    const gridRowsInput = document.getElementById('gridRows');
+    const gridColsInput = document.getElementById('gridCols');
+    
+    const processBtn = document.getElementById('processBtn');
     const resultArea = document.getElementById('resultArea');
     const resultContainer = document.getElementById('resultContainer');
     const downloadAllBtn = document.getElementById('downloadAllBtn');
 
-    // --- ドラッグ操作用の変数 ---
-    let isDragging = false;
-    let draggedLineIndex = -1;
+    const xPreviewArea = document.getElementById('xPreviewArea');
+    const xGridContainer = document.getElementById('xGridContainer');
 
+    // 画像アップロード
     imageInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         try {
             loadedImage = await loadImage(file);
-            imageInfo.textContent = `元の画像のサイズ: 幅 ${loadedImage.width}px / 高さ ${loadedImage.height}px`;
+            imageInfo.textContent = `サイズ: 幅 ${loadedImage.width}px / 高さ ${loadedImage.height}px`;
             
+            document.getElementById('modeGroup').style.display = 'block';
             previewGroup.style.display = 'block';
-            splitCountGroup.style.display = 'block';
-            cutPointsGroup.style.display = 'block';
-            resultArea.style.display = 'none';
-            downloadAllBtn.style.display = 'none';
             processBtn.disabled = false;
+            resultArea.style.display = 'none';
 
-            generateCutInputs();
+            updateUIVisibility();
+            generateCutInputs(); // ここで drawPreview -> Xプレビューが走る
         } catch (error) {
             console.error(error);
             alert('画像の読み込みに失敗しました。');
         }
     });
 
-    splitCountInput.addEventListener('input', () => {
-        if (loadedImage) generateCutInputs();
+    modeRadios.forEach(radio => {
+        radio.addEventListener('change', (e) => {
+            currentMode = e.target.value;
+            updateUIVisibility();
+            drawPreview();
+        });
     });
 
-    resetEvenBtn.addEventListener('click', () => {
-        if (loadedImage) generateCutInputs();
-    });
+    function updateUIVisibility() {
+        if (!loadedImage) return;
+        if (currentMode === 'vertical') {
+            verticalSettings.style.display = 'block';
+            gridSettings.style.display = 'none';
+            previewCanvas.style.cursor = 'crosshair';
+        } else {
+            verticalSettings.style.display = 'none';
+            gridSettings.style.display = 'block';
+            previewCanvas.style.cursor = 'default';
+        }
+    }
+
+    // 入力監視
+    splitCountInput.addEventListener('input', () => { if (loadedImage) generateCutInputs(); });
+    resetEvenBtn.addEventListener('click', () => { if (loadedImage) generateCutInputs(); });
+    gridRowsInput.addEventListener('input', drawPreview);
+    gridColsInput.addEventListener('input', drawPreview);
 
     function calculateEvenCuts(totalHeight, count) {
         const baseHeight = Math.floor(totalHeight / count);
         const remainder = totalHeight % count;
         const cuts = [];
         let currentY = 0;
-
         for (let i = 1; i < count; i++) {
-            const sliceHeight = baseHeight + (i <= remainder ? 1 : 0);
-            currentY += sliceHeight;
+            currentY += baseHeight + (i <= remainder ? 1 : 0);
             cuts.push(currentY);
         }
         return cuts;
@@ -175,161 +310,198 @@
 
     function generateCutInputs() {
         cutPointsContainer.innerHTML = '';
-        let count = parseInt(splitCountInput.value, 10);
-        if (isNaN(count) || count < 2) count = 2;
-        
-        const totalHeight = loadedImage.height;
-        const defaultCuts = calculateEvenCuts(totalHeight, count);
+        let count = parseInt(splitCountInput.value, 10) || 2;
+        const defaultCuts = calculateEvenCuts(loadedImage.height, count);
 
         defaultCuts.forEach((cutY, index) => {
             const row = document.createElement('div');
             row.className = 'cut-point-row';
-            
             const label = document.createElement('label');
-            label.textContent = `上から ${index + 1}本目の線:`;
-            
+            label.textContent = `上から ${index + 1}本目:`;
             const input = document.createElement('input');
             input.type = 'number';
             input.className = 'cut-input';
             input.value = cutY;
-            input.min = 1;
-            input.max = totalHeight - 1;
-            
-            input.addEventListener('input', () => {
-                drawPreview();
-                updateSliceHeights();
-            });
-
+            input.addEventListener('input', drawPreview);
             row.appendChild(label);
             row.appendChild(input);
             cutPointsContainer.appendChild(row);
         });
-        
         drawPreview();
-        updateSliceHeights();
     }
 
+    // --- メインのプレビューとXプレビューの更新 ---
     function drawPreview() {
         if (!loadedImage) return;
-
+        
+        // 1. 赤線用メインキャンバスの描画
         previewCanvas.width = loadedImage.width;
         previewCanvas.height = loadedImage.height;
         previewCtx.drawImage(loadedImage, 0, 0);
 
-        const inputs = document.querySelectorAll('.cut-input');
         previewCtx.strokeStyle = 'red';
         previewCtx.lineWidth = Math.max(3, Math.floor(loadedImage.width / 300)); 
 
-        inputs.forEach(input => {
-            const y = parseInt(input.value, 10);
-            if (!isNaN(y) && y > 0 && y < loadedImage.height) {
+        const slices = []; // リアルタイムプレビュー用の切り抜き座標配列
+
+        if (currentMode === 'vertical') {
+            let cuts = Array.from(document.querySelectorAll('.cut-input'))
+                .map(input => parseInt(input.value, 10))
+                .filter(y => !isNaN(y) && y > 0 && y < loadedImage.height);
+            
+            // 赤線を描画
+            cuts.forEach(y => {
                 previewCtx.beginPath();
                 previewCtx.moveTo(0, y);
                 previewCtx.lineTo(loadedImage.width, y);
                 previewCtx.stroke();
+            });
+
+            // 切り抜き領域を計算（最大4枚分）
+            cuts.push(0, loadedImage.height);
+            cuts.sort((a, b) => a - b);
+            cuts = [...new Set(cuts)];
+            
+            for (let i = 0; i < cuts.length - 1 && slices.length < 4; i++) {
+                slices.push({
+                    x: 0,
+                    y: cuts[i],
+                    w: loadedImage.width,
+                    h: cuts[i + 1] - cuts[i]
+                });
             }
-        });
+        } else if (currentMode === 'grid') {
+            const rows = parseInt(gridRowsInput.value, 10) || 1;
+            const cols = parseInt(gridColsInput.value, 10) || 1;
+            const sliceW = Math.floor(loadedImage.width / cols);
+            const sliceH = Math.floor(loadedImage.height / rows);
+
+            // 赤線を描画
+            for (let c = 1; c < cols; c++) {
+                previewCtx.beginPath();
+                previewCtx.moveTo(c * sliceW, 0);
+                previewCtx.lineTo(c * sliceW, loadedImage.height);
+                previewCtx.stroke();
+            }
+            for (let r = 1; r < rows; r++) {
+                previewCtx.beginPath();
+                previewCtx.moveTo(0, r * sliceH);
+                previewCtx.lineTo(loadedImage.width, r * sliceH);
+                previewCtx.stroke();
+            }
+
+            // 切り抜き領域を計算（最大4枚分）
+            for (let r = 0; r < rows && slices.length < 4; r++) {
+                for (let c = 0; c < cols && slices.length < 4; c++) {
+                    slices.push({
+                        x: c * sliceW,
+                        y: r * sliceH,
+                        w: sliceW,
+                        h: sliceH
+                    });
+                }
+            }
+        }
 
         document.getElementById('previewPlaceholder').style.display = 'none';
         previewCanvas.style.display = 'block';
+
+        // 2. 計算した座標をもとに、Xプレビューを高速描画
+        updateRealtimeXPreview(slices);
     }
 
-    function updateSliceHeights() {
-        if (!loadedImage) return;
-        const totalHeight = loadedImage.height;
-        
-        let cuts = Array.from(document.querySelectorAll('.cut-input'))
-            .map(input => parseInt(input.value, 10))
-            .filter(y => !isNaN(y) && y > 0 && y < totalHeight);
-        
-        cuts.push(0);
-        cuts.push(totalHeight);
-        cuts.sort((a, b) => a - b);
-        cuts = [...new Set(cuts)];
-
-        let html = '<strong>【出力される各画像の高さ】</strong><br>';
-        for (let i = 0; i < cuts.length - 1; i++) {
-            const height = cuts[i + 1] - cuts[i];
-            html += `<span>${i + 1}枚目: <b>${height}px</b></span>`;
+    // --- 高速リアルタイムXプレビュー描画エンジン ---
+    function updateRealtimeXPreview(slices) {
+        const count = slices.length;
+        if (count === 0) {
+            xPreviewArea.style.display = 'none';
+            return;
         }
-        sliceHeightsDisplay.innerHTML = html;
+        
+        xPreviewArea.style.display = 'block';
+        xGridContainer.className = `x-layout-${count}`;
+
+        // キャンバス要素の再利用（DOM操作を減らしてドラッグ時のラグをなくす）
+        let items = xGridContainer.querySelectorAll('.x-grid-item');
+        if (items.length !== count) {
+            xGridContainer.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const item = document.createElement('div');
+                item.className = 'x-grid-item';
+                const canvas = document.createElement('canvas');
+                item.appendChild(canvas);
+                xGridContainer.appendChild(item);
+            }
+            items = xGridContainer.querySelectorAll('.x-grid-item');
+        }
+
+        // 各キャンバスに直接画像を切り抜いて描画
+        for (let i = 0; i < count; i++) {
+            const canvas = items[i].querySelector('canvas');
+            const slice = slices[i];
+            
+            // 描画負荷を下げるため、キャンバスの内部解像度を最大800pxに制限
+            const scale = Math.min(1, 800 / slice.w); 
+            const drawW = Math.floor(slice.w * scale);
+            const drawH = Math.floor(slice.h * scale);
+            
+            // サイズが変わった時だけリサイズ
+            if (canvas.width !== drawW) canvas.width = drawW;
+            if (canvas.height !== drawH) canvas.height = drawH;
+            
+            const ctx = canvas.getContext('2d');
+            // 切り抜き描画 (元画像, X, Y, W, H, キャンバスX, キャンバスY, キャンバスW, キャンバスH)
+            ctx.drawImage(loadedImage, slice.x, slice.y, slice.w, slice.h, 0, 0, drawW, drawH);
+        }
     }
 
-    // --- マウス/タッチ座標を画像の内部ピクセルに変換する関数 ---
+    // --- ドラッグ操作 ---
     function getPointerY(e) {
         const rect = previewCanvas.getBoundingClientRect();
-        const scaleY = previewCanvas.height / rect.height; // 表示サイズと実サイズの比率
-        return (e.clientY - rect.top) * scaleY;
+        return (e.clientY - rect.top) * (previewCanvas.height / rect.height);
     }
 
-    // --- カーソルがどの線の近くにあるか判定する関数 ---
-    function getHoveredLineIndex(y) {
+    previewCanvas.addEventListener('pointerdown', (e) => {
+        if (!loadedImage || currentMode !== 'vertical') return;
+        previewCanvas.setPointerCapture(e.pointerId); 
+        const y = getPointerY(e);
         const inputs = Array.from(document.querySelectorAll('.cut-input'));
-        const rect = previewCanvas.getBoundingClientRect();
-        const scaleY = previewCanvas.height / rect.height;
-        // 画面上での「15px」の範囲を当たり判定とする（どんな画像サイズでも同じ操作感にするため）
-        const tolerance = 15 * scaleY; 
+        const tolerance = 20 * (previewCanvas.height / previewCanvas.getBoundingClientRect().height); 
 
         for (let i = 0; i < inputs.length; i++) {
-            const lineY = parseInt(inputs[i].value, 10);
-            if (Math.abs(y - lineY) <= tolerance) {
-                return i;
+            if (Math.abs(y - parseInt(inputs[i].value, 10)) <= tolerance) {
+                isDragging = true;
+                draggedLineIndex = i;
+                previewCanvas.style.cursor = 'ns-resize';
+                break;
             }
-        }
-        return -1;
-    }
-
-    // --- ドラッグ操作のイベント設定 (PointerEvent を使用) ---
-    previewCanvas.addEventListener('pointerdown', (e) => {
-        if (!loadedImage) return;
-        // マウスがキャンバス外に出てもドラッグを継続できるようにキャプチャ
-        previewCanvas.setPointerCapture(e.pointerId); 
-        
-        const y = getPointerY(e);
-        const lineIndex = getHoveredLineIndex(y);
-        
-        if (lineIndex !== -1) {
-            isDragging = true;
-            draggedLineIndex = lineIndex;
-            previewCanvas.style.cursor = 'ns-resize'; // 上下リサイズカーソルに変更
         }
     });
 
     previewCanvas.addEventListener('pointermove', (e) => {
-        if (!loadedImage) return;
+        if (!loadedImage || currentMode !== 'vertical') return;
         const y = getPointerY(e);
 
         if (isDragging && draggedLineIndex !== -1) {
             const inputs = Array.from(document.querySelectorAll('.cut-input'));
-            let newY = Math.round(y);
+            let newY = Math.max(1, Math.min(Math.round(y), loadedImage.height - 1));
             
-            // 線同士が交差しないように、上下の線の位置を調べて限界値を設定する
-            let minY = 1;
-            let maxY = loadedImage.height - 1;
+            if (draggedLineIndex > 0) newY = Math.max(newY, parseInt(inputs[draggedLineIndex - 1].value, 10) + 1);
+            if (draggedLineIndex < inputs.length - 1) newY = Math.min(newY, parseInt(inputs[draggedLineIndex + 1].value, 10) - 1);
             
-            if (draggedLineIndex > 0) {
-                minY = parseInt(inputs[draggedLineIndex - 1].value, 10) + 1; // 上の線より下
-            }
-            if (draggedLineIndex < inputs.length - 1) {
-                maxY = parseInt(inputs[draggedLineIndex + 1].value, 10) - 1; // 下の線より上
-            }
-            
-            // 限界値の範囲内に座標を収める
-            newY = Math.max(minY, Math.min(newY, maxY));
-            
-            // 入力欄の数値を書き換え、プレビューと情報を更新
             inputs[draggedLineIndex].value = newY;
+            
+            // 線が動くたびに描画関数を呼び出し、Xプレビューもリアルタイム更新
             drawPreview();
-            updateSliceHeights();
             
         } else {
-            // ドラッグしていない時は、線の近くにカーソルが来たら形を変える（ホバー効果）
-            const lineIndex = getHoveredLineIndex(y);
-            previewCanvas.style.cursor = lineIndex !== -1 ? 'ns-resize' : 'crosshair';
+            const inputs = Array.from(document.querySelectorAll('.cut-input'));
+            const tolerance = 20 * (previewCanvas.height / previewCanvas.getBoundingClientRect().height);
+            const isHovering = inputs.some(input => Math.abs(y - parseInt(input.value, 10)) <= tolerance);
+            previewCanvas.style.cursor = isHovering ? 'ns-resize' : 'crosshair';
         }
     });
 
-    // ドラッグ終了処理
     const endDrag = (e) => {
         if(isDragging) {
             isDragging = false;
@@ -341,88 +513,83 @@
     previewCanvas.addEventListener('pointerup', endDrag);
     previewCanvas.addEventListener('pointercancel', endDrag);
 
-    // 画面出力処理
+    // --- 本番の処理と出力 ---
     processBtn.addEventListener('click', () => {
         if (!loadedImage) return;
-        
         processBtn.disabled = true;
-        processBtn.textContent = '処理中...';
         resultContainer.innerHTML = ''; 
         
         setTimeout(() => {
             try {
-                const width = loadedImage.width;
-                const totalHeight = loadedImage.height;
-
-                let cuts = Array.from(document.querySelectorAll('.cut-input'))
-                    .map(input => parseInt(input.value, 10))
-                    .filter(y => !isNaN(y) && y > 0 && y < totalHeight);
-                
-                cuts.push(0);
-                cuts.push(totalHeight);
-                cuts.sort((a, b) => a - b);
-                cuts = [...new Set(cuts)];
-
                 const workCanvas = document.createElement('canvas');
                 const workCtx = workCanvas.getContext('2d');
-                workCanvas.width = width;
+                let count = 0;
 
-                for (let i = 0; i < cuts.length - 1; i++) {
-                    const startY = cuts[i];
-                    const endY = cuts[i + 1];
-                    const currentHeight = endY - startY;
-                    
-                    workCanvas.height = currentHeight;
-                    workCtx.drawImage(loadedImage, 0, startY, width, currentHeight, 0, 0, width, currentHeight);
-                    
-                    const dataUrl = workCanvas.toDataURL('image/png');
-                    const fileNumber = String(i + 1).padStart(2, '0');
-                    const fileName = `image_${fileNumber}.png`;
-                    
-                    const itemDiv = document.createElement('div');
-                    itemDiv.className = 'result-item';
-                    
-                    const label = document.createElement('h3');
-                    label.textContent = `${i + 1}枚目 (${width}x${currentHeight}px)`;
-                    label.style.marginTop = '0';
-                    
-                    const img = document.createElement('img');
-                    img.src = dataUrl;
-                    
-                    const downloadBtn = document.createElement('a');
-                    downloadBtn.href = dataUrl;
-                    downloadBtn.download = fileName;
-                    downloadBtn.className = 'download-btn individual-download-btn';
-                    downloadBtn.textContent = `⬇️ ${fileName} を保存`;
+                if (currentMode === 'vertical') {
+                    let cuts = Array.from(document.querySelectorAll('.cut-input'))
+                        .map(input => parseInt(input.value, 10))
+                        .filter(y => y > 0 && y < loadedImage.height);
+                    cuts.push(0, loadedImage.height);
+                    cuts.sort((a, b) => a - b);
+                    cuts = [...new Set(cuts)];
 
-                    itemDiv.appendChild(label);
-                    itemDiv.appendChild(img);
-                    itemDiv.appendChild(downloadBtn);
-                    resultContainer.appendChild(itemDiv);
+                    workCanvas.width = loadedImage.width;
+                    for (let i = 0; i < cuts.length - 1; i++) {
+                        const h = cuts[i + 1] - cuts[i];
+                        workCanvas.height = h;
+                        workCtx.drawImage(loadedImage, 0, cuts[i], loadedImage.width, h, 0, 0, loadedImage.width, h);
+                        createResultItem(workCanvas.toDataURL('image/png'), ++count);
+                    }
+                } else {
+                    const rows = parseInt(gridRowsInput.value, 10) || 1;
+                    const cols = parseInt(gridColsInput.value, 10) || 1;
+                    const sliceW = Math.floor(loadedImage.width / cols);
+                    const sliceH = Math.floor(loadedImage.height / rows);
+
+                    workCanvas.width = sliceW;
+                    workCanvas.height = sliceH;
+
+                    for (let r = 0; r < rows; r++) {
+                        for (let c = 0; c < cols; c++) {
+                            workCtx.clearRect(0, 0, sliceW, sliceH);
+                            workCtx.drawImage(loadedImage, c * sliceW, r * sliceH, sliceW, sliceH, 0, 0, sliceW, sliceH);
+                            createResultItem(workCanvas.toDataURL('image/png'), ++count);
+                        }
+                    }
                 }
 
                 resultArea.style.display = 'block';
-                downloadAllBtn.style.display = 'inline-block';
                 resultArea.scrollIntoView({ behavior: 'smooth' });
-
             } catch (error) {
-                console.error(error);
                 alert('エラーが発生しました。');
             } finally {
                 processBtn.disabled = false;
-                processBtn.textContent = '分割して画像を出力する';
             }
         }, 50);
     });
 
+    function createResultItem(dataUrl, index) {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'result-item';
+        const img = document.createElement('img');
+        img.src = dataUrl;
+        const fileName = `slice_${String(index).padStart(2, '0')}.png`;
+        const downloadBtn = document.createElement('a');
+        downloadBtn.href = dataUrl;
+        downloadBtn.download = fileName;
+        downloadBtn.className = 'download-btn individual-download-btn';
+        downloadBtn.textContent = `⬇️ ${fileName}`;
+        itemDiv.appendChild(img);
+        itemDiv.appendChild(downloadBtn);
+        resultContainer.appendChild(itemDiv);
+    }
+
+    // 一括保存
     downloadAllBtn.addEventListener('click', async () => {
         const links = document.querySelectorAll('.individual-download-btn');
         if (links.length === 0) return;
+        if (!confirm('全ての画像を順番にダウンロードします。許可を求められた場合は「許可」を押してください。')) return;
 
-        const confirmMsg = '出力された全ての画像を順番にダウンロードします。\nブラウザから「複数ファイルのダウンロード」の許可を求められた場合は「許可」を押してください。\n\nよろしいですか？';
-        if (!confirm(confirmMsg)) return;
-
-        const originalText = downloadAllBtn.textContent;
         downloadAllBtn.disabled = true;
         downloadAllBtn.textContent = '📦 ダウンロード中...';
 
@@ -430,12 +597,10 @@
             links[i].click();
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-
-        downloadAllBtn.textContent = '✅ ダウンロード完了！';
-        
+        downloadAllBtn.textContent = '✅ 完了！';
         setTimeout(() => {
             downloadAllBtn.disabled = false;
-            downloadAllBtn.textContent = originalText;
+            downloadAllBtn.textContent = '📦 すべて一括保存';
         }, 3000);
     });
 
@@ -451,5 +616,3 @@
 
 </body>
 </html>
-
-
