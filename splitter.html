@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>らくらく画像分割君 | X(Twitter)プレビュー対応で綺麗にスライス画像分割ツール</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>">
+    <meta name="description" content="ブラウザ上で画像を縦分割・グリッド分割できる無料ツール。X(Twitter)のタイムライン表示をリアルタイムプレビュー！スマホ対応、ドラッグ操作可能。">
+    <style>
+        /* 基本・共通CSS */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; line-height: 1.6; }
+        .navbar { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar a { text-decoration: none; color: #333; font-weight: bold; }
+        .nav-links a { margin-left: 20px; color: #007bff; }
+        .nav-links a:hover { text-decoration: underline; }
+        
+        .container { max-width: 750px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.6rem; text-align: center; margin-bottom: 20px; color: #222; border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block; width: 100%;}
+        
+        .form-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .form-group:last-child { border-bottom: none; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input[type="file"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        
+        .radio-group { display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap; }
+        .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; background: #f1f3f5; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;}
+        .radio-group input[type="radio"]:checked + span { font-weight: bold; color: #007bff; }
+        .radio-group label:hover { background: #e2e6ea; }
+
+        button { padding: 12px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { width: 100%; background-color: #007bff; color: white; margin-top: 10px; font-weight: bold; font-size: 1.1rem; padding: 15px;}
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-primary:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-secondary { background-color: #6c757d; color: white; padding: 8px 15px; font-size: 0.9rem; margin-bottom: 15px;}
+        .btn-secondary:hover { background-color: #5a6268; }
+        .btn-warning { background-color: #ff9800; color: white; font-weight: bold; padding: 12px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-warning:hover { background-color: #e68a00; }
+
+        /* 分割特有CSS */
+        .cut-point-row { display: flex; align-items: center; margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
+        .cut-point-row label { margin-bottom: 0; margin-right: 15px; white-space: nowrap; font-weight: normal; width: 120px;}
+        .grid-inputs { display: flex; gap: 15px; }
+        .grid-inputs div { flex: 1; }
+        .preview-container { text-align: center; border: 2px dashed #ccc; padding: 10px; background: #fafafa; border-radius: 4px; margin-bottom: 20px; position: relative;}
+        #previewCanvas { width: 100%; height: auto; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.1); touch-action: none; cursor: crosshair; }
+        
+        #xSplitPreviewArea { margin-top: 30px; margin-bottom: 30px; border: 2px solid #1da1f2; border-radius: 8px; padding: 20px; display: none; background-color: #f5f8fa; }
+        .x-preview-box { background: #fff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 15px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .x-dummy-header { display: flex; margin-bottom: 10px; }
+        .x-dummy-icon { width: 40px; height: 40px; background: #ccc; border-radius: 50%; margin-right: 10px; }
+        .x-dummy-text { flex: 1; }
+        .x-dummy-name { font-weight: bold; font-size: 0.9rem; }
+        .x-dummy-id { color: #657786; font-size: 0.85rem; }
+        .x-dummy-content { font-size: 0.95rem; margin-bottom: 10px; }
+        #xGridContainer { display: grid; gap: 2px; border-radius: 12px; overflow: hidden; border: 1px solid #cfd9de; aspect-ratio: 16 / 9; }
+        .x-grid-item { position: relative; width: 100%; height: 100%; overflow: hidden; background: #f0f0f0; }
+        .x-grid-item canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        #xGridContainer.x-layout-1 { display: block; aspect-ratio: auto; border: none;}
+        #xGridContainer.x-layout-1 .x-grid-item { border-radius: 12px; border: 1px solid #cfd9de; max-height: 500px; }
+        #xGridContainer.x-layout-1 canvas { position: static; height: auto; max-height: 500px; object-fit: contain; }
+        #xGridContainer.x-layout-2 { grid-template-columns: 1fr 1fr; }
+        #xGridContainer.x-layout-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+        #xGridContainer.x-layout-3 .x-grid-item:nth-child(1) { grid-row: span 2; }
+        #xGridContainer.x-layout-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+        #splitResultArea { margin-top: 40px; border-top: 3px solid #28a745; padding-top: 20px; display: none; }
+        .result-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 20px; }
+        .result-item { text-align: center; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .result-item img { max-width: 100%; height: auto; display: block; margin: 0 auto 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .download-btn { display: inline-block; background-color: #28a745; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.9rem; width: 100%; box-sizing: border-box;}
+        
+        .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 30px; color: #444; }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" style="font-size: 1.2rem;">🎨 戻る（トップへ）</a>
+
+    </nav>
+
+    <div class="container">
+        <h1>✂️ らくらく画像分割君</h1>
+
+        <div class="form-group">
+            <label for="splitImageInput">1. 分割する画像をアップロード</label>
+            <input type="file" id="splitImageInput" accept="image/png, image/jpeg, image/webp">
+        </div>
+
+        <div class="form-group" id="splitModeGroup" style="display: none;">
+            <label>2. 分割モード</label>
+            <div class="radio-group">
+                <label><input type="radio" name="splitMode" value="vertical" checked> <span>縦分割（自由配置）</span></label>
+                <label><input type="radio" name="splitMode" value="grid"> <span>縦＋横（均等グリッド）</span></label>
+            </div>
+        </div>
+
+        <div class="form-group" id="splitPreviewGroup" style="display: none;">
+            <label>分割位置の調整（プレビュー）</label>
+            <div class="preview-container">
+                <canvas id="previewCanvas" style="display: none;"></canvas>
+            </div>
+            
+            <div id="verticalSettings">
+                <label style="margin-top:15px;">縦の分割数</label>
+                <input type="number" id="splitCount" value="2" min="2" max="50">
+                <button type="button" id="resetEvenBtn" class="btn-secondary" style="margin-top:10px;">🔄 均等割りにリセット</button>
+                <div id="cutPointsContainer"></div>
+            </div>
+
+            <div id="gridSettings" style="display: none; margin-top:15px;">
+                <div class="grid-inputs">
+                    <div><label>縦の行数</label><input type="number" id="gridRows" value="2" min="1" max="20"></div>
+                    <div><label>横の列数</label><input type="number" id="gridCols" value="2" min="1" max="20"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="xSplitPreviewArea">
+            <h2 style="text-align: center; color: #1da1f2; margin-top: 0; margin-bottom: 15px; font-size: 1.3rem;">📱 X (Twitter) 投稿時の見え方</h2>
+            <p style="text-align: center; font-size: 0.85rem; margin-top: -10px; color: #666;">※線を動かすとリアルタイムで反映されます（先頭4枚まで）</p>
+            <div class="x-preview-box">
+                <div class="x-dummy-header">
+                    <div class="x-dummy-icon"></div>
+                    <div class="x-dummy-text">
+                        <div class="x-dummy-name">あなたの名前 <span class="x-dummy-id">@your_id · 今</span></div>
+                        <div class="x-dummy-content">分割した画像を投稿するとこんな感じで表示されます！ #画像分割</div>
+                    </div>
+                </div>
+                <div id="xGridContainer"></div>
+            </div>
+        </div>
+
+        <button id="splitProcessBtn" class="btn-primary" disabled>✂️ 分割して画像を出力</button>
+
+        <div id="splitResultArea">
+            <h2 style="text-align: center; color: #28a745;">出力結果</h2>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="splitDownloadAllBtn" class="btn-warning">📦 すべて一括保存</button>
+            </div>
+            <div id="splitResultContainer" class="result-grid"></div>
+        </div>
+
+        <div class="seo-content">
+            <h3>このツールについて</h3>
+            <p>指定したピクセル数や均等グリッドで画像を綺麗にスライスできます。プレビュー画面上の赤い線をマウスや指でドラッグすることで、直感的にカット位置を調整できます。</p>
+            <p><strong>活用事例:</strong> Webtoon（縦読みマンガ）の制作や、長尺のAIイラストの分割、X（旧Twitter）のアルゴリズムに合わせたタイムライン画像分割などに最適です。</p>
+        </div>
+    </div>
+
+<script>
+    function loadImage(file) { return new Promise((r, j) => { const i = new Image(); i.onload = () => r(i); i.onerror = j; i.src = URL.createObjectURL(file); }); }
+    
+    const state = { img: null, mode: 'vertical', isDragging: false, draggedLineIndex: -1 };
+    const elPreview = document.getElementById('previewCanvas');
+    const ctx = elPreview.getContext('2d');
+    const xPreviewArea = document.getElementById('xSplitPreviewArea');
+    const xGrid = document.getElementById('xGridContainer');
+    
+    document.getElementById('splitImageInput').addEventListener('change', async (e) => {
+        if (!e.target.files[0]) return;
+        state.img = await loadImage(e.target.files[0]);
+        document.getElementById('splitModeGroup').style.display = 'block';
+        document.getElementById('splitPreviewGroup').style.display = 'block';
+        document.getElementById('splitResultArea').style.display = 'none';
+        document.getElementById('splitProcessBtn').disabled = false;
+        updateUI(); generateInputs();
+    });
+
+    document.getElementsByName('splitMode').forEach(r => r.addEventListener('change', e => { state.mode = e.target.value; updateUI(); draw(); }));
+
+    function updateUI() {
+        if (state.mode === 'vertical') {
+            document.getElementById('verticalSettings').style.display = 'block'; document.getElementById('gridSettings').style.display = 'none'; elPreview.style.cursor = 'crosshair';
+        } else {
+            document.getElementById('verticalSettings').style.display = 'none'; document.getElementById('gridSettings').style.display = 'block'; elPreview.style.cursor = 'default';
+        }
+    }
+
+    document.getElementById('splitCount').addEventListener('input', generateInputs);
+    document.getElementById('resetEvenBtn').addEventListener('click', generateInputs);
+    document.getElementById('gridRows').addEventListener('input', draw);
+    document.getElementById('gridCols').addEventListener('input', draw);
+
+    function generateInputs() {
+        const container = document.getElementById('cutPointsContainer'); container.innerHTML = '';
+        const count = parseInt(document.getElementById('splitCount').value, 10) || 2;
+        const totalHeight = state.img.height; const baseH = Math.floor(totalHeight / count); const rem = totalHeight % count;
+        let currentY = 0;
+        for (let i = 1; i < count; i++) {
+            currentY += baseH + (i <= rem ? 1 : 0);
+            const row = document.createElement('div'); row.className = 'cut-point-row';
+            row.innerHTML = `<label>上から ${i}本目:</label><input type="number" class="cut-input" value="${currentY}">`;
+            row.querySelector('input').addEventListener('input', draw); container.appendChild(row);
+        }
+        draw();
+    }
+
+    function draw() {
+        if (!state.img) return;
+        elPreview.width = state.img.width; elPreview.height = state.img.height;
+        ctx.drawImage(state.img, 0, 0); ctx.strokeStyle = 'red'; ctx.lineWidth = Math.max(3, Math.floor(state.img.width / 300)); 
+        const slices = []; 
+
+        if (state.mode === 'vertical') {
+            let cuts = Array.from(document.querySelectorAll('.cut-input')).map(i => parseInt(i.value, 10)).filter(y => !isNaN(y) && y > 0 && y < state.img.height);
+            cuts.forEach(y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(state.img.width, y); ctx.stroke(); });
+            cuts.push(0, state.img.height); cuts.sort((a, b) => a - b); cuts = [...new Set(cuts)];
+            for (let i = 0; i < cuts.length - 1 && slices.length < 4; i++) slices.push({ x: 0, y: cuts[i], w: state.img.width, h: cuts[i + 1] - cuts[i] });
+        } else {
+            const rows = parseInt(document.getElementById('gridRows').value, 10) || 1; const cols = parseInt(document.getElementById('gridCols').value, 10) || 1;
+            const sliceW = Math.floor(state.img.width / cols); const sliceH = Math.floor(state.img.height / rows);
+            for (let c = 1; c < cols; c++) { ctx.beginPath(); ctx.moveTo(c * sliceW, 0); ctx.lineTo(c * sliceW, state.img.height); ctx.stroke(); }
+            for (let r = 1; r < rows; r++) { ctx.beginPath(); ctx.moveTo(0, r * sliceH); ctx.lineTo(state.img.width, r * sliceH); ctx.stroke(); }
+            for (let r = 0; r < rows && slices.length < 4; r++) for (let c = 0; c < cols && slices.length < 4; c++) slices.push({ x: c * sliceW, y: r * sliceH, w: sliceW, h: sliceH });
+        }
+        elPreview.style.display = 'block'; updateRealtimeXPreview(slices);
+    }
+
+    function updateRealtimeXPreview(slices) {
+        const count = slices.length; if (count === 0) { xPreviewArea.style.display = 'none'; return; }
+        xPreviewArea.style.display = 'block'; xGrid.className = `x-layout-${count}`;
+        let items = xGrid.querySelectorAll('.x-grid-item');
+        if (items.length !== count) {
+            xGrid.innerHTML = '';
+            for (let i = 0; i < count; i++) { const item = document.createElement('div'); item.className = 'x-grid-item'; item.appendChild(document.createElement('canvas')); xGrid.appendChild(item); }
+            items = xGrid.querySelectorAll('.x-grid-item');
+        }
+        for (let i = 0; i < count; i++) {
+            const canvas = items[i].querySelector('canvas'); const slice = slices[i]; const scale = Math.min(1, 800 / slice.w); 
+            const drawW = Math.floor(slice.w * scale); const drawH = Math.floor(slice.h * scale);
+            if (canvas.width !== drawW) canvas.width = drawW; if (canvas.height !== drawH) canvas.height = drawH;
+            canvas.getContext('2d').drawImage(state.img, slice.x, slice.y, slice.w, slice.h, 0, 0, drawW, drawH);
+        }
+    }
+
+    function getPointerY(e) { return (e.clientY - elPreview.getBoundingClientRect().top) * (elPreview.height / elPreview.getBoundingClientRect().height); }
+    elPreview.addEventListener('pointerdown', e => {
+        if (!state.img || state.mode !== 'vertical') return;
+        elPreview.setPointerCapture(e.pointerId); const y = getPointerY(e);
+        const inputs = Array.from(document.querySelectorAll('.cut-input')); const tol = 20 * (elPreview.height / elPreview.getBoundingClientRect().height); 
+        for (let i = 0; i < inputs.length; i++) if (Math.abs(y - parseInt(inputs[i].value, 10)) <= tol) { state.isDragging = true; state.draggedLineIndex = i; elPreview.style.cursor = 'ns-resize'; break; }
+    });
+    elPreview.addEventListener('pointermove', e => {
+        if (!state.img || state.mode !== 'vertical') return;
+        const y = getPointerY(e); const inputs = Array.from(document.querySelectorAll('.cut-input'));
+        if (state.isDragging && state.draggedLineIndex !== -1) {
+            let newY = Math.max(1, Math.min(Math.round(y), state.img.height - 1));
+            if (state.draggedLineIndex > 0) newY = Math.max(newY, parseInt(inputs[state.draggedLineIndex - 1].value, 10) + 1);
+            if (state.draggedLineIndex < inputs.length - 1) newY = Math.min(newY, parseInt(inputs[state.draggedLineIndex + 1].value, 10) - 1);
+            inputs[state.draggedLineIndex].value = newY; draw(); 
+        } else {
+            const tol = 20 * (elPreview.height / elPreview.getBoundingClientRect().height);
+            elPreview.style.cursor = inputs.some(input => Math.abs(y - parseInt(input.value, 10)) <= tol) ? 'ns-resize' : 'crosshair';
+        }
+    });
+    const endDrag = e => { if(state.isDragging) { state.isDragging = false; state.draggedLineIndex = -1; elPreview.releasePointerCapture(e.pointerId); elPreview.style.cursor = 'crosshair'; } };
+    elPreview.addEventListener('pointerup', endDrag); elPreview.addEventListener('pointercancel', endDrag);
+
+    document.getElementById('splitProcessBtn').addEventListener('click', () => {
+        if (!state.img) return;
+        const container = document.getElementById('splitResultContainer'); container.innerHTML = '';
+        const workCanvas = document.createElement('canvas'); const workCtx = workCanvas.getContext('2d'); let count = 0;
+        if (state.mode === 'vertical') {
+            let cuts = Array.from(document.querySelectorAll('.cut-input')).map(i => parseInt(i.value, 10)).filter(y => y > 0 && y < state.img.height);
+            cuts.push(0, state.img.height); cuts.sort((a, b) => a - b); cuts = [...new Set(cuts)];
+            workCanvas.width = state.img.width;
+            for (let i = 0; i < cuts.length - 1; i++) {
+                const h = cuts[i + 1] - cuts[i]; workCanvas.height = h;
+                workCtx.drawImage(state.img, 0, cuts[i], state.img.width, h, 0, 0, state.img.width, h);
+                createResultItem(workCanvas.toDataURL('image/png'), ++count, container);
+            }
+        } else {
+            const rows = parseInt(document.getElementById('gridRows').value, 10) || 1; const cols = parseInt(document.getElementById('gridCols').value, 10) || 1;
+            const sliceW = Math.floor(state.img.width / cols); const sliceH = Math.floor(state.img.height / rows);
+            workCanvas.width = sliceW; workCanvas.height = sliceH;
+            for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+                workCtx.clearRect(0, 0, sliceW, sliceH); workCtx.drawImage(state.img, c * sliceW, r * sliceH, sliceW, sliceH, 0, 0, sliceW, sliceH);
+                createResultItem(workCanvas.toDataURL('image/png'), ++count, container);
+            }
+        }
+        document.getElementById('splitResultArea').style.display = 'block'; document.getElementById('splitResultArea').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    function createResultItem(dataUrl, index, container) {
+        const item = document.createElement('div'); item.className = 'result-item'; const fileName = `slice_${String(index).padStart(2, '0')}.png`;
+        item.innerHTML = `<img src="${dataUrl}"><a href="${dataUrl}" download="${fileName}" class="download-btn split-dl-btn">⬇️ ${fileName} を保存</a>`; container.appendChild(item);
+    }
+    
+    document.getElementById('splitDownloadAllBtn').addEventListener('click', async (e) => {
+        const links = document.querySelectorAll('.split-dl-btn');
+        if (links.length === 0 || !confirm('一括ダウンロードします。許可を求められたら「許可」を押してください。')) return;
+        const btn = e.target; btn.disabled = true; btn.textContent = '📦 ダウンロード中...';
+        for (let i = 0; i < links.length; i++) { links[i].click(); await new Promise(r => setTimeout(r, 500)); }
+        btn.textContent = '✅ 完了！'; setTimeout(() => { btn.disabled = false; btn.textContent = '📦 すべて一括保存'; }, 3000);
+    });
+</script>
+
+</body>
+</html>

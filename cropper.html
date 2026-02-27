@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>チョキチョキプロフ画像作成君 | X・Instagram・pixiv対応SNSプロフ画像作成ツール</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🖼️</text></svg>">
+    <meta name="description" content="X(Twitter)、Instagram、pixivのヘッダー・アイコン用画像をドラッグとズームで直感的に作成できる無料ツール。実際の画面を模したリアルタイムプレビューで確認できます。">
+    <style>
+        /* 基本・共通CSS */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; line-height: 1.6; }
+        .navbar { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar a { text-decoration: none; color: #333; font-weight: bold; }
+        .nav-links a { margin-left: 20px; color: #007bff; }
+        .nav-links a:hover { text-decoration: underline; }
+        
+        .container { max-width: 750px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.6rem; text-align: center; margin-bottom: 20px; color: #222; border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block; width: 100%;}
+        
+        /* SNS切り替えタブ */
+        .sns-tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 25px; }
+        .sns-tab-btn { flex: 1; padding: 12px 5px; text-align: center; cursor: pointer; font-weight: bold; font-size: 1rem; border: none; background: transparent; color: #666; transition: all 0.3s; }
+        .sns-tab-btn:hover { background: #f8f9fa; }
+        .sns-tab-btn[data-sns="x"].active { color: #1da1f2; border-bottom: 3px solid #1da1f2; }
+        .sns-tab-btn[data-sns="instagram"].active { color: #E1306C; border-bottom: 3px solid #E1306C; }
+        .sns-tab-btn[data-sns="pixiv"].active { color: #0096fa; border-bottom: 3px solid #0096fa; }
+
+        .form-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .form-group:last-child { border-bottom: none; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input[type="file"], input[type="range"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        input[type="range"] { margin: 10px 0; cursor: pointer; border: none; padding: 0;}
+        
+        .radio-group { display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap; }
+        .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; background: #f1f3f5; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;}
+        .radio-group input[type="radio"]:checked + span { font-weight: bold; color: #007bff; }
+        .radio-group label:hover { background: #e2e6ea; }
+
+        button { padding: 12px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { width: 100%; background-color: #007bff; color: white; margin-top: 10px; font-weight: bold; font-size: 1.1rem; padding: 15px;}
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-warning { background-color: #ff9800; color: white; font-weight: bold; padding: 12px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .btn-warning:hover { background-color: #e68a00; }
+
+        /* クロップ特有CSS */
+        .crop-workspace { position: relative; width: 100%; max-width: 600px; margin: 0 auto; border: 2px solid #ddd; border-radius: 8px; overflow: hidden; background: #e9ecef; touch-action: none; }
+        #cropCanvas { display: block; width: 100%; height: auto; cursor: grab; }
+        #cropCanvas:active { cursor: grabbing; }
+        .zoom-controls { display: flex; align-items: center; gap: 10px; margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px; }
+        
+        /* モックアップ共通設定 */
+        .mockup-container { margin-top: 30px; display: none; }
+        .mockup-title { text-align: center; margin-top: 30px; font-size: 1.3rem; }
+        .mockup-desc { text-align: center; font-size: 0.85rem; color: #666; margin-top: -10px; margin-bottom: 15px; }
+
+        /* X (Twitter) モックアップ */
+        .x-profile-mockup { border: 1px solid #cfd9de; border-radius: 12px; overflow: hidden; background: #fff; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .x-header-area { width: 100%; aspect-ratio: 3 / 1; background: #c4cfd6; position: relative; overflow: hidden; }
+        .x-header-area img { width: 100%; height: 100%; object-fit: cover; }
+        .x-icon-area { width: 22%; aspect-ratio: 1 / 1; background: #fff; border-radius: 50%; border: 4px solid #fff; position: relative; margin-top: -11%; margin-left: 4%; overflow: hidden; z-index: 2; box-shadow: 0 0 2px rgba(0,0,0,0.2); }
+        .x-icon-area img { width: 100%; height: 100%; object-fit: cover; }
+        .x-profile-text { padding: 10px 20px 20px; }
+        .x-profile-name { font-weight: 800; font-size: 1.2rem; line-height: 1.2; }
+        .x-profile-id { color: #536471; font-size: 0.95rem; margin-bottom: 10px; }
+
+        /* Instagram モックアップ */
+        .ig-profile-mockup { border: 1px solid #cfd9de; border-radius: 12px; background: #fff; max-width: 500px; margin: 0 auto; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .ig-header { display: flex; align-items: center; }
+        .ig-icon-area { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; border: 1px solid #eee; flex-shrink: 0; background: #f4f4f4; }
+        .ig-icon-area img { width: 100%; height: 100%; object-fit: cover; }
+        .ig-stats { display: flex; justify-content: space-around; flex-grow: 1; margin-left: 20px; text-align: center; font-size: 0.9rem; color: #262626;}
+        .ig-stat-num { font-weight: bold; font-size: 1.1rem; display: block; color: #000; }
+        .ig-bio { margin-top: 15px; font-size: 0.9rem; color: #262626; }
+        .ig-bio-name { font-weight: bold; display: block; margin-bottom: 2px; }
+
+        /* pixiv モックアップ */
+        .px-profile-mockup { border: 1px solid #cfd9de; border-radius: 12px; overflow: hidden; background: #fff; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; }
+        .px-header-area { width: 100%; aspect-ratio: 2 / 1; background: #f4f4f4; position: relative; }
+        .px-header-area img { width: 100%; height: 100%; object-fit: cover; }
+        .px-icon-area { width: 100px; height: 100px; border-radius: 50%; border: 4px solid #fff; margin: -50px auto 10px; position: relative; z-index: 2; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden; }
+        .px-icon-area img { width: 100%; height: 100%; object-fit: cover; }
+        .px-profile-name { font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; color: #333; }
+        
+        #cropResultArea { margin-top: 40px; border-top: 3px solid #28a745; padding-top: 20px; display: none; }
+        .result-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 20px; }
+        .result-item { text-align: center; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .download-btn { display: inline-block; background-color: #28a745; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.9rem; width: 100%; box-sizing: border-box;}
+        .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 30px; color: #444; }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" style="font-size: 1.2rem;">🎨 戻る（トップへ）</a>
+
+    </nav>
+
+    <div class="container">
+        <h1>🖼️ チョキチョキプロフ画像作成君</h1>
+
+        <div class="sns-tabs">
+            <button class="sns-tab-btn active" data-sns="x">🐦 X (Twitter)</button>
+            <button class="sns-tab-btn" data-sns="instagram">📷 Instagram</button>
+            <button class="sns-tab-btn" data-sns="pixiv">🎨 pixiv</button>
+        </div>
+
+        <div class="form-group">
+            <label>1. 編集するパーツを選択</label>
+            <div class="radio-group" id="partRadioGroup">
+                <label><input type="radio" name="cropTarget" value="icon" checked> <span>アイコン</span></label>
+                <label id="headerRadioWrapper"><input type="radio" name="cropTarget" value="header"> <span>ヘッダー</span></label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label id="cropUploadLabel" for="cropImageInput">2. アイコン用の画像をアップロード</label>
+            <input type="file" id="cropImageInput" accept="image/png, image/jpeg, image/webp">
+        </div>
+
+        <div id="cropWorkspaceGroup" style="display: none;">
+            <label>3. 位置とズームを調整 <br><small style="font-weight:normal; color:#666;">※画像をドラッグで移動、マウスホイールでズームできます！</small></label>
+            
+            <div class="crop-workspace">
+                <canvas id="cropCanvas" width="600" height="400"></canvas>
+            </div>
+            
+            <div class="zoom-controls">
+                <span>➖</span>
+                <input type="range" id="cropZoom" step="0.01">
+                <span>➕</span>
+            </div>
+
+            <div id="mockup-x" class="mockup-container" style="display: block;">
+                <h3 class="mockup-title" style="color: #1da1f2;">📱 X (Twitter) プレビュー</h3>
+                <p class="mockup-desc">アイコンとヘッダーを別々にアップロードして、全体のバランスを確認できます。</p>
+                <div class="x-profile-mockup">
+                    <div class="x-header-area">
+                        <img id="xMockHeader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='200'%3E%3Crect width='600' height='200' fill='%23c4cfd6'/%3E%3C/svg%3E">
+                    </div>
+                    <div class="x-icon-area">
+                        <img id="xMockIcon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23e1e8ed'/%3E%3C/svg%3E">
+                    </div>
+                    <div class="x-profile-text">
+                        <div class="x-profile-name">あなたの名前</div>
+                        <div class="x-profile-id">@your_account_id</div>
+                        <p style="font-size: 0.9rem; color: #333; margin-top: 10px;">プレビュー画面です。画像を動かすとここにもリアルタイムで反映されます！</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="mockup-instagram" class="mockup-container">
+                <h3 class="mockup-title" style="color: #E1306C;">📱 Instagram プレビュー</h3>
+                <p class="mockup-desc">正方形の画像が丸くトリミングされた際の見た目を確認できます。</p>
+                <div class="ig-profile-mockup">
+                    <div class="ig-header">
+                        <div class="ig-icon-area">
+                            <img id="igMockIcon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23e1e8ed'/%3E%3C/svg%3E">
+                        </div>
+                        <div class="ig-stats">
+                            <div><span class="ig-stat-num">123</span>投稿</div>
+                            <div><span class="ig-stat-num">1.5万</span>フォロワー</div>
+                            <div><span class="ig-stat-num">100</span>フォロー中</div>
+                        </div>
+                    </div>
+                    <div class="ig-bio">
+                        <span class="ig-bio-name">あなたの名前</span>
+                        プレビュー画面です。<br>画像を動かすとアイコンにリアルタイムで反映されます！
+                    </div>
+                </div>
+            </div>
+
+            <div id="mockup-pixiv" class="mockup-container">
+                <h3 class="mockup-title" style="color: #0096fa;">📱 pixiv プレビュー</h3>
+                <p class="mockup-desc">2:1のヘッダーとアイコンのバランスを調整できます。</p>
+                <div class="px-profile-mockup">
+                    <div class="px-header-area">
+                        <img id="pxMockHeader" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='300'%3E%3Crect width='600' height='300' fill='%23c4cfd6'/%3E%3C/svg%3E">
+                    </div>
+                    <div class="px-icon-area">
+                        <img id="pxMockIcon" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Crect width='100' height='100' fill='%23e1e8ed'/%3E%3C/svg%3E">
+                    </div>
+                    <div class="px-profile-name">あなたの名前</div>
+                </div>
+            </div>
+
+            <button id="cropProcessBtn" class="btn-primary" style="margin-top: 25px;">💾 設定したパーツを一括出力</button>
+        </div>
+
+        <div id="cropResultArea">
+            <h2 style="text-align: center; color: #28a745;">完成した画像</h2>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="cropDownloadAllBtn" class="btn-warning" style="display:none;">📦 すべて一括保存</button>
+            </div>
+            <div id="cropResultContainer" class="result-grid"></div>
+        </div>
+
+        <div class="seo-content">
+            <h3>このツールについて</h3>
+            <p>X (Twitter)、Instagram、pixivなどの各SNSの仕様に合わせた最適な比率で画像を直感的にトリミングできる機能です。アイコンとヘッダー、それぞれ別々の画像をアップロードして個別に調整・保持することが可能です。</p>
+            <p>実際のプロフィール画面（モックアップ）を見ながら位置合わせができるため、「アイコンでキャラクターの顔が隠れてしまった」といったミスを未然に防ぎます。</p>
+        </div>
+    </div>
+
+<script>
+    function loadImage(file) { return new Promise((r, j) => { const i = new Image(); i.onload = () => r(i); i.onerror = j; i.src = URL.createObjectURL(file); }); }
+
+    // 全SNS・全パーツの状態を独立して保持
+    const states = { 
+        x: { icon: { img: null, scale: 1, posX: 0, posY: 0 }, header: { img: null, scale: 1, posX: 0, posY: 0 } },
+        instagram: { icon: { img: null, scale: 1, posX: 0, posY: 0 } }, // Instagramはアイコンのみ
+        pixiv: { icon: { img: null, scale: 1, posX: 0, posY: 0 }, header: { img: null, scale: 1, posX: 0, posY: 0 } }
+    };
+
+    let activeSNS = 'x';
+    let activeTarget = 'icon'; 
+    let isPanning = false; let startX = 0, startY = 0;
+    
+    const canvas = document.getElementById('cropCanvas'); 
+    const ctx = canvas.getContext('2d');
+    const zoomSlider = document.getElementById('cropZoom');
+    const CANVAS_W = 600; const CANVAS_H = 400;
+
+    // --- SNS切り替え処理 ---
+    document.querySelectorAll('.sns-tab-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.sns-tab-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            activeSNS = e.target.dataset.sns;
+
+            // Instagram選択時はヘッダーを隠してアイコンに強制
+            const headerRadioWrapper = document.getElementById('headerRadioWrapper');
+            if (activeSNS === 'instagram') {
+                headerRadioWrapper.style.display = 'none';
+                if (activeTarget === 'header') {
+                    document.querySelector('input[name="cropTarget"][value="icon"]').checked = true;
+                    activeTarget = 'icon';
+                }
+            } else {
+                headerRadioWrapper.style.display = 'flex';
+            }
+
+            // モックアップの切り替え
+            document.getElementById('mockup-x').style.display = activeSNS === 'x' ? 'block' : 'none';
+            document.getElementById('mockup-instagram').style.display = activeSNS === 'instagram' ? 'block' : 'none';
+            document.getElementById('mockup-pixiv').style.display = activeSNS === 'pixiv' ? 'block' : 'none';
+
+            updateUIForCurrentState();
+        });
+    });
+
+    // --- パーツ切り替え処理 ---
+    document.getElementsByName('cropTarget').forEach(r => r.addEventListener('change', e => {
+        activeTarget = e.target.value;
+        updateUIForCurrentState();
+    }));
+
+    function updateUIForCurrentState() {
+        const targetName = activeTarget === 'icon' ? 'アイコン' : 'ヘッダー';
+        document.getElementById('cropUploadLabel').textContent = `2. ${targetName}用の画像をアップロード`;
+        document.getElementById('cropImageInput').value = ''; 
+        document.getElementById('cropProcessBtn').textContent = `💾 ${activeSNS.toUpperCase()}用に出力する`;
+        
+        if (states[activeSNS][activeTarget].img) {
+            document.getElementById('cropWorkspaceGroup').style.display = 'block'; 
+            updateSliderRange(); 
+            draw();
+        } else {
+            // 現在のパーツに画像がない場合、空キャンバスを描画するか隠す
+            const other = activeTarget === 'icon' ? 'header' : 'icon';
+            if (states[activeSNS][other] && states[activeSNS][other].img) {
+                drawEmptyCanvas();
+            } else {
+                document.getElementById('cropWorkspaceGroup').style.display = 'none';
+            }
+        }
+    }
+
+    function drawEmptyCanvas() {
+        ctx.clearRect(0, 0, CANVAS_W, CANVAS_H); 
+        ctx.fillStyle = '#ccc'; ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+        ctx.fillStyle = '#333'; ctx.font = "bold 20px sans-serif"; ctx.textAlign = "center"; 
+        ctx.fillText("画像をアップロードしてください", CANVAS_W/2, CANVAS_H/2);
+    }
+
+    // --- 画像アップロード ---
+    document.getElementById('cropImageInput').addEventListener('change', async (e) => {
+        if (!e.target.files[0]) return;
+        states[activeSNS][activeTarget].img = await loadImage(e.target.files[0]);
+        document.getElementById('cropWorkspaceGroup').style.display = 'block'; 
+        document.getElementById('cropResultArea').style.display = 'none';
+        resetView();
+    });
+
+    // 各SNSの設定値 (キャンバス内座標と出力サイズ)
+    function getConfig() {
+        if (activeSNS === 'x') {
+            return activeTarget === 'icon' 
+                ? { w: 300, h: 300, x: 150, y: 50, radius: 150, outW: 400, outH: 400 } 
+                : { w: 600, h: 200, x: 0, y: 100, radius: 0, outW: 1500, outH: 500 };
+        } else if (activeSNS === 'instagram') {
+            return { w: 300, h: 300, x: 150, y: 50, radius: 150, outW: 400, outH: 400 };
+        } else if (activeSNS === 'pixiv') {
+            // pixivのヘッダーは2:1なので、600x300の枠を描画
+            return activeTarget === 'icon' 
+                ? { w: 300, h: 300, x: 150, y: 50, radius: 150, outW: 500, outH: 500 } 
+                : { w: 600, h: 300, x: 0, y: 50, radius: 0, outW: 1200, outH: 600 }; 
+        }
+    }
+
+    function clampState() {
+        const s = states[activeSNS][activeTarget]; if (!s.img) return;
+        const conf = getConfig();
+        const minScale = Math.max(conf.w / s.img.width, conf.h / s.img.height);
+        if (s.scale < minScale) s.scale = minScale;
+        s.posX = Math.max(conf.x + conf.w - s.img.width * s.scale, Math.min(s.posX, conf.x));
+        s.posY = Math.max(conf.y + conf.h - s.img.height * s.scale, Math.min(s.posY, conf.y));
+    }
+
+    function resetView() {
+        const s = states[activeSNS][activeTarget]; if (!s.img) return;
+        const conf = getConfig();
+        s.scale = Math.max(conf.w / s.img.width, conf.h / s.img.height);
+        s.posX = conf.x + (conf.w - s.img.width * s.scale) / 2; s.posY = conf.y + (conf.h - s.img.height * s.scale) / 2;
+        clampState(); updateSliderRange(); draw();
+    }
+
+    function updateSliderRange() {
+        const s = states[activeSNS][activeTarget]; if (!s.img) return;
+        const conf = getConfig(); const minScale = Math.max(conf.w / s.img.width, conf.h / s.img.height);
+        zoomSlider.min = minScale; zoomSlider.max = minScale * 4; zoomSlider.value = s.scale;
+    }
+
+    function applyZoom(newScale) {
+        const s = states[activeSNS][activeTarget]; if (!s.img) return;
+        newScale = Math.max(parseFloat(zoomSlider.min), Math.min(newScale, parseFloat(zoomSlider.max)));
+        const conf = getConfig(); const centerX = conf.x + conf.w / 2; const centerY = conf.y + conf.h / 2;
+        s.posX = centerX - (centerX - s.posX) * (newScale / s.scale); s.posY = centerY - (centerY - s.posY) * (newScale / s.scale);
+        s.scale = newScale; clampState(); zoomSlider.value = s.scale; draw();
+    }
+
+    zoomSlider.addEventListener('input', (e) => applyZoom(parseFloat(e.target.value)));
+    canvas.addEventListener('wheel', (e) => {
+        if (!states[activeSNS][activeTarget].img) return; e.preventDefault(); 
+        applyZoom(states[activeSNS][activeTarget].scale - (e.deltaY > 0 ? 0.05 : -0.05));
+    }, { passive: false });
+
+    // --- ドラッグ操作 ---
+    canvas.addEventListener('pointerdown', e => {
+        if (!states[activeSNS][activeTarget].img) return; isPanning = true;
+        const rect = canvas.getBoundingClientRect(); const ratio = CANVAS_W / rect.width;
+        startX = (e.clientX - rect.left) * ratio - states[activeSNS][activeTarget].posX; 
+        startY = (e.clientY - rect.top) * ratio - states[activeSNS][activeTarget].posY;
+        canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove', e => {
+        if (!isPanning) return;
+        const rect = canvas.getBoundingClientRect(); const ratio = CANVAS_W / rect.width;
+        states[activeSNS][activeTarget].posX = (e.clientX - rect.left) * ratio - startX; 
+        states[activeSNS][activeTarget].posY = (e.clientY - rect.top) * ratio - startY;
+        clampState(); draw();
+    });
+    const endDrag = () => { isPanning = false; };
+    canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+
+    // --- 描画処理 ---
+    function draw() {
+        const s = states[activeSNS][activeTarget]; 
+        if (!s.img) { drawEmptyCanvas(); return; }
+        
+        ctx.clearRect(0, 0, CANVAS_W, CANVAS_H); 
+        ctx.drawImage(s.img, s.posX, s.posY, s.img.width * s.scale, s.img.height * s.scale);
+        
+        const conf = getConfig();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.beginPath(); ctx.rect(0, 0, CANVAS_W, CANVAS_H);
+        
+        if (activeTarget === 'icon') {
+            ctx.moveTo(conf.x + conf.w/2 + conf.radius, conf.y + conf.h/2); 
+            ctx.arc(conf.x + conf.w/2, conf.y + conf.h/2, conf.radius, 0, Math.PI * 2, true);
+        } else {
+            ctx.moveTo(conf.x, conf.y); ctx.lineTo(conf.x, conf.y + conf.h); 
+            ctx.lineTo(conf.x + conf.w, conf.y + conf.h); ctx.lineTo(conf.x + conf.w, conf.y); ctx.lineTo(conf.x, conf.y);
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.setLineDash([5, 5]); ctx.stroke(); ctx.setLineDash([]); 
+        updateMockup(conf);
+    }
+
+    // --- モックアップへ反映 ---
+    function updateMockup(conf) {
+        const s = states[activeSNS][activeTarget];
+        if (!s.img) return;
+        const temp = document.createElement('canvas'); temp.width = conf.w; temp.height = conf.h;
+        temp.getContext('2d').drawImage(s.img, s.posX - conf.x, s.posY - conf.y, s.img.width * s.scale, s.img.height * s.scale);
+        const dataUrl = temp.toDataURL('image/jpeg', 0.8);
+        
+        if (activeSNS === 'x') {
+            document.getElementById(activeTarget === 'icon' ? 'xMockIcon' : 'xMockHeader').src = dataUrl;
+        } else if (activeSNS === 'instagram') {
+            document.getElementById('igMockIcon').src = dataUrl;
+        } else if (activeSNS === 'pixiv') {
+            document.getElementById(activeTarget === 'icon' ? 'pxMockIcon' : 'pxMockHeader').src = dataUrl;
+        }
+    }
+
+    // --- 一括出力処理 ---
+    document.getElementById('cropProcessBtn').addEventListener('click', () => {
+        const container = document.getElementById('cropResultContainer'); container.innerHTML = ''; let outCount = 0;
+        
+        // 選択中のSNSに必要なパーツリスト (Instagramならiconのみ)
+        const targets = activeSNS === 'instagram' ? ['icon'] : ['icon', 'header'];
+        
+        targets.forEach(target => {
+            const s = states[activeSNS][target]; if (!s.img) return; outCount++;
+            
+            // 設定値取得のために一時的にactiveTargetを切り替える
+            const originalTarget = activeTarget;
+            activeTarget = target;
+            const conf = getConfig();
+            activeTarget = originalTarget; // 元に戻す
+
+            const exp = document.createElement('canvas'); const eCtx = exp.getContext('2d'); 
+            exp.width = conf.outW; exp.height = conf.outH;
+            
+            eCtx.drawImage(s.img, (s.posX - conf.x) * (conf.outW / conf.w), (s.posY - conf.y) * (conf.outW / conf.w), s.img.width * s.scale * (conf.outW / conf.w), s.img.height * s.scale * (conf.outW / conf.w));
+            
+            const dataUrl = exp.toDataURL('image/png'); const fileName = `${activeSNS}_${target}.png`;
+            const div = document.createElement('div'); div.className = 'result-item';
+            div.innerHTML = `<h3 style="margin-top:0; color:#1da1f2;">${target === 'icon' ? 'アイコン' : 'ヘッダー'}</h3>
+                <img src="${dataUrl}" style="${target === 'icon' ? 'border-radius:50%; max-width:150px;' : 'width:100%;'}">
+                <a href="${dataUrl}" download="${fileName}" class="download-btn crop-dl-btn">⬇️ ${fileName} を保存</a>`;
+            container.appendChild(div);
+        });
+        
+        if (outCount === 0) { alert("画像がアップロードされていません。"); return; }
+        
+        document.getElementById('cropDownloadAllBtn').style.display = outCount >= 2 ? 'inline-block' : 'none';
+        document.getElementById('cropResultArea').style.display = 'block'; document.getElementById('cropResultArea').scrollIntoView({ behavior: 'smooth' });
+    });
+
+    document.getElementById('cropDownloadAllBtn').addEventListener('click', async (e) => {
+        const links = document.querySelectorAll('.crop-dl-btn');
+        if (links.length === 0 || !confirm('一括ダウンロードします。許可を求められたら「許可」を押してください。')) return;
+        const btn = e.target; btn.disabled = true; btn.textContent = '📦 ダウンロード中...';
+        for (let i = 0; i < links.length; i++) { links[i].click(); await new Promise(r => setTimeout(r, 500)); }
+        btn.textContent = '✅ 完了！'; setTimeout(() => { btn.disabled = false; btn.textContent = '📦 すべて一括保存'; }, 3000);
+    });
+
+    // 初期化表示
+    updateUIForCurrentState();
+</script>
+
+</body>
+</html>

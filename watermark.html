@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スケスケ透かし挿入君 | 透かし（ウォーターマーク）一括挿入ツール</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔏</text></svg>">
+    <meta name="description" content="画像にテキストやロゴ画像の透かし（ウォーターマーク）を挿入できるツールです。透明度やピクセル単位の位置調整が可能で、複数画像の一括処理にも対応しています。">
+    <style>
+        /* --- 共通デザイン --- */
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; line-height: 1.6; }
+        .navbar { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar a { text-decoration: none; color: #333; font-weight: bold; }
+        .nav-links a { margin-left: 15px; color: #007bff; font-size: 0.95rem;}
+        .nav-links a:hover { text-decoration: underline; }
+        
+        .container { max-width: 800px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { font-size: 1.6rem; text-align: center; margin-bottom: 20px; color: #222; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        
+        /* --- タブ（モード切替） --- */
+        .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 25px; background: #f8f9fa; border-radius: 8px 8px 0 0; overflow: hidden; }
+        .tab-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; font-size: 1.1rem; border: none; background: transparent; color: #666; transition: all 0.3s; }
+        .tab-btn:hover { background: #e9ecef; }
+        .tab-btn.active { background: #007bff; color: white; border-bottom: 3px solid #0056b3; }
+
+        .form-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
+        .form-group:last-child { border-bottom: none; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
+        input[type="file"], input[type="number"], input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
+        input[type="range"] { width: 100%; margin: 10px 0; cursor: pointer; }
+        input[type="color"] { width: 60px; height: 40px; padding: 0; border: none; cursor: pointer; }
+        
+        .radio-group { display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap; }
+        .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; background: #f1f3f5; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;}
+        .radio-group input[type="radio"]:checked + span { font-weight: bold; color: #007bff; }
+        
+        .flex-row { display: flex; gap: 15px; align-items: center; margin-top: 10px;}
+        .flex-row > div { flex: 1; }
+
+        /* --- ボタン類 --- */
+        button { padding: 12px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { width: 100%; background-color: #007bff; color: white; margin-top: 10px; font-weight: bold; font-size: 1.1rem; padding: 15px;}
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-primary:disabled { background-color: #ccc; cursor: not-allowed; }
+        .btn-warning { display: inline-block; background-color: #28a745; color: white; padding: 12px 30px; border-radius: 4px; font-weight: bold; text-decoration: none; text-align: center; cursor: pointer; width: 100%; box-sizing: border-box;}
+        
+        /* --- プレビュー --- */
+        .preview-container { text-align: center; background: #e9ecef; padding: 10px; border-radius: 8px; border: 2px dashed #ccc; margin-top: 10px; position: relative; overflow: hidden; }
+        #previewCanvas { max-width: 100%; height: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.2); background: #fff; cursor: grab; touch-action: none; }
+        #previewCanvas:active { cursor: grabbing; }
+
+        .hint-text { font-size: 0.85rem; color: #666; margin-top: 5px; }
+        .badge { background: #e2f0ff; color: #004085; padding: 3px 8px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; border: 1px solid #b8daff;}
+
+        #resultArea { margin-top: 40px; border-top: 3px solid #28a745; padding-top: 20px; display: none; }
+        .result-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 20px; }
+        .result-item { text-align: center; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .result-item img { max-width: 100%; height: auto; display: block; margin: 0 auto 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        
+        .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 30px; color: #444; }
+    </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="index.html" style="font-size: 1.2rem;">🎨 戻る（トップへ）</a>
+
+    </nav>
+
+    <div class="container">
+        <h1>🔏 スケスケ透かし挿入君</h1>
+
+        <div class="tabs">
+            <button class="tab-btn active" data-mode="single">📄 単一画像モード</button>
+            <button class="tab-btn" data-mode="batch">📁 一括処理モード <span class="badge">複数OK</span></button>
+        </div>
+
+        <div class="form-group">
+            <label id="uploadLabel">1. ベースとなる画像をアップロード</label>
+            <input type="file" id="baseImageInput" accept="image/png, image/jpeg, image/webp" multiple>
+            <p class="hint-text" id="uploadHint">※処理したい画像を1枚選択してください。</p>
+        </div>
+
+        <div class="form-group">
+            <label>2. 透かしの種類を選択</label>
+            <div class="radio-group">
+                <label><input type="radio" name="wmType" value="text" checked> <span>テキスト（文字）</span></label>
+                <label><input type="radio" name="wmType" value="image"> <span>画像（ロゴ等）</span></label>
+            </div>
+        </div>
+
+        <div id="textSettings" class="form-group">
+            <label>透かしの文字内容とフォント</label>
+            <input type="text" id="wmText" value="©️ 2026 Your Name" placeholder="透かしの文字を入力">
+            <div class="flex-row">
+                <div>
+                    <label style="font-size: 0.9rem;">フォント種類</label>
+                    <select id="wmFont">
+                        <option value="sans-serif">ゴシック体 (Sans-serif)</option>
+                        <option value="serif">明朝体 (Serif)</option>
+                        <option value="monospace">等幅フォント (Monospace)</option>
+                        <option value="cursive">筆記体風 (Cursive)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.9rem;">文字サイズ (px)</label>
+                    <input type="number" id="wmFontSize" value="40" min="10" max="300">
+                </div>
+                <div>
+                    <label style="font-size: 0.9rem;">文字色</label>
+                    <input type="color" id="wmColor" value="#ffffff">
+                </div>
+            </div>
+        </div>
+
+        <div id="imageSettings" class="form-group" style="display: none;">
+            <label>透かし用画像のアップロード（背景透過PNG推奨）</label>
+            <input type="file" id="wmImageInput" accept="image/png, image/webp">
+            <div class="flex-row">
+                <div>
+                    <label style="font-size: 0.9rem;">画像の拡大縮小</label>
+                    <input type="range" id="wmScale" min="0.1" max="3" step="0.1" value="1">
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>3. 透かしのスタイルと位置調整</label>
+            
+            <div class="flex-row" style="margin-bottom: 15px;">
+                <div style="flex: 2;">
+                    <label style="font-size: 0.9rem;">不透明度 (Opacity)</label>
+                    <input type="range" id="wmOpacity" min="0" max="1" step="0.05" value="0.7">
+                </div>
+                
+                <div id="originSetting" style="display: none; flex: 2;">
+                    <label style="font-size: 0.9rem;">配置の基準点（原点）</label>
+                    <select id="wmOrigin">
+                        <option value="bottom-right">右下 (おすすめ)</option>
+                        <option value="bottom-left">左下</option>
+                        <option value="top-right">右上</option>
+                        <option value="top-left">左上</option>
+                        <option value="center">中央</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex-row" style="background: #f8f9fa; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                <div>
+                    <label style="font-size: 0.9rem;">X座標 (横位置)</label>
+                    <input type="number" id="posX" value="20">
+                </div>
+                <div>
+                    <label style="font-size: 0.9rem;">Y座標 (縦位置)</label>
+                    <input type="number" id="posY" value="20">
+                </div>
+            </div>
+            <p class="hint-text" id="positionHint">※プレビュー上の透かしを直接マウスや指でドラッグして移動させることもできます。</p>
+
+            <div class="preview-container">
+                <p id="previewPlaceholder" style="color: #999; padding: 40px 0;">画像と透かしのプレビューが表示されます</p>
+                <canvas id="previewCanvas" style="display: none;"></canvas>
+            </div>
+        </div>
+
+        <button id="processBtn" class="btn-primary" disabled>🔏 画像に透かしを入れて出力する</button>
+
+        <div id="resultArea">
+            <h2 style="text-align: center; color: #28a745;">出力結果</h2>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="downloadAllBtn" class="btn-warning">📦 すべて一括保存</button>
+            </div>
+            <div id="resultContainer" class="result-grid"></div>
+        </div>
+
+        <div class="seo-content">
+            <h3>このツールについて</h3>
+            <p>作品の無断転載やAIの無断学習を防ぐための「透かし（ウォーターマーク）」を、ブラウザ上で安全かつ簡単に挿入できるツールです。</p>
+            <ul>
+                <li><strong>ドラッグ＆数値入力の完璧な同期：</strong> プレビュー画面で直感的にドラッグ配置したあと、ピクセル単位で微調整が可能です。</li>
+                <li><strong>強力な一括処理モード：</strong> 複数の画像やフォルダを読み込み、「右下からX:20px, Y:20px」といった基準点（原点）を指定することで、解像度がバラバラな画像群に対しても完璧に同じ位置に透かしを入れることができます。</li>
+            </ul>
+        </div>
+    </div>
+
+<script>
+    // --- 状態管理 ---
+    const state = {
+        mode: 'single', // 'single' or 'batch'
+        baseImages: [], // File オブジェクトの配列
+        currentPreviewIndex: 0, // バッチ時のプレビュー用
+        loadedBaseImg: null, // 現在プレビュー中のImageオブジェクト
+        
+        wmType: 'text', // 'text' or 'image'
+        wmText: '©️ 2026 Your Name',
+        wmFont: 'sans-serif',
+        wmFontSize: 40,
+        wmColor: '#ffffff',
+        
+        wmImgFile: null,
+        loadedWmImg: null,
+        wmScale: 1,
+        
+        opacity: 0.7,
+        origin: 'bottom-right', // 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'
+        posX: 20, // 原点からのオフセットX（単一モード時は左上からの絶対座標）
+        posY: 20, // 原点からのオフセットY（単一モード時は左上からの絶対座標）
+        
+        isDragging: false,
+        dragStartX: 0,
+        dragStartY: 0,
+        initialPosX: 0,
+        initialPosY: 0
+    };
+
+    // --- DOM要素取得 ---
+    const els = {
+        tabs: document.querySelectorAll('.tab-btn'),
+        baseImageInput: document.getElementById('baseImageInput'),
+        uploadLabel: document.getElementById('uploadLabel'),
+        uploadHint: document.getElementById('uploadHint'),
+        
+        wmTypeRadios: document.getElementsByName('wmType'),
+        textSettings: document.getElementById('textSettings'),
+        imageSettings: document.getElementById('imageSettings'),
+        
+        wmText: document.getElementById('wmText'),
+        wmFont: document.getElementById('wmFont'),
+        wmFontSize: document.getElementById('wmFontSize'),
+        wmColor: document.getElementById('wmColor'),
+        
+        wmImageInput: document.getElementById('wmImageInput'),
+        wmScale: document.getElementById('wmScale'),
+        
+        wmOpacity: document.getElementById('wmOpacity'),
+        originSetting: document.getElementById('originSetting'),
+        wmOrigin: document.getElementById('wmOrigin'),
+        posX: document.getElementById('posX'),
+        posY: document.getElementById('posY'),
+        positionHint: document.getElementById('positionHint'),
+        
+        previewCanvas: document.getElementById('previewCanvas'),
+        ctx: document.getElementById('previewCanvas').getContext('2d'),
+        previewPlaceholder: document.getElementById('previewPlaceholder'),
+        
+        processBtn: document.getElementById('processBtn'),
+        resultArea: document.getElementById('resultArea'),
+        resultContainer: document.getElementById('resultContainer'),
+        downloadAllBtn: document.getElementById('downloadAllBtn')
+    };
+
+    // --- ユーティリティ ---
+    function loadImage(file) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = reject;
+            img.src = URL.createObjectURL(file);
+        });
+    }
+
+    // --- イベントリスナー設定 ---
+    
+    // タブ切替
+    els.tabs.forEach(btn => btn.addEventListener('click', (e) => {
+        els.tabs.forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        state.mode = e.target.dataset.mode;
+        
+        // UIの切り替え
+        if (state.mode === 'batch') {
+            els.uploadLabel.textContent = '1. ベースとなる画像（複数選択OK）をアップロード';
+            els.uploadHint.textContent = '※処理したい画像を複数選択、またはドラッグ＆ドロップしてください。';
+            els.originSetting.style.display = 'block';
+            els.positionHint.textContent = '※一括モードでは「基準点（原点）」からの距離（ピクセル）を指定します。プレビューをドラッグして調整可能です。';
+            state.origin = els.wmOrigin.value; // モード切替時に原点を反映
+        } else {
+            els.uploadLabel.textContent = '1. ベースとなる画像をアップロード';
+            els.uploadHint.textContent = '※処理したい画像を1枚選択してください。';
+            els.originSetting.style.display = 'none';
+            els.positionHint.textContent = '※プレビュー上の透かしを直接マウスや指でドラッグして移動させることができます。';
+            state.origin = 'top-left'; // 単一モードは常に左上を原点として絶対座標で扱う
+        }
+        drawPreview();
+    }));
+
+    // ベース画像アップロード
+    els.baseImageInput.addEventListener('change', async (e) => {
+        if (!e.target.files.length) return;
+        state.baseImages = Array.from(e.target.files);
+        state.currentPreviewIndex = 0;
+        state.loadedBaseImg = await loadImage(state.baseImages[0]);
+        
+        els.previewPlaceholder.style.display = 'none';
+        els.previewCanvas.style.display = 'block';
+        els.processBtn.disabled = false;
+        
+        // 初期の位置を中心に設定（単一モードの場合）
+        if (state.mode === 'single') {
+            const dim = getWatermarkDimensions();
+            state.posX = Math.floor((state.loadedBaseImg.width - dim.w) / 2);
+            state.posY = Math.floor((state.loadedBaseImg.height - dim.h) / 2);
+            els.posX.value = state.posX;
+            els.posY.value = state.posY;
+        }
+
+        drawPreview();
+    });
+
+    // 透かしタイプの切替
+    els.wmTypeRadios.forEach(r => r.addEventListener('change', e => {
+        state.wmType = e.target.value;
+        if (state.wmType === 'text') {
+            els.textSettings.style.display = 'block';
+            els.imageSettings.style.display = 'none';
+        } else {
+            els.textSettings.style.display = 'none';
+            els.imageSettings.style.display = 'block';
+        }
+        drawPreview();
+    }));
+
+    // 透かし画像アップロード
+    els.wmImageInput.addEventListener('change', async (e) => {
+        if (!e.target.files.length) return;
+        state.wmImgFile = e.target.files[0];
+        state.loadedWmImg = await loadImage(state.wmImgFile);
+        drawPreview();
+    });
+
+    // 各種設定値の変更検知
+    const updateInputs = () => {
+        state.wmText = els.wmText.value;
+        state.wmFont = els.wmFont.value;
+        state.wmFontSize = parseInt(els.wmFontSize.value, 10) || 40;
+        state.wmColor = els.wmColor.value;
+        state.wmScale = parseFloat(els.wmScale.value) || 1;
+        state.opacity = parseFloat(els.wmOpacity.value) || 0.7;
+        state.origin = els.wmOrigin.value;
+        state.posX = parseInt(els.posX.value, 10) || 0;
+        state.posY = parseInt(els.posY.value, 10) || 0;
+        drawPreview();
+    };
+
+    els.wmText.addEventListener('input', updateInputs);
+    els.wmFont.addEventListener('change', updateInputs);
+    els.wmFontSize.addEventListener('input', updateInputs);
+    els.wmColor.addEventListener('input', updateInputs);
+    els.wmScale.addEventListener('input', updateInputs);
+    els.wmOpacity.addEventListener('input', updateInputs);
+    els.wmOrigin.addEventListener('change', () => {
+        // 原点を変えたらオフセットを一旦リセットして分かりやすくする
+        els.posX.value = 20; els.posY.value = 20;
+        updateInputs();
+    });
+    els.posX.addEventListener('input', updateInputs);
+    els.posY.addEventListener('input', updateInputs);
+
+
+    // --- 描画ロジック ---
+
+    // 透かしの幅と高さを計算するヘルパー
+    function getWatermarkDimensions() {
+        if (state.wmType === 'text') {
+            els.ctx.font = `${state.wmFontSize}px ${state.wmFont}`;
+            const metrics = els.ctx.measureText(state.wmText);
+            // テキストの高さはフォントサイズで近似
+            return { w: metrics.width, h: state.wmFontSize }; 
+        } else {
+            if (!state.loadedWmImg) return { w: 0, h: 0 };
+            return { w: state.loadedWmImg.width * state.wmScale, h: state.loadedWmImg.height * state.wmScale };
+        }
+    }
+
+    // 描画位置の絶対座標(x, y)を計算するヘルパー
+    function calculateAbsolutePosition(baseW, baseH, wmDim) {
+        let absX = 0, absY = 0;
+        const oX = state.posX; // offset X
+        const oY = state.posY; // offset Y
+
+        if (state.mode === 'single' || state.origin === 'top-left') {
+            absX = oX; absY = oY;
+        } else if (state.origin === 'top-right') {
+            absX = baseW - wmDim.w - oX; absY = oY;
+        } else if (state.origin === 'bottom-left') {
+            absX = oX; absY = baseH - wmDim.h - oY;
+        } else if (state.origin === 'bottom-right') {
+            absX = baseW - wmDim.w - oX; absY = baseH - wmDim.h - oY;
+        } else if (state.origin === 'center') {
+            absX = (baseW - wmDim.w) / 2 + oX; absY = (baseH - wmDim.h) / 2 + oY;
+        }
+        return { x: absX, y: absY };
+    }
+
+    // プレビュー描画メイン処理
+    function drawPreview() {
+        if (!state.loadedBaseImg) return;
+        
+        const c = els.previewCanvas;
+        const ctx = els.ctx;
+        c.width = state.loadedBaseImg.width;
+        c.height = state.loadedBaseImg.height;
+
+        // 1. ベース画像描画
+        ctx.drawImage(state.loadedBaseImg, 0, 0);
+
+        // 2. 透かしの描画設定
+        ctx.globalAlpha = state.opacity;
+        const dim = getWatermarkDimensions();
+        const pos = calculateAbsolutePosition(c.width, c.height, dim);
+
+        if (state.wmType === 'text' && state.wmText) {
+            ctx.font = `${state.wmFontSize}px ${state.wmFont}`;
+            ctx.fillStyle = state.wmColor;
+            ctx.textBaseline = 'top'; // 座標計算を画像と同じ左上基準にするため重要
+            ctx.fillText(state.wmText, pos.x, pos.y);
+        } else if (state.wmType === 'image' && state.loadedWmImg) {
+            ctx.drawImage(state.loadedWmImg, pos.x, pos.y, dim.w, dim.h);
+        }
+
+        ctx.globalAlpha = 1.0; // リセット
+    }
+
+    // --- ドラッグ＆ドロップ（プレビュー操作） ---
+    
+    // イベントからキャンバス内の実座標を取得
+    function getCanvasCoords(e) {
+        const rect = els.previewCanvas.getBoundingClientRect();
+        const scaleX = els.previewCanvas.width / rect.width;
+        const scaleY = els.previewCanvas.height / rect.height;
+        // タッチかマウスか判別
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    // ドラッグ開始
+    function startDrag(e) {
+        if (!state.loadedBaseImg) return;
+        const coords = getCanvasCoords(e);
+        const dim = getWatermarkDimensions();
+        const pos = calculateAbsolutePosition(els.previewCanvas.width, els.previewCanvas.height, dim);
+
+        // クリックした場所が透かしの範囲内か判定（当たり判定）
+        if (coords.x >= pos.x && coords.x <= pos.x + dim.w &&
+            coords.y >= pos.y && coords.y <= pos.y + dim.h) {
+            state.isDragging = true;
+            state.dragStartX = coords.x;
+            state.dragStartY = coords.y;
+            state.initialPosX = state.posX; // オフセット値の初期状態を保存
+            state.initialPosY = state.posY;
+            e.preventDefault(); // スクロール防止
+        }
+    }
+
+    // ドラッグ中
+    function doDrag(e) {
+        if (!state.isDragging) return;
+        e.preventDefault();
+        const coords = getCanvasCoords(e);
+        
+        // 移動量（デルタ）を計算
+        const dx = coords.x - state.dragStartX;
+        const dy = coords.y - state.dragStartY;
+
+        // モードと原点設定に応じて、UI側の数値を逆算して更新
+        if (state.mode === 'single' || state.origin === 'top-left') {
+            state.posX = Math.round(state.initialPosX + dx);
+            state.posY = Math.round(state.initialPosY + dy);
+        } else if (state.origin === 'top-right') {
+            state.posX = Math.round(state.initialPosX - dx);
+            state.posY = Math.round(state.initialPosY + dy);
+        } else if (state.origin === 'bottom-left') {
+            state.posX = Math.round(state.initialPosX + dx);
+            state.posY = Math.round(state.initialPosY - dy);
+        } else if (state.origin === 'bottom-right') {
+            state.posX = Math.round(state.initialPosX - dx);
+            state.posY = Math.round(state.initialPosY - dy);
+        } else if (state.origin === 'center') {
+            state.posX = Math.round(state.initialPosX + dx);
+            state.posY = Math.round(state.initialPosY + dy);
+        }
+
+        // 入力欄に反映して再描画
+        els.posX.value = state.posX;
+        els.posY.value = state.posY;
+        drawPreview();
+    }
+
+    function endDrag() { state.isDragging = false; }
+
+    // PC用イベント
+    els.previewCanvas.addEventListener('mousedown', startDrag);
+    window.addEventListener('mousemove', doDrag);
+    window.addEventListener('mouseup', endDrag);
+    // スマホ用イベント
+    els.previewCanvas.addEventListener('touchstart', startDrag, {passive: false});
+    window.addEventListener('touchmove', doDrag, {passive: false});
+    window.addEventListener('touchend', endDrag);
+
+
+    // --- 処理実行・出力 ---
+    els.processBtn.addEventListener('click', async () => {
+        if (state.baseImages.length === 0) return;
+        if (state.wmType === 'image' && !state.loadedWmImg) {
+            alert('透かし用の画像をアップロードしてください。');
+            return;
+        }
+
+        els.processBtn.disabled = true;
+        els.processBtn.textContent = '処理中...';
+        els.resultContainer.innerHTML = '';
+        els.resultArea.style.display = 'block';
+        
+        // UIブロックを避けるための微小遅延
+        await new Promise(r => setTimeout(r, 50)); 
+
+        try {
+            const workCanvas = document.createElement('canvas');
+            const workCtx = workCanvas.getContext('2d');
+            const dim = getWatermarkDimensions();
+
+            // 画像を1枚ずつループ処理（一括処理の要）
+            for (let i = 0; i < state.baseImages.length; i++) {
+                const file = state.baseImages[i];
+                const img = await loadImage(file);
+                
+                workCanvas.width = img.width;
+                workCanvas.height = img.height;
+                
+                // 1. ベース描画
+                workCtx.drawImage(img, 0, 0);
+
+                // 2. 透かし描画（画像ごとに絶対座標を再計算する！）
+                workCtx.globalAlpha = state.opacity;
+                const pos = calculateAbsolutePosition(img.width, img.height, dim);
+
+                if (state.wmType === 'text') {
+                    workCtx.font = `${state.wmFontSize}px ${state.wmFont}`;
+                    workCtx.fillStyle = state.wmColor;
+                    workCtx.textBaseline = 'top';
+                    workCtx.fillText(state.wmText, pos.x, pos.y);
+                } else {
+                    workCtx.drawImage(state.loadedWmImg, pos.x, pos.y, dim.w, dim.h);
+                }
+                workCtx.globalAlpha = 1.0;
+
+                // 3. 結果アイテムを生成
+                const dataUrl = workCanvas.toDataURL('image/png');
+                
+                // 元のファイル名から拡張子を外して _watermarked を付与
+                const originalName = file.name.replace(/\.[^/.]+$/, "");
+                const outFileName = `${originalName}_watermarked.png`;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'result-item';
+                itemDiv.innerHTML = `
+                    <h3 style="margin-top:0; font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${outFileName}</h3>
+                    <img src="${dataUrl}">
+                    <a href="${dataUrl}" download="${outFileName}" class="download-btn wm-dl-btn">⬇️ 保存</a>
+                `;
+                els.resultContainer.appendChild(itemDiv);
+            }
+
+            els.resultArea.scrollIntoView({ behavior: 'smooth' });
+
+        } catch (err) {
+            console.error(err);
+            alert('エラーが発生しました。');
+        } finally {
+            els.processBtn.disabled = false;
+            els.processBtn.textContent = '🔏 画像に透かしを入れて出力する';
+        }
+    });
+
+    // 一括保存ボタン
+    els.downloadAllBtn.addEventListener('click', async (e) => {
+        const links = document.querySelectorAll('.wm-dl-btn');
+        if (links.length === 0) return;
+        
+        if (!confirm(`${links.length}枚の画像を順番にダウンロードします。ブラウザから許可を求められた場合は「許可」を押してください。`)) return;
+
+        const btn = e.target;
+        btn.disabled = true;
+        btn.textContent = '📦 ダウンロード中...';
+
+        for (let i = 0; i < links.length; i++) {
+            links[i].click();
+            await new Promise(r => setTimeout(r, 500)); // ダウンロード間隔を空ける
+        }
+
+        btn.textContent = '✅ 完了！';
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '📦 すべて一括保存';
+        }, 3000);
+    });
+
+</script>
+
+</body>
+</html>
