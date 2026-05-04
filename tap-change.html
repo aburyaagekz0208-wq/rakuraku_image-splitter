@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>タップチェンジ画像作成君 | クリエイター画像ツール</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👆</text></svg>">
+  <meta name="description" content="本体画像を1px市松模様で透明化し、前面レイヤーを重ねて、タップ前後で見え方が変わるX投稿向けPNG画像をブラウザ上で作成します。">
+  <style>
+    :root{--bg:#f4f7f6;--panel:#fff;--line:#e5e7eb;--text:#222;--muted:#666;--accent:#007bff;--accent-hover:#0056b3;--sub:#e5e7eb;--sub-text:#222}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.6}
+    .navbar{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center}
+    .navbar a{text-decoration:none;color:#333;font-weight:bold}.nav-links a{margin-left:20px;color:#007bff}.nav-links a:hover{text-decoration:underline}
+    header{max-width:1080px;margin:0 auto;padding:34px 24px 8px;text-align:center}
+    h1{margin:0 0 8px;font-size:2rem}.lead{margin:0;color:var(--muted);font-size:.95rem}
+    main{max-width:1180px;margin:0 auto;padding:20px 24px 40px;display:grid;grid-template-columns:360px 1fr;gap:18px}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 4px 10px rgba(0,0,0,.05)}
+    .controls{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto}
+    h2{margin:0 0 12px;font-size:1.1rem}h3{margin:18px 0 10px;font-size:.95rem;border-top:1px solid var(--line);padding-top:14px}
+    label{display:block;margin:12px 0 6px;font-size:.86rem;font-weight:700}
+    input[type=file]{width:100%;padding:10px;border:1px dashed #cbd5e1;border-radius:10px;background:#f9fafb;font-size:.82rem}
+    input[type=number],select{width:100%;padding:9px 10px;border:1px solid #d1d5db;border-radius:10px;font-size:.9rem;background:#fff}
+    input[readonly]{background:#f9fafb;color:#6b7280}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .note{margin-top:10px;font-size:.78rem;color:#666;line-height:1.7}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+    button{appearance:none;border:0;background:var(--accent);color:#fff;border-radius:999px;padding:11px 16px;font-weight:700;font-size:.88rem;cursor:pointer;transition:.2s}
+    button:hover{background:var(--accent-hover)}button.secondary{background:var(--sub);color:var(--sub-text)}button.secondary:hover{background:#d1d5db}.danger{background:#f3f4f6;color:#333}.danger:hover{background:#e5e7eb}
+    .canvas-wrap{padding:10px;border-radius:14px;background:repeating-linear-gradient(45deg,#f3f4f6 0,#f3f4f6 10px,#fff 10px,#fff 20px)}
+    canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block;background:#fff}
+    .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.82rem;line-height:1.6}.kv div:nth-child(odd){color:#666}
+
+    .info-section{max-width:1080px;margin:18px auto 0;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
+    .info-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 4px 10px rgba(0,0,0,.05)}
+    .info-card h2{margin:0 0 10px;font-size:1.15rem;color:#222}.info-card p{margin:0 0 12px;color:#555;font-size:.92rem}.info-card ol,.info-card ul{margin:0;padding-left:1.25rem;color:#555;font-size:.9rem}.info-card li{margin:.35rem 0}.info-note{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-top:12px;font-size:.84rem;color:#475569}
+    @media(max-width:960px){main{grid-template-columns:1fr}.controls{position:static;max-height:none}.info-section{grid-template-columns:1fr}}
+  </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" style="font-size:1.2rem;">🎨 クリエイター画像ツール</a>
+    <div class="nav-links"><a href="index.html">ツール一覧へ戻る</a></div>
+  </nav>
+
+  <header>
+    <h1>👆 タップチェンジ画像作成君</h1>
+    <p class="lead">本体画像を1px市松模様で透明化し、前面レイヤーを重ねて、X投稿向けPNG-8 indexed画像を作成します。</p>
+  </header>
+
+
+  <main>
+    <aside class="panel controls">
+      <h2>入力</h2>
+      <label>本体画像</label>
+      <input id="baseInput" type="file" accept="image/png,image/webp,image/jpeg" />
+      <label>前面レイヤー（水着など）</label>
+      <input id="frontInput" type="file" accept="image/png,image/webp,image/jpeg" />
+
+      <h3>キャンバス</h3>
+      <div class="row">
+        <div><label>元幅</label><input id="canvasW" type="number" value="800" readonly /></div>
+        <div><label>元高さ</label><input id="canvasH" type="number" value="800" readonly /></div>
+      </div>
+      <label>保存サイズ</label>
+      <select id="outputSize">
+        <option value="original" selected>元画像サイズ</option>
+        <option value="half">1/2サイズ</option>
+        <option value="2048">長辺2048px</option>
+        <option value="1536">長辺1536px</option>
+        <option value="1331">長辺1331px</option>
+        <option value="1200">長辺1200px</option>
+        <option value="900">長辺900px</option>
+      </select>
+
+      <h3>処理仕様</h3>
+      <p class="note">本体画像は完全白 RGB(255,255,255) のみ自動で透明化し、その後、1pxごとの市松模様で透明/不透明を交互に適用します。白寄せ処理は行いません。</p>
+      <p class="note">前面レイヤーは読み込んだ透明情報を保持し、透明でない部分を完全不透明にして上に重ねます。白透過処理は行いません。</p>
+
+      <h3>保存</h3>
+      <p class="note">投稿用PNGは、255色・GIMP相当のPNG-8 indexedとして保存します。通常PNG保存は比較・確認用です。</p>
+      <div class="actions">
+        <button id="clearBtn" class="danger">すべてクリア</button>
+      </div>
+      <div class="actions">
+        <button id="savePng8Btn">投稿用PNG保存</button>
+        <button id="saveNormalBtn" class="secondary">通常PNG保存</button>
+      </div>
+
+      <h3>診断</h3>
+      <div class="kv">
+        <div>透明率</div><div id="diagTransparent">-</div>
+        <div>半透明率</div><div id="diagSemi">-</div>
+        <div>不透明率</div><div id="diagOpaque">-</div>
+        <div>alpha段階数</div><div id="diagAlphaCount">-</div>
+        <div>PNG-8推定容量</div><div id="diagSize">-</div>
+        <div>パレット色数</div><div id="diagPalette">-</div>
+      </div>
+    </aside>
+
+    <section class="panel">
+      <h2>保存される最終画像</h2>
+      <div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div>
+    </section>
+  </main>
+
+  <section class="info-section" aria-label="タップチェンジ画像作成君の説明">
+    <div class="info-card">
+      <h2>このツールでできること</h2>
+      <p><strong>タップチェンジ画像作成君</strong>は、Xなどの投稿画面で「タイムライン上で見える印象」と「画像をタップして開いたときの印象」を変えやすいPNG画像を作るためのブラウザ完結ツールです。</p>
+      <ul>
+        <li>本体画像を1pxごとの市松模様で透明化します。</li>
+        <li>水着・文字・見せたいパーツなどの前面レイヤーを上から合成します。</li>
+        <li>X投稿向けに、255色・PNG-8 indexed形式の投稿用PNGを書き出します。</li>
+        <li>画像処理はすべてブラウザ内で行われ、画像はサーバーへ送信されません。</li>
+      </ul>
+      <div class="info-note">うまく表示させるため、前面レイヤーはあらかじめ透過PNGとして用意しておくのがおすすめです。</div>
+    </div>
+
+    <div class="info-card">
+      <h2>使い方</h2>
+      <ol>
+        <li><strong>本体画像</strong>に、タップ後に見せたい元画像を読み込みます。</li>
+        <li><strong>前面レイヤー</strong>に、タイムライン上で主に見せたい透過PNGを読み込みます。</li>
+        <li>必要に応じて保存サイズを選びます。迷ったら「元画像サイズ」のままで問題ありません。</li>
+        <li>プレビューで合成結果を確認します。</li>
+        <li><strong>投稿用PNG保存</strong>を押して、X投稿用のPNG-8画像を書き出します。</li>
+      </ol>
+      <div class="info-note">通常PNG保存は比較確認用です。Xへ投稿する画像は、基本的に「投稿用PNG保存」で書き出したものを使ってください。</div>
+    </div>
+  </section>
+
+
+<script>
+const $=id=>document.getElementById(id);
+const state={baseImg:null,frontImg:null,lastPng8Blob:null,lastPaletteCount:0};
+const WHITE_THRESHOLD=255;
+const MAX_OPAQUE_COLORS=255;
+
+function setCanvasSize(canvas,w,h){canvas.width=Math.max(1,Math.round(w));canvas.height=Math.max(1,Math.round(h));}
+function readImage(file){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=reject;img.src=url})}
+function getBaseSize(){if(state.baseImg)return{w:state.baseImg.naturalWidth,h:state.baseImg.naturalHeight};if(state.frontImg)return{w:state.frontImg.naturalWidth,h:state.frontImg.naturalHeight};return{w:800,h:800}}
+function getOutputSize(){const base=getBaseSize();const setting=$('outputSize').value;if(setting==='original')return{w:base.w,h:base.h,scale:1};if(setting==='half')return{w:Math.max(1,Math.round(base.w/2)),h:Math.max(1,Math.round(base.h/2)),scale:.5};const longEdge=Number(setting);const scale=longEdge/Math.max(base.w,base.h);return{w:Math.max(1,Math.round(base.w*scale)),h:Math.max(1,Math.round(base.h*scale)),scale}}
+function isTransparentByChecker(x,y){return ((x+y)&1)===0}
+function drawLayerToCanvas(img,outScale){const out=getOutputSize();const c=document.createElement('canvas');setCanvasSize(c,out.w,out.h);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,out.w,out.h);ctx.drawImage(img,0,0,img.naturalWidth*outScale,img.naturalHeight*outScale);return c}
+function processBaseLayer(layer){const ctx=layer.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,layer.width,layer.height);const d=im.data;for(let y=0;y<layer.height;y++){for(let x=0;x<layer.width;x++){const i=(y*layer.width+x)*4;const a=d[i+3];if(a===0)continue;if(d[i]===WHITE_THRESHOLD&&d[i+1]===WHITE_THRESHOLD&&d[i+2]===WHITE_THRESHOLD){d[i+3]=0;continue}d[i+3]=isTransparentByChecker(x,y)?0:255}}ctx.putImageData(im,0,0);return layer}
+function processFrontLayer(layer){const ctx=layer.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,layer.width,layer.height);const d=im.data;for(let i=0;i<d.length;i+=4){if(d[i+3]!==0)d[i+3]=255}ctx.putImageData(im,0,0);return layer}
+function renderFinal(){const out=getOutputSize();const final=$('finalCanvas');setCanvasSize(final,out.w,out.h);const ctx=final.getContext('2d');ctx.clearRect(0,0,out.w,out.h);if(state.baseImg){let base=drawLayerToCanvas(state.baseImg,out.scale);base=processBaseLayer(base);ctx.drawImage(base,0,0)}if(state.frontImg){let front=drawLayerToCanvas(state.frontImg,out.scale);front=processFrontLayer(front);ctx.drawImage(front,0,0)}}
+function analyzeAlpha(canvas){const ctx=canvas.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,canvas.width,canvas.height);const d=im.data;let tr=0,se=0,op=0;const used=new Set();const total=canvas.width*canvas.height;for(let i=0;i<d.length;i+=4){const a=d[i+3];used.add(a);if(a===0)tr++;else if(a===255)op++;else se++}return{tr:tr/total*100,se:se/total*100,op:op/total*100,count:used.size}}
+function bytes(n){if(n==null)return'-';if(n<1024)return n+' B';if(n<1024*1024)return(n/1024).toFixed(1)+' KB';return(n/(1024*1024)).toFixed(2)+' MB'}
+function makeCrcTable(){const table=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);table[n]=c>>>0}return table}
+const CRC_TABLE=makeCrcTable();
+function crc32(bytes){let c=0xffffffff;for(let i=0;i<bytes.length;i++)c=CRC_TABLE[(c^bytes[i])&255]^(c>>>8);return(c^0xffffffff)>>>0}
+function u32be(n){return new Uint8Array([(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255])}
+function ascii(s){const a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a}
+function concatArrays(arrays){let len=0;arrays.forEach(a=>len+=a.length);const out=new Uint8Array(len);let p=0;arrays.forEach(a=>{out.set(a,p);p+=a.length});return out}
+function chunk(type,data){const t=ascii(type);const body=concatArrays([t,data]);return concatArrays([u32be(data.length),t,data,u32be(crc32(body))])}
+function adler32(data){let a=1,b=0;for(let i=0;i<data.length;i++){a=(a+data[i])%65521;b=(b+a)%65521}return((b<<16)|a)>>>0}
+async function zlibDeflate(data){if('CompressionStream' in window){try{const cs=new CompressionStream('deflate');const writer=cs.writable.getWriter();writer.write(data);writer.close();const resp=new Response(cs.readable);return new Uint8Array(await resp.arrayBuffer())}catch(e){}}const blocks=[];blocks.push(new Uint8Array([0x78,0x01]));let pos=0;while(pos<data.length){const len=Math.min(65535,data.length-pos);const final=(pos+len)>=data.length?1:0;const block=new Uint8Array(5+len);block[0]=final;block[1]=len&255;block[2]=(len>>>8)&255;const nlen=(~len)&0xffff;block[3]=nlen&255;block[4]=(nlen>>>8)&255;block.set(data.subarray(pos,pos+len),5);blocks.push(block);pos+=len}blocks.push(u32be(adler32(data)));return concatArrays(blocks)}
+function buildColorHistogram(data){const map=new Map();for(let i=0;i<data.length;i+=4){if(data[i+3]===0)continue;const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2];const item=map.get(key);if(item)item.count++;else map.set(key,{r:data[i],g:data[i+1],b:data[i+2],count:1})}return Array.from(map.values())}
+function makeBox(colors){let rMin=255,rMax=0,gMin=255,gMax=0,bMin=255,bMax=0,count=0;for(const c of colors){if(c.r<rMin)rMin=c.r;if(c.r>rMax)rMax=c.r;if(c.g<gMin)gMin=c.g;if(c.g>gMax)gMax=c.g;if(c.b<bMin)bMin=c.b;if(c.b>bMax)bMax=c.b;count+=c.count}return{colors,rMin,rMax,gMin,gMax,bMin,bMax,count}}
+function splitBox(box){const rRange=box.rMax-box.rMin,gRange=box.gMax-box.gMin,bRange=box.bMax-box.bMin;const channel=(rRange>=gRange&&rRange>=bRange)?'r':(gRange>=bRange?'g':'b');const colors=box.colors.slice().sort((a,b)=>a[channel]-b[channel]);const half=box.count/2;let acc=0,split=1;for(let i=0;i<colors.length;i++){acc+=colors[i].count;if(acc>=half){split=Math.max(1,Math.min(colors.length-1,i+1));break}}return[makeBox(colors.slice(0,split)),makeBox(colors.slice(split))]}
+function boxAverage(box){let r=0,g=0,b=0,total=0;for(const c of box.colors){r+=c.r*c.count;g+=c.g*c.count;b+=c.b*c.count;total+=c.count}if(total===0)return[0,0,0,255];return[Math.round(r/total),Math.round(g/total),Math.round(b/total),255]}
+function medianCutPalette(colors,maxColors){if(colors.length===0)return[];let boxes=[makeBox(colors)];while(boxes.length<maxColors){boxes.sort((a,b)=>{const ar=Math.max(a.rMax-a.rMin,a.gMax-a.gMin,a.bMax-a.bMin)*a.count;const br=Math.max(b.rMax-b.rMin,b.gMax-b.gMin,b.bMax-b.bMin)*b.count;return br-ar});const box=boxes.shift();if(!box||box.colors.length<=1){if(box)boxes.push(box);break}const [a,b]=splitBox(box);boxes.push(a,b)}return boxes.map(boxAverage)}
+function nearestPaletteIndex(r,g,b,palette){let best=1,bestD=Infinity;for(let i=1;i<palette.length;i++){const p=palette[i];const d=(r-p[0])*(r-p[0])+(g-p[1])*(g-p[1])+(b-p[2])*(b-p[2]);if(d<bestD){bestD=d;best=i}}return best}
+function buildIndexedImage(canvas){const ctx=canvas.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,canvas.width,canvas.height);const d=im.data;const hist=buildColorHistogram(d);const opaquePalette=medianCutPalette(hist,MAX_OPAQUE_COLORS);const palette=[[0,0,0,0],...opaquePalette];const indices=new Uint8Array(canvas.width*canvas.height);const cache=new Map();for(let p=0,i=0;i<d.length;i+=4,p++){if(d[i+3]===0){indices[p]=0;continue}const key=(d[i]<<16)|(d[i+1]<<8)|d[i+2];let idx=cache.get(key);if(idx===undefined){idx=nearestPaletteIndex(d[i],d[i+1],d[i+2],palette);cache.set(key,idx)}indices[p]=idx}return{width:canvas.width,height:canvas.height,palette,indices}}
+async function encodePNG8(canvas){const info=buildIndexedImage(canvas);state.lastPaletteCount=info.palette.length;const scan=new Uint8Array((info.width+1)*info.height);let sp=0,ip=0;for(let y=0;y<info.height;y++){scan[sp++]=0;scan.set(info.indices.subarray(ip,ip+info.width),sp);sp+=info.width;ip+=info.width}const compressed=await zlibDeflate(scan);const ihdr=new Uint8Array(13);ihdr.set(u32be(info.width),0);ihdr.set(u32be(info.height),4);ihdr[8]=8;ihdr[9]=3;ihdr[10]=0;ihdr[11]=0;ihdr[12]=0;const plte=new Uint8Array(info.palette.length*3);const trns=new Uint8Array(info.palette.length);for(let i=0;i<info.palette.length;i++){plte[i*3]=info.palette[i][0];plte[i*3+1]=info.palette[i][1];plte[i*3+2]=info.palette[i][2];trns[i]=info.palette[i][3]}const sig=new Uint8Array([137,80,78,71,13,10,26,10]);const png=concatArrays([sig,chunk('IHDR',ihdr),chunk('PLTE',plte),chunk('tRNS',trns),chunk('IDAT',compressed),chunk('IEND',new Uint8Array(0))]);return new Blob([png],{type:'image/png'})}
+async function updateDiagnostics(){const c=$('finalCanvas');const a=analyzeAlpha(c);$('diagTransparent').textContent=a.tr.toFixed(2)+'%';$('diagSemi').textContent=a.se.toFixed(2)+'%';$('diagOpaque').textContent=a.op.toFixed(2)+'%';$('diagAlphaCount').textContent=a.count;try{const blob=await encodePNG8(c);state.lastPng8Blob=blob;$('diagSize').textContent=bytes(blob.size);$('diagPalette').textContent=state.lastPaletteCount}catch(e){$('diagSize').textContent='エラー';$('diagPalette').textContent='-'}}
+async function renderAll(){renderFinal();await updateDiagnostics()}
+async function savePNG8(){await renderAll();const blob=state.lastPng8Blob||await encodePNG8($('finalCanvas'));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tap-change-post-png8.png';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
+function saveNormalPNG(){renderFinal();const canvas=$('finalCanvas');canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tap-change-normal.png';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)},'image/png')}
+function resetAll(){state.baseImg=null;state.frontImg=null;state.lastPng8Blob=null;state.lastPaletteCount=0;$('baseInput').value='';$('frontInput').value='';$('canvasW').value='800';$('canvasH').value='800';$('outputSize').value='original';renderAll()}
+$('baseInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;state.baseImg=await readImage(file);$('canvasW').value=state.baseImg.naturalWidth;$('canvasH').value=state.baseImg.naturalHeight;renderAll()});
+$('frontInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;state.frontImg=await readImage(file);if(!state.baseImg){$('canvasW').value=state.frontImg.naturalWidth;$('canvasH').value=state.frontImg.naturalHeight}renderAll()});
+$('outputSize').addEventListener('change',renderAll);
+$('clearBtn').addEventListener('click',resetAll);
+$('savePng8Btn').addEventListener('click',savePNG8);
+$('saveNormalBtn').addEventListener('click',saveNormalPNG);
+renderAll();
+</script>
+</body>
+</html>
