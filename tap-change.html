@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>タップチェンジ画像作成君 | クリエイター画像ツール</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👆</text></svg>">
-  <meta name="description" content="本体画像を1px市松模様で透明化し、前面レイヤーを重ねて、タップ前後で見え方が変わるX投稿向けPNG画像をブラウザ上で作成します。">
+  <meta name="description" content="本体画像 / Base Imageを1px市松模様で透明化し、前面レイヤーやTapスタンプを重ねて、X投稿向けのPNG-8 indexed画像をブラウザ上で作成します。">
   <style>
     :root{--bg:#f4f7f6;--panel:#fff;--line:#e5e7eb;--text:#222;--muted:#666;--accent:#007bff;--accent-hover:#0056b3;--sub:#e5e7eb;--sub-text:#222}
     *{box-sizing:border-box}
@@ -20,21 +20,20 @@
     h2{margin:0 0 12px;font-size:1.1rem}h3{margin:18px 0 10px;font-size:.95rem;border-top:1px solid var(--line);padding-top:14px}
     label{display:block;margin:12px 0 6px;font-size:.86rem;font-weight:700}
     input[type=file]{width:100%;padding:10px;border:1px dashed #cbd5e1;border-radius:10px;background:#f9fafb;font-size:.82rem}
-    input[type=number],select{width:100%;padding:9px 10px;border:1px solid #d1d5db;border-radius:10px;font-size:.9rem;background:#fff}
+    input[type=number],input[type=text],select{width:100%;padding:9px 10px;border:1px solid #d1d5db;border-radius:10px;font-size:.9rem;background:#fff}
+    input[type=color]{width:100%;height:42px;border:1px solid #d1d5db;border-radius:10px;background:#fff;padding:4px}
     input[readonly]{background:#f9fafb;color:#6b7280}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
     .note{margin-top:10px;font-size:.78rem;color:#666;line-height:1.7}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
     button{appearance:none;border:0;background:var(--accent);color:#fff;border-radius:999px;padding:11px 16px;font-weight:700;font-size:.88rem;cursor:pointer;transition:.2s}
     button:hover{background:var(--accent-hover)}button.secondary{background:var(--sub);color:var(--sub-text)}button.secondary:hover{background:#d1d5db}.danger{background:#f3f4f6;color:#333}.danger:hover{background:#e5e7eb}
     .canvas-wrap{padding:10px;border-radius:14px;background:repeating-linear-gradient(45deg,#f3f4f6 0,#f3f4f6 10px,#fff 10px,#fff 20px)}
-    canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block;background:#fff}
+    canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block;background:#fff;touch-action:none;cursor:default}
     .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.82rem;line-height:1.6}.kv div:nth-child(odd){color:#666}
-
-    .info-section{max-width:1080px;margin:18px auto 0;padding:0 24px;display:grid;grid-template-columns:1fr 1fr;gap:18px}
-    .info-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 4px 10px rgba(0,0,0,.05)}
-    .info-card h2{margin:0 0 10px;font-size:1.15rem;color:#222}.info-card p{margin:0 0 12px;color:#555;font-size:.92rem}.info-card ol,.info-card ul{margin:0;padding-left:1.25rem;color:#555;font-size:.9rem}.info-card li{margin:.35rem 0}.info-note{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:12px;margin-top:12px;font-size:.84rem;color:#475569}
-    @media(max-width:960px){main{grid-template-columns:1fr}.controls{position:static;max-height:none}.info-section{grid-template-columns:1fr}}
+    .stamp-box{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fafafa;margin-top:10px}
+    .small{font-size:.76rem;color:#666}
+    @media(max-width:960px){main{grid-template-columns:1fr}.controls{position:static;max-height:none}}
   </style>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
 </head>
 <body>
@@ -45,27 +44,26 @@
 
   <header>
     <h1>👆 タップチェンジ画像作成君</h1>
-    <p class="lead">本体画像を1px市松模様で透明化し、前面レイヤーを重ねて、X投稿向けPNG-8 indexed画像を作成します。</p>
+    <p class="lead">本体画像 / Base Imageを1px市松模様で透明化し、前面レイヤーやTapスタンプを重ねて、X投稿向けPNG-8 indexed画像を作成します。</p>
   </header>
-
 
   <main>
     <aside class="panel controls">
       <h2>入力</h2>
-      <label>本体画像</label>
+      <label>本体画像 / Base Image</label>
       <input id="baseInput" type="file" accept="image/png,image/webp,image/jpeg" />
-      <label>前面レイヤー（水着など）</label>
+      <label>前面レイヤー（水着など） / Front Layer (Swimsuit etc.)</label>
       <input id="frontInput" type="file" accept="image/png,image/webp,image/jpeg" />
 
       <h3>キャンバス</h3>
       <div class="row">
-        <div><label>元幅</label><input id="canvasW" type="number" value="800" readonly /></div>
-        <div><label>元高さ</label><input id="canvasH" type="number" value="800" readonly /></div>
+        <div><label>元幅 / Original Width</label><input id="canvasW" type="number" value="800" readonly /></div>
+        <div><label>元高さ / Original Height</label><input id="canvasH" type="number" value="800" readonly /></div>
       </div>
-      <label>保存サイズ</label>
+      <label>保存 / Saveサイズ / Output Size</label>
       <select id="outputSize">
-        <option value="original" selected>元画像サイズ</option>
-        <option value="half">1/2サイズ</option>
+        <option value="original" selected>元画像サイズ / Original Size</option>
+        <option value="half">1/2サイズ / Half Size</option>
         <option value="2048">長辺2048px</option>
         <option value="1536">長辺1536px</option>
         <option value="1331">長辺1331px</option>
@@ -73,21 +71,88 @@
         <option value="900">長辺900px</option>
       </select>
 
-      <h3>処理仕様</h3>
-      <p class="note">本体画像は完全白 RGB(255,255,255) のみ自動で透明化し、その後、1pxごとの市松模様で透明/不透明を交互に適用します。白寄せ処理は行いません。</p>
-      <p class="note">前面レイヤーは読み込んだ透明情報を保持し、透明でない部分を完全不透明にして上に重ねます。白透過処理は行いません。</p>
+      <h3>処理仕様 / Processing</h3>
+      <p class="note">本体画像 / Base Imageは、画像の外周とつながっている完全白 RGB(255,255,255) の背景だけを自動で透明化し、その後、1pxごとの市松模様で透明/不透明を交互に適用します。左上ピクセルは常に不透明スタートです。白寄せ処理は行いません。</p>
+      <p class="note">前面レイヤーは読み込んだ透明情報を保持し、透明でない部分を完全不透明にして上に重ねます。白透過処理は行いません。 / The front layer keeps its transparency and any non-transparent pixels are made fully opaque when composited on top. No white-to-transparent processing is applied.</p>
 
-      <h3>保存</h3>
-      <p class="note">投稿用PNGは、255色・GIMP相当のPNG-8 indexedとして保存します。通常PNG保存は比較・確認用です。</p>
+      <h3>不透明スタンプ / Opaque Stamp</h3>
+      <p class="note">手書き風の不透明スタンプ / Opaque Stampを画像の上に追加できます。追加後は、プレビュー上でドラッグして移動できます。</p>
       <div class="actions">
-        <button id="clearBtn" class="danger">すべてクリア</button>
+        <button id="addStampBtn" type="button">不透明スタンプ / Opaque Stamp追加</button>
+      </div>
+      <div id="stampCreatePanel" class="stamp-box" style="display:none; margin-top:10px;">
+        <label>スタンプ文言 / Stamp Text</label>
+        <select id="stampPreset">
+          <option value="Tap">Tap</option>
+          <option value="Tap me!" selected>Tap me!</option>
+          <option value="Tap here">Tap here</option>
+          <option value="タップしてね">タップしてね / Please tap</option>
+          <option value="__custom__">カスタム入力 / Custom</option>
+        </select>
+        <label>カスタム文字 / Custom Text</label>
+        <input id="stampTextInput" type="text" value="Tap me!" placeholder="Tap me!" />
+        <div class="actions">
+          <button id="confirmAddStampBtn" type="button">この内容で追加 / Add</button>
+          <button id="cancelAddStampBtn" type="button" class="secondary">閉じる / Close</button>
+        </div>
+      </div>
+
+      <div class="stamp-box">
+        <label>選択中の不透明スタンプ / Selected Opaque Stamp / Opaque Stamp</label>
+        <select id="stampList">
+          <option value="">（不透明スタンプ / Opaque Stampなし）</option>
+        </select>
+        <div id="stampEditor" style="display:none;">
+          <label>表示テキスト / Display Text</label>
+          <input id="stampTextEdit" type="text" />
+          <div class="row">
+            <div>
+              <label>サイズ(px) / Size (px)</label>
+              <input id="stampSize" type="number" min="12" max="300" value="72" />
+            </div>
+            <div>
+              <label>回転(°) / Rotation (°)</label>
+              <input id="stampRotation" type="number" min="-180" max="180" value="-10" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>文字色 / Fill Color</label>
+              <input id="stampFill" type="color" value="#ffffff" />
+            </div>
+            <div>
+              <label>縁取り色 / Outline Color</label>
+              <input id="stampStroke" type="color" value="#000000" />
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>縁取り太さ / Outline Width</label>
+              <input id="stampStrokeWidth" type="number" min="0" max="30" value="8" />
+            </div>
+            <div>
+              <label>X / Y</label>
+              <div class="row"><input id="stampX" type="number" step="1" /><input id="stampY" type="number" step="1" /></div>
+            </div>
+          </div>
+          <div class="actions">
+            <button id="deleteStampBtn" type="button" class="secondary">選択中スタンプ削除 / Delete Selected Stamp</button>
+          </div>
+          <div class="small">※ プレビュー上でドラッグ移動できます / You can drag it on the preview</div>
+        </div>
+      </div>
+
+      <h3>保存 / Save</h3>
+      <p class="note">投稿用PNGは、255色・GIMP相当のPNG-8 indexedとして保存 / Saveします。通常PNG保存 / Save Normal PNG / Saveは比較・確認用です。</p>
+      <div class="actions">
+        <button id="clearBtn" class="danger">すべてクリア / Clear All</button>
       </div>
       <div class="actions">
-        <button id="savePng8Btn">投稿用PNG保存</button>
-        <button id="saveNormalBtn" class="secondary">通常PNG保存</button>
+        <button id="savePng8Btn">投稿用PNG保存 / Save Post PNG / Save</button>
+        <button id="saveNormalBtn" class="secondary">通常PNG保存 / Save Normal PNG / Save</button>
       </div>
 
-      <h3>診断</h3>
+      <h3>診断 / Diagnostics</h3>
       <div class="kv">
         <div>透明率</div><div id="diagTransparent">-</div>
         <div>半透明率</div><div id="diagSemi">-</div>
@@ -99,53 +164,46 @@
     </aside>
 
     <section class="panel">
-      <h2>保存される最終画像</h2>
+      <h2>保存 / Saveされる最終画像</h2>
       <div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div>
     </section>
   </main>
 
-  <section class="info-section" aria-label="タップチェンジ画像作成君の説明">
-    <div class="info-card">
-      <h2>このツールでできること</h2>
-      <p><strong>タップチェンジ画像作成君</strong>は、Xなどの投稿画面で「タイムライン上で見える印象」と「画像をタップして開いたときの印象」を変えやすいPNG画像を作るためのブラウザ完結ツールです。</p>
-      <ul>
-        <li>本体画像を1pxごとの市松模様で透明化します。</li>
-        <li>水着・文字・見せたいパーツなどの前面レイヤーを上から合成します。</li>
-        <li>X投稿向けに、255色・PNG-8 indexed形式の投稿用PNGを書き出します。</li>
-        <li>画像処理はすべてブラウザ内で行われ、画像はサーバーへ送信されません。</li>
-      </ul>
-      <div class="info-note">うまく表示させるため、前面レイヤーはあらかじめ透過PNGとして用意しておくのがおすすめです。</div>
-    </div>
-
-    <div class="info-card">
-      <h2>使い方</h2>
-      <ol>
-        <li><strong>本体画像</strong>に、タップ後に見せたい元画像を読み込みます。</li>
-        <li><strong>前面レイヤー</strong>に、タイムライン上で主に見せたい透過PNGを読み込みます。</li>
-        <li>必要に応じて保存サイズを選びます。迷ったら「元画像サイズ」のままで問題ありません。</li>
-        <li>プレビューで合成結果を確認します。</li>
-        <li><strong>投稿用PNG保存</strong>を押して、X投稿用のPNG-8画像を書き出します。</li>
-      </ol>
-      <div class="info-note">通常PNG保存は比較確認用です。Xへ投稿する画像は、基本的に「投稿用PNG保存」で書き出したものを使ってください。</div>
-    </div>
-  </section>
-
-
 <script>
 const $=id=>document.getElementById(id);
-const state={baseImg:null,frontImg:null,lastPng8Blob:null,lastPaletteCount:0};
+const state={baseImg:null,frontImg:null,stamps:[],selectedStampId:null,lastPng8Blob:null,lastPaletteCount:0,draggingStampId:null,dragOffsetX:0,dragOffsetY:0};
 const WHITE_THRESHOLD=255;
 const MAX_OPAQUE_COLORS=255;
+const STAMP_FONT_STACK="'Segoe Print','Bradley Hand','Comic Sans MS','Hiragino Maru Gothic ProN','Yu Gothic',cursive";
 
 function setCanvasSize(canvas,w,h){canvas.width=Math.max(1,Math.round(w));canvas.height=Math.max(1,Math.round(h));}
 function readImage(file){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=reject;img.src=url})}
 function getBaseSize(){if(state.baseImg)return{w:state.baseImg.naturalWidth,h:state.baseImg.naturalHeight};if(state.frontImg)return{w:state.frontImg.naturalWidth,h:state.frontImg.naturalHeight};return{w:800,h:800}}
 function getOutputSize(){const base=getBaseSize();const setting=$('outputSize').value;if(setting==='original')return{w:base.w,h:base.h,scale:1};if(setting==='half')return{w:Math.max(1,Math.round(base.w/2)),h:Math.max(1,Math.round(base.h/2)),scale:.5};const longEdge=Number(setting);const scale=longEdge/Math.max(base.w,base.h);return{w:Math.max(1,Math.round(base.w*scale)),h:Math.max(1,Math.round(base.h*scale)),scale}}
-function isTransparentByChecker(x,y){return ((x+y)&1)===0}
-function drawLayerToCanvas(img,outScale){const out=getOutputSize();const c=document.createElement('canvas');setCanvasSize(c,out.w,out.h);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,out.w,out.h);ctx.drawImage(img,0,0,img.naturalWidth*outScale,img.naturalHeight*outScale);return c}
-function processBaseLayer(layer){const ctx=layer.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,layer.width,layer.height);const d=im.data;for(let y=0;y<layer.height;y++){for(let x=0;x<layer.width;x++){const i=(y*layer.width+x)*4;const a=d[i+3];if(a===0)continue;if(d[i]===WHITE_THRESHOLD&&d[i+1]===WHITE_THRESHOLD&&d[i+2]===WHITE_THRESHOLD){d[i+3]=0;continue}d[i+3]=isTransparentByChecker(x,y)?0:255}}ctx.putImageData(im,0,0);return layer}
+function isTransparentByChecker(x,y){return ((x+y)&1)===1}
+function drawLayerToCanvas(img,outScale){const out=getOutputSize();const c=document.createElement('canvas');setCanvasSize(c,out.w,out.h);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,out.w,out.h);ctx.imageSmoothingEnabled=false;ctx.drawImage(img,0,0,img.naturalWidth*outScale,img.naturalHeight*outScale);return c}
+function getBorderConnectedWhiteMask(data,w,h){const mask=new Uint8Array(w*h);const queue=[];const push=(x,y)=>{if(x<0||y<0||x>=w||y>=h)return;const p=y*w+x;if(mask[p])return;const i=p*4;if(data[i+3]===0)return;if(data[i]!==WHITE_THRESHOLD||data[i+1]!==WHITE_THRESHOLD||data[i+2]!==WHITE_THRESHOLD)return;mask[p]=1;queue.push(p)};for(let x=0;x<w;x++){push(x,0);push(x,h-1)}for(let y=1;y<h-1;y++){push(0,y);push(w-1,y)}for(let qi=0;qi<queue.length;qi++){const p=queue[qi];const x=p%w;const y=(p/w)|0;push(x-1,y);push(x+1,y);push(x,y-1);push(x,y+1)}return mask}
+function processBaseLayer(layer){const ctx=layer.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,layer.width,layer.height);const d=im.data;const whiteMask=getBorderConnectedWhiteMask(d,layer.width,layer.height);for(let y=0;y<layer.height;y++){for(let x=0;x<layer.width;x++){const p=y*layer.width+x;const i=p*4;const a=d[i+3];if(a===0)continue;if(whiteMask[p]){d[i+3]=0;continue}d[i+3]=isTransparentByChecker(x,y)?0:255}}ctx.putImageData(im,0,0);return layer}
 function processFrontLayer(layer){const ctx=layer.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,layer.width,layer.height);const d=im.data;for(let i=0;i<d.length;i+=4){if(d[i+3]!==0)d[i+3]=255}ctx.putImageData(im,0,0);return layer}
-function renderFinal(){const out=getOutputSize();const final=$('finalCanvas');setCanvasSize(final,out.w,out.h);const ctx=final.getContext('2d');ctx.clearRect(0,0,out.w,out.h);if(state.baseImg){let base=drawLayerToCanvas(state.baseImg,out.scale);base=processBaseLayer(base);ctx.drawImage(base,0,0)}if(state.frontImg){let front=drawLayerToCanvas(state.frontImg,out.scale);front=processFrontLayer(front);ctx.drawImage(front,0,0)}}
+
+function getStampTextFromInputs(){return $('stampPreset').value==='__custom__' ? ($('stampTextInput').value.trim() || 'Tap me!') : $('stampPreset').value}
+function openStampCreatePanel(){$('stampCreatePanel').style.display='block';}
+function closeStampCreatePanel(){$('stampCreatePanel').style.display='none';}
+function createStamp(text){const out=getOutputSize();const offset=state.stamps.length*18;return {id:`stamp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,text:text||'Tap me!',x:Math.round(out.w*0.72)+offset,y:Math.round(out.h*0.18)+offset,size:Math.max(28,Math.round(Math.min(out.w,out.h)*0.08)),rotation:-10,fill:'#ffffff',stroke:'#000000',strokeWidth:8,fontFamily:STAMP_FONT_STACK}}
+function getSelectedStamp(){return state.stamps.find(s=>s.id===state.selectedStampId)||null}
+function measureStamp(stamp){const canvas=$('finalCanvas');const ctx=canvas.getContext('2d');ctx.save();ctx.font=`900 ${stamp.size}px ${stamp.fontFamily}`;const m=ctx.measureText(stamp.text);ctx.restore();const width=m.width||stamp.text.length*stamp.size*0.6;const ascent=m.actualBoundingBoxAscent || stamp.size*0.7;const descent=m.actualBoundingBoxDescent || stamp.size*0.3;const height=ascent+descent;return {width,height,ascent,descent}}
+function drawStamp(ctx,stamp){ctx.save();ctx.translate(stamp.x,stamp.y);ctx.rotate(stamp.rotation*Math.PI/180);ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineCap='round';ctx.font=`900 ${stamp.size}px ${stamp.fontFamily}`;ctx.lineWidth=stamp.strokeWidth;ctx.strokeStyle=stamp.stroke;ctx.fillStyle=stamp.fill;ctx.strokeText(stamp.text,0,0);ctx.fillText(stamp.text,0,0);ctx.restore()}
+function hitTestStamp(stamp,px,py){const m=measureStamp(stamp);const rad=-stamp.rotation*Math.PI/180;const dx=px-stamp.x, dy=py-stamp.y;const lx=dx*Math.cos(rad)-dy*Math.sin(rad);const ly=dx*Math.sin(rad)+dy*Math.cos(rad);const pad=stamp.strokeWidth+8;return lx>=-(m.width/2)-pad && lx<=(m.width/2)+pad && ly>=-(m.height/2)-pad && ly<=(m.height/2)+pad}
+function updateStampListUI(){const list=$('stampList');const current=state.selectedStampId;list.innerHTML='';if(state.stamps.length===0){list.innerHTML='<option value="">（不透明スタンプ / Opaque Stampなし）</option>';state.selectedStampId=null;$('stampEditor').style.display='none';return}
+  state.stamps.forEach((s,i)=>{const opt=document.createElement('option');opt.value=s.id;opt.textContent=`${i+1}: ${s.text}`;list.appendChild(opt)});
+  if(!state.stamps.some(s=>s.id===current)) state.selectedStampId=state.stamps[state.stamps.length-1].id;
+  list.value=state.selectedStampId;
+  const stamp=getSelectedStamp();
+  if(stamp){$('stampEditor').style.display='block';$('stampTextEdit').value=stamp.text;$('stampSize').value=stamp.size;$('stampRotation').value=stamp.rotation;$('stampFill').value=stamp.fill;$('stampStroke').value=stamp.stroke;$('stampStrokeWidth').value=stamp.strokeWidth;$('stampX').value=Math.round(stamp.x);$('stampY').value=Math.round(stamp.y);} else {$('stampEditor').style.display='none';}
+}
+function syncSelectedStampFromEditor(){const stamp=getSelectedStamp();if(!stamp)return;stamp.text=$('stampTextEdit').value || 'Tap me!';stamp.size=Math.max(12,Number($('stampSize').value)||72);stamp.rotation=Number($('stampRotation').value)||0;stamp.fill=$('stampFill').value;stamp.stroke=$('stampStroke').value;stamp.strokeWidth=Math.max(0,Number($('stampStrokeWidth').value)||0);stamp.x=Number($('stampX').value)||0;stamp.y=Number($('stampY').value)||0;updateStampListUI();renderAll();}
+
+function renderFinal(){const out=getOutputSize();const final=$('finalCanvas');setCanvasSize(final,out.w,out.h);const ctx=final.getContext('2d');ctx.clearRect(0,0,out.w,out.h);if(state.baseImg){let base=drawLayerToCanvas(state.baseImg,out.scale);base=processBaseLayer(base);ctx.drawImage(base,0,0)}if(state.frontImg){let front=drawLayerToCanvas(state.frontImg,out.scale);front=processFrontLayer(front);ctx.drawImage(front,0,0)}state.stamps.forEach(stamp=>drawStamp(ctx,stamp));}
 function analyzeAlpha(canvas){const ctx=canvas.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,canvas.width,canvas.height);const d=im.data;let tr=0,se=0,op=0;const used=new Set();const total=canvas.width*canvas.height;for(let i=0;i<d.length;i+=4){const a=d[i+3];used.add(a);if(a===0)tr++;else if(a===255)op++;else se++}return{tr:tr/total*100,se:se/total*100,op:op/total*100,count:used.size}}
 function bytes(n){if(n==null)return'-';if(n<1024)return n+' B';if(n<1024*1024)return(n/1024).toFixed(1)+' KB';return(n/(1024*1024)).toFixed(2)+' MB'}
 function makeCrcTable(){const table=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);table[n]=c>>>0}return table}
@@ -169,13 +227,30 @@ async function updateDiagnostics(){const c=$('finalCanvas');const a=analyzeAlpha
 async function renderAll(){renderFinal();await updateDiagnostics()}
 async function savePNG8(){await renderAll();const blob=state.lastPng8Blob||await encodePNG8($('finalCanvas'));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tap-change-post-png8.png';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
 function saveNormalPNG(){renderFinal();const canvas=$('finalCanvas');canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tap-change-normal.png';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)},'image/png')}
-function resetAll(){state.baseImg=null;state.frontImg=null;state.lastPng8Blob=null;state.lastPaletteCount=0;$('baseInput').value='';$('frontInput').value='';$('canvasW').value='800';$('canvasH').value='800';$('outputSize').value='original';renderAll()}
+function resetAll(){state.baseImg=null;state.frontImg=null;state.stamps=[];state.selectedStampId=null;state.lastPng8Blob=null;state.lastPaletteCount=0;$('baseInput').value='';$('frontInput').value='';$('canvasW').value='800';$('canvasH').value='800';$('outputSize').value='original';$('stampPreset').value='Tap me!';$('stampTextInput').value='Tap me!';closeStampCreatePanel();updateStampListUI();renderAll()}
+
 $('baseInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;state.baseImg=await readImage(file);$('canvasW').value=state.baseImg.naturalWidth;$('canvasH').value=state.baseImg.naturalHeight;renderAll()});
 $('frontInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;state.frontImg=await readImage(file);if(!state.baseImg){$('canvasW').value=state.frontImg.naturalWidth;$('canvasH').value=state.frontImg.naturalHeight}renderAll()});
 $('outputSize').addEventListener('change',renderAll);
+$('stampPreset').addEventListener('change',()=>{if($('stampPreset').value!=='__custom__')$('stampTextInput').value=$('stampPreset').value;});
+$('addStampBtn').addEventListener('click',()=>{openStampCreatePanel();});
+$('confirmAddStampBtn').addEventListener('click',()=>{const stamp=createStamp(getStampTextFromInputs());state.stamps.push(stamp);state.selectedStampId=stamp.id;updateStampListUI();closeStampCreatePanel();renderAll();});
+$('cancelAddStampBtn').addEventListener('click',()=>{closeStampCreatePanel();});
+$('stampList').addEventListener('change',()=>{state.selectedStampId=$('stampList').value||null;updateStampListUI();});
+['stampTextEdit','stampSize','stampRotation','stampFill','stampStroke','stampStrokeWidth','stampX','stampY'].forEach(id=>$(id).addEventListener('input',syncSelectedStampFromEditor));
+$('deleteStampBtn').addEventListener('click',()=>{if(!state.selectedStampId)return;state.stamps=state.stamps.filter(s=>s.id!==state.selectedStampId);state.selectedStampId=state.stamps[0]?.id||null;updateStampListUI();renderAll();});
 $('clearBtn').addEventListener('click',resetAll);
 $('savePng8Btn').addEventListener('click',savePNG8);
 $('saveNormalBtn').addEventListener('click',saveNormalPNG);
+
+function canvasPointFromEvent(evt){const canvas=$('finalCanvas');const rect=canvas.getBoundingClientRect();const scaleX=canvas.width/rect.width;const scaleY=canvas.height/rect.height;return{x:(evt.clientX-rect.left)*scaleX,y:(evt.clientY-rect.top)*scaleY}}
+$('finalCanvas').addEventListener('pointerdown',evt=>{const p=canvasPointFromEvent(evt);for(let i=state.stamps.length-1;i>=0;i--){const stamp=state.stamps[i];if(hitTestStamp(stamp,p.x,p.y)){state.selectedStampId=stamp.id;state.draggingStampId=stamp.id;state.dragOffsetX=p.x-stamp.x;state.dragOffsetY=p.y-stamp.y;updateStampListUI();$('finalCanvas').setPointerCapture(evt.pointerId);$('finalCanvas').style.cursor='grabbing';return}}state.selectedStampId=null;state.draggingStampId=null;updateStampListUI();});
+$('finalCanvas').addEventListener('pointermove',evt=>{const p=canvasPointFromEvent(evt);if(state.draggingStampId){const stamp=getSelectedStamp();if(stamp){stamp.x=Math.round(p.x-state.dragOffsetX);stamp.y=Math.round(p.y-state.dragOffsetY);updateStampListUI();renderAll();}return}let hovering=false;for(let i=state.stamps.length-1;i>=0;i--){if(hitTestStamp(state.stamps[i],p.x,p.y)){hovering=true;break}}$('finalCanvas').style.cursor=hovering?'grab':'default';});
+function endDrag(evt){state.draggingStampId=null;$('finalCanvas').style.cursor='default';try{$('finalCanvas').releasePointerCapture(evt.pointerId)}catch(e){}}
+$('finalCanvas').addEventListener('pointerup',endDrag);
+$('finalCanvas').addEventListener('pointercancel',endDrag);
+
+updateStampListUI();
 renderAll();
 </script>
 </body>
