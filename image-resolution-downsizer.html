@@ -1,0 +1,611 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ぎゅうぎゅう圧縮君 | 高品質画像縮小ツール</title>
+  <meta name="description" content="画像比率を保ったまま、できるだけ見た目の劣化を抑えてサイズダウンするブラウザ完結型の高品質画像縮小ツール。JPEG / PNG / WebP対応。" />
+  <style>
+    :root{
+      --bg:#f4f7f6;
+      --panel:#fff;
+      --ink:#333;
+      --muted:#666;
+      --line:#e5e8ea;
+      --accent:#007bff;
+      --accent-dark:#0056b3;
+      --good:#008b73;
+      --soft:#f4f7f6;
+      --soft-blue:#eaf4ff;
+      --shadow:0 4px 10px rgba(0,0,0,.05);
+      --shadow-hover:0 8px 18px rgba(0,0,0,.10);
+      --radius:12px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.5}
+    .navbar{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.08);display:flex;justify-content:space-between;align-items:center;gap:20px;position:sticky;top:0;z-index:10}
+    .navbar a{text-decoration:none;color:#333;font-weight:700}
+    .brand{font-size:1.2rem;white-space:nowrap}
+    .nav-links{display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end}
+    .nav-links a{color:var(--accent);font-size:.92rem}
+    .nav-links a:hover{text-decoration:underline}
+    .tool-hero{max-width:1180px;margin:28px auto 0;padding:26px 22px;background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);text-align:center}
+    .eyebrow{margin:0 0 6px;color:var(--accent);font-weight:700;font-size:.82rem;letter-spacing:.08em}
+    h1{margin:0;font-size:clamp(1.65rem,3vw,2.35rem);color:#222;letter-spacing:.02em}
+    .sub{max-width:720px;margin:10px auto 0;color:var(--muted);font-size:.94rem}
+    main{max-width:1180px;margin:14px auto 40px;display:grid;grid-template-columns:360px minmax(0,1fr);gap:18px;padding:0 14px;min-height:calc(100vh - 210px)}
+    aside,.viewer{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+    aside{padding:18px;overflow:auto;max-height:calc(100vh - 190px)}
+    .viewer{display:grid;grid-template-rows:auto minmax(0,1fr);overflow:hidden}
+    .viewerbar{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff}
+    .canvas-wrap{overflow:auto;background-color:#fafafa;background-image:linear-gradient(45deg,#e8edf1 25%,transparent 25%),linear-gradient(-45deg,#e8edf1 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8edf1 75%),linear-gradient(-45deg,transparent 75%,#e8edf1 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0;padding:16px}
+    canvas{display:block;margin:auto;max-width:100%;height:auto;border:1px solid var(--line);background:#fff;border-radius:8px}
+    h2{font-size:.92rem;margin:20px 0 8px;padding-top:16px;border-top:1px solid var(--line);color:#222}
+    h2:first-child{margin-top:0;padding-top:0;border-top:0}
+    label{display:block;margin:10px 0 5px;font-weight:700;font-size:.82rem;color:#333}
+    input[type=file],select,input[type=number]{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#333}
+    input[type=range]{width:100%;accent-color:var(--accent)}
+    button{border:1px solid transparent;background:var(--accent);color:#fff;border-radius:999px;padding:10px 14px;font-weight:700;font-size:.84rem;cursor:pointer;min-height:42px;transition:.2s}
+    button:hover{background:var(--accent-dark);transform:translateY(-1px)}
+    button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    button.secondary{background:#fff;border-color:var(--line);color:#333}
+    button.secondary:hover{background:#f8fbff;color:#111;border-color:#cfe2ff}
+    button.active{background:#222;color:#fff;border-color:#222;box-shadow:0 0 0 3px rgba(0,123,255,.16)}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+    .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .row button{flex:1 1 auto}
+    .value{float:right;color:var(--muted);font-weight:500;font-variant-numeric:tabular-nums}
+    .note{font-size:.76rem;color:var(--muted);margin:8px 0 0}
+    .meter{display:grid;grid-template-columns:1fr auto;gap:5px 12px;font-size:.8rem;margin-top:8px}
+    .meter div:nth-child(odd){color:var(--muted)}
+    .status{font-size:.82rem;color:var(--muted)}
+    .pill{display:inline-flex;align-items:center;border:1px solid #b8d9ff;border-radius:999px;background:var(--soft-blue);color:var(--accent);padding:6px 10px;font-size:.8rem;font-weight:700}
+    .drop{border:1px dashed #b8c7d6;border-radius:10px;background:#fbfdfe;padding:16px;text-align:center}
+    details{border:1px solid var(--line);border-radius:10px;background:#fbfcfd;margin:10px 0;padding:10px 12px}
+    summary{cursor:pointer;font-weight:700;font-size:.84rem;color:#333}
+    .help{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:.78rem}
+    .help li{margin:4px 0}
+    @media(max-width:960px){
+      .tool-hero{margin:18px 10px 0}
+      main{grid-template-columns:1fr;padding:0 10px;margin-top:10px}
+      aside{max-height:none}
+      .viewer{min-height:560px}
+    }
+    @media(max-width:720px){
+      .navbar{align-items:flex-start;flex-direction:column;padding:14px 20px}
+      .nav-links{justify-content:flex-start;gap:10px 14px}
+    }
+    @media(max-width:560px){
+      .grid2,.grid3{grid-template-columns:1fr}
+      .tool-hero{padding:22px 16px}
+      .canvas-wrap{padding:10px}
+    }
+  </style>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+  <nav class="navbar">
+    <a href="index.html" class="brand">🎨 クリエイター画像ツール</a>
+    <div class="nav-links" aria-label="ツール一覧">
+    </div>
+  </nav>
+
+  <header class="tool-hero">
+    <p class="eyebrow">高品質画像縮小ツール</p>
+    <h1>🗜️ ぎゅうぎゅう圧縮君</h1>
+    <p class="sub">画像比率を保ったまま、できるだけ見た目の劣化を抑えてサイズダウン。SNS投稿・ブログ掲載・保存用画像をブラウザだけで軽量化します。</p>
+  </header>
+
+  <main>
+    <aside>
+      <h2>画像 / Image</h2>
+      <div class="drop">
+        <label for="fileInput">画像を選択 / Choose image</label>
+        <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" />
+        <p class="note">JPEG / PNG / WebP に対応。画像はブラウザ内だけで処理されます。</p>
+      </div>
+
+      <details open>
+        <summary>このツールの考え方 / What this does</summary>
+        <ul class="help">
+          <li>画像の縦横比は変えません。</li>
+          <li>1/2や1/3など、解像度を小さくしてファイルを扱いやすくします。</li>
+          <li>一気に縮小せず段階的に縮小し、必要に応じて軽くシャープを戻します。</li>
+          <li>写真はJPEG/WebP、透明画像やロゴはPNG/WebPが向いています。</li>
+        </ul>
+      </details>
+
+      <h2>縮小設定 / Resize</h2>
+      <label>倍率 / Scale</label>
+      <div class="grid3">
+        <button id="halfBtn" type="button" class="secondary">1/2</button>
+        <button id="thirdBtn" type="button" class="secondary">1/3</button>
+        <button id="quarterBtn" type="button" class="secondary">1/4</button>
+      </div>
+      <label>カスタム倍率 / Custom Scale <span id="scaleVal" class="value">50%</span></label>
+      <input id="scaleRange" type="range" min="5" max="100" step="1" value="50" />
+      <div class="grid2">
+        <div>
+          <label for="targetWidth">幅 / Width</label>
+          <input id="targetWidth" type="number" min="1" step="1" />
+        </div>
+        <div>
+          <label for="targetHeight">高さ / Height</label>
+          <input id="targetHeight" type="number" min="1" step="1" />
+        </div>
+      </div>
+      <p class="note">幅か高さを変えると、もう片方は比率を保って自動計算されます。</p>
+
+      <h2>品質 / Quality</h2>
+      <label for="method">縮小方式 / Resize Method</label>
+      <select id="method">
+        <option value="lanczos" selected>最高品質・Lanczos3 / Best quality Lanczos3</option>
+        <option value="multipass">高品質・段階縮小 / High quality multipass</option>
+        <option value="single">高速・標準 / Fast standard</option>
+      </select>
+      <details>
+        <summary>拡張設定 / Advanced Settings</summary>
+        <label>シャープ補正 / Sharpen <span id="sharpenVal" class="value">20</span></label>
+        <input id="sharpen" type="range" min="0" max="80" step="1" value="20" />
+        <label>シャープ半径 / Sharpen Radius <span id="radiusVal" class="value">1.0</span></label>
+        <input id="sharpenRadius" type="range" min="0.5" max="2.5" step="0.1" value="1.0" />
+        <label>ノイズ保護 / Noise Guard <span id="thresholdVal" class="value">3</span></label>
+        <input id="sharpenThreshold" type="range" min="0" max="16" step="1" value="3" />
+        <p class="note">通常は初期値のままで大丈夫です。輪郭が強すぎる時だけシャープを下げてください。</p>
+      </details>
+
+      <label for="format">保存形式 / Output Format</label>
+      <select id="format">
+        <option value="image/jpeg" selected>JPEG 写真向け</option>
+        <option value="image/webp">WebP 小ささ重視</option>
+        <option value="image/png">PNG 透明/ロゴ向け</option>
+      </select>
+      <label>保存品質 / Save Quality <span id="qualityVal" class="value">92</span></label>
+      <input id="quality" type="range" min="50" max="100" step="1" value="92" />
+      <p id="qualityNote" class="note">JPEG/WebPでは品質がファイルサイズに影響します。</p>
+
+      <h2>操作 / Actions</h2>
+      <div class="grid2">
+        <button id="convertBtn" type="button">変換 / Convert</button>
+        <button id="downloadBtn" type="button" class="secondary">保存 / Download</button>
+      </div>
+
+      <h2>情報 / Info</h2>
+      <div class="meter">
+        <div>元画像 / Original</div><div id="originalInfo">-</div>
+        <div>変換後 / Output</div><div id="outputInfo">-</div>
+        <div>推定ファイル / File</div><div id="fileInfo">-</div>
+      </div>
+    </aside>
+
+    <section class="viewer">
+      <div class="viewerbar">
+        <div class="row">
+          <button id="originalViewBtn" type="button" class="secondary">元画像 / Original</button>
+          <button id="outputViewBtn" type="button" class="secondary active">変換後 / Output</button>
+        </div>
+        <span id="status" class="pill">画像を読み込んでください / Load an image</span>
+      </div>
+      <div class="canvas-wrap">
+        <canvas id="previewCanvas" width="900" height="600"></canvas>
+      </div>
+    </section>
+  </main>
+
+<script>
+const $ = id => document.getElementById(id);
+const dom = {};
+const state = {
+  file:null,
+  image:null,
+  originalCanvas:null,
+  outputCanvas:null,
+  outputBlob:null,
+  scale:.5,
+  view:'output',
+  busy:false
+};
+
+function init(){
+  bindDom();
+  bindEvents();
+  renderEmpty();
+  updateUi();
+}
+
+function bindDom(){
+  const ids = ['fileInput','halfBtn','thirdBtn','quarterBtn','scaleRange','scaleVal','targetWidth','targetHeight','method','sharpen','sharpenVal','sharpenRadius','radiusVal','sharpenThreshold','thresholdVal','format','quality','qualityVal','qualityNote','convertBtn','downloadBtn','originalInfo','outputInfo','fileInfo','previewCanvas','originalViewBtn','outputViewBtn','status'];
+  ids.forEach(id => dom[id] = $(id));
+  dom.ctx = dom.previewCanvas.getContext('2d');
+}
+
+function bindEvents(){
+  dom.fileInput.addEventListener('change', e => loadFile(e.target.files && e.target.files[0]));
+  dom.halfBtn.addEventListener('click', () => setScale(.5));
+  dom.thirdBtn.addEventListener('click', () => setScale(1/3));
+  dom.quarterBtn.addEventListener('click', () => setScale(.25));
+  dom.scaleRange.addEventListener('input', () => setScale(Number(dom.scaleRange.value) / 100, false));
+  dom.targetWidth.addEventListener('change', () => setTargetFromWidth());
+  dom.targetHeight.addEventListener('change', () => setTargetFromHeight());
+  dom.sharpen.addEventListener('input', updateUi);
+  dom.sharpenRadius.addEventListener('input', updateUi);
+  dom.sharpenThreshold.addEventListener('input', updateUi);
+  dom.quality.addEventListener('input', updateUi);
+  dom.format.addEventListener('change', updateUi);
+  dom.convertBtn.addEventListener('click', convert);
+  dom.downloadBtn.addEventListener('click', downloadOutput);
+  dom.originalViewBtn.addEventListener('click', () => setView('original'));
+  dom.outputViewBtn.addEventListener('click', () => setView('output'));
+}
+
+function readImage(file){
+  return new Promise((resolve,reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
+async function loadFile(file){
+  if(!file) return;
+  state.file = file;
+  state.image = await readImage(file);
+  state.originalCanvas = document.createElement('canvas');
+  state.originalCanvas.width = state.image.naturalWidth;
+  state.originalCanvas.height = state.image.naturalHeight;
+  state.originalCanvas.getContext('2d').drawImage(state.image,0,0);
+  setScale(.5);
+  state.outputCanvas = null;
+  state.outputBlob = null;
+  state.view = 'original';
+  updateUi();
+  renderCurrent();
+}
+
+function setScale(scale){
+  state.scale = Math.max(.05, Math.min(1, scale));
+  if(state.image){
+    dom.targetWidth.value = Math.max(1, Math.round(state.image.naturalWidth * state.scale));
+    dom.targetHeight.value = Math.max(1, Math.round(state.image.naturalHeight * state.scale));
+  }
+  updateUi();
+}
+
+function setPresetButtonState(button, active){
+  button.classList.toggle('active', active);
+  button.classList.toggle('secondary', !active);
+}
+
+function setTargetFromWidth(){
+  if(!state.image) return;
+  const w = Math.max(1, Number(dom.targetWidth.value) || 1);
+  state.scale = w / state.image.naturalWidth;
+  dom.targetHeight.value = Math.max(1, Math.round(state.image.naturalHeight * state.scale));
+  updateUi();
+}
+
+function setTargetFromHeight(){
+  if(!state.image) return;
+  const h = Math.max(1, Number(dom.targetHeight.value) || 1);
+  state.scale = h / state.image.naturalHeight;
+  dom.targetWidth.value = Math.max(1, Math.round(state.image.naturalWidth * state.scale));
+  updateUi();
+}
+
+function targetSize(){
+  if(!state.image) return {w:1,h:1};
+  return {
+    w: Math.max(1, Math.round(state.image.naturalWidth * state.scale)),
+    h: Math.max(1, Math.round(state.image.naturalHeight * state.scale))
+  };
+}
+
+function makeCanvas(w,h){
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  return c;
+}
+
+function drawHighQuality(source, w, h, method){
+  if(method === 'single') return drawScaled(source, w, h);
+  if(method === 'lanczos') return resizeLanczos(source, w, h, 3);
+  let current = source;
+  let cw = source.width;
+  let ch = source.height;
+  while(cw * .55 > w && ch * .55 > h){
+    cw = Math.max(w, Math.round(cw * .55));
+    ch = Math.max(h, Math.round(ch * .55));
+    current = drawScaled(current, cw, ch);
+  }
+  if(current.width !== w || current.height !== h) current = drawScaled(current, w, h);
+  return current;
+}
+
+function drawScaled(source,w,h){
+  const c = makeCanvas(w,h);
+  const ctx = c.getContext('2d', {willReadFrequently:true});
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(source,0,0,w,h);
+  return c;
+}
+
+function sinc(x){
+  if(x === 0) return 1;
+  const pix = Math.PI * x;
+  return Math.sin(pix) / pix;
+}
+
+function lanczosWeight(x, radius){
+  x = Math.abs(x);
+  if(x >= radius) return 0;
+  return sinc(x) * sinc(x / radius);
+}
+
+function resizeLanczos(source, targetW, targetH, radius){
+  const srcCtx = source.getContext('2d', {willReadFrequently:true});
+  const src = srcCtx.getImageData(0,0,source.width,source.height).data;
+  const sw = source.width;
+  const sh = source.height;
+  const scaleX = sw / targetW;
+  const scaleY = sh / targetH;
+  const tmp = new Float32Array(targetW * sh * 4);
+
+  for(let y=0;y<sh;y++){
+    for(let x=0;x<targetW;x++){
+      const center = (x + .5) * scaleX - .5;
+      const left = Math.ceil(center - radius * scaleX);
+      const right = Math.floor(center + radius * scaleX);
+      let total = 0, r=0, g=0, b=0, a=0;
+      for(let sx=left;sx<=right;sx++){
+        if(sx < 0 || sx >= sw) continue;
+        const weight = lanczosWeight((center - sx) / Math.max(1, scaleX), radius);
+        if(weight === 0) continue;
+        const si = (y * sw + sx) * 4;
+        r += src[si] * weight;
+        g += src[si+1] * weight;
+        b += src[si+2] * weight;
+        a += src[si+3] * weight;
+        total += weight;
+      }
+      const ti = (y * targetW + x) * 4;
+      tmp[ti] = total ? r / total : 0;
+      tmp[ti+1] = total ? g / total : 0;
+      tmp[ti+2] = total ? b / total : 0;
+      tmp[ti+3] = total ? a / total : 0;
+    }
+  }
+
+  const outCanvas = makeCanvas(targetW,targetH);
+  const outCtx = outCanvas.getContext('2d', {willReadFrequently:true});
+  const out = outCtx.createImageData(targetW,targetH);
+  const dst = out.data;
+  for(let y=0;y<targetH;y++){
+    const center = (y + .5) * scaleY - .5;
+    const top = Math.ceil(center - radius * scaleY);
+    const bottom = Math.floor(center + radius * scaleY);
+    for(let x=0;x<targetW;x++){
+      let total = 0, r=0, g=0, b=0, a=0;
+      for(let sy=top;sy<=bottom;sy++){
+        if(sy < 0 || sy >= sh) continue;
+        const weight = lanczosWeight((center - sy) / Math.max(1, scaleY), radius);
+        if(weight === 0) continue;
+        const si = (sy * targetW + x) * 4;
+        r += tmp[si] * weight;
+        g += tmp[si+1] * weight;
+        b += tmp[si+2] * weight;
+        a += tmp[si+3] * weight;
+        total += weight;
+      }
+      const di = (y * targetW + x) * 4;
+      dst[di] = total ? Math.max(0, Math.min(255, r / total)) : 0;
+      dst[di+1] = total ? Math.max(0, Math.min(255, g / total)) : 0;
+      dst[di+2] = total ? Math.max(0, Math.min(255, b / total)) : 0;
+      dst[di+3] = total ? Math.max(0, Math.min(255, a / total)) : 0;
+    }
+  }
+  outCtx.putImageData(out,0,0);
+  return outCanvas;
+}
+
+function applySharpen(canvas, amount, radius, threshold){
+  if(amount <= 0) return canvas;
+  const ctx = canvas.getContext('2d', {willReadFrequently:true});
+  const img = ctx.getImageData(0,0,canvas.width,canvas.height);
+  const src = img.data;
+  const blurred = gaussianBlurRgba(src, canvas.width, canvas.height, radius);
+  const out = new Uint8ClampedArray(src.length);
+  const strength = amount / 70;
+  const w = canvas.width;
+  const h = canvas.height;
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i = (y*w + x) * 4;
+      for(let c=0;c<3;c++){
+        const detail = src[i+c] - blurred[i+c];
+        out[i+c] = Math.abs(detail) < threshold ? src[i+c] : Math.max(0, Math.min(255, src[i+c] + detail * strength));
+      }
+      out[i+3] = src[i+3];
+    }
+  }
+  img.data.set(out);
+  ctx.putImageData(img,0,0);
+  return canvas;
+}
+
+function gaussianKernel(radius){
+  const sigma = Math.max(.35, radius);
+  const size = Math.max(1, Math.ceil(sigma * 3));
+  const kernel = [];
+  let total = 0;
+  for(let i=-size;i<=size;i++){
+    const weight = Math.exp(-(i*i) / (2 * sigma * sigma));
+    kernel.push(weight);
+    total += weight;
+  }
+  return kernel.map(v => v / total);
+}
+
+function gaussianBlurRgba(src, w, h, radius){
+  const kernel = gaussianKernel(radius);
+  const half = (kernel.length - 1) / 2;
+  const tmp = new Float32Array(src.length);
+  const out = new Float32Array(src.length);
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i = (y*w+x)*4;
+      for(let c=0;c<4;c++){
+        let v = 0;
+        for(let k=-half;k<=half;k++){
+          const sx = Math.max(0, Math.min(w-1, x+k));
+          v += src[(y*w+sx)*4+c] * kernel[k+half];
+        }
+        tmp[i+c] = v;
+      }
+    }
+  }
+  for(let y=0;y<h;y++){
+    for(let x=0;x<w;x++){
+      const i = (y*w+x)*4;
+      for(let c=0;c<4;c++){
+        let v = 0;
+        for(let k=-half;k<=half;k++){
+          const sy = Math.max(0, Math.min(h-1, y+k));
+          v += tmp[(sy*w+x)*4+c] * kernel[k+half];
+        }
+        out[i+c] = v;
+      }
+    }
+  }
+  return out;
+}
+
+function canvasToBlob(canvas, type, quality){
+  return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+}
+
+async function convert(){
+  if(!state.originalCanvas || state.busy) return;
+  state.busy = true;
+  setStatus('変換中... / Converting...');
+  updateUi();
+  await new Promise(requestAnimationFrame);
+  const size = targetSize();
+  let out = drawHighQuality(state.originalCanvas, size.w, size.h, dom.method.value);
+  out = applySharpen(out, Number(dom.sharpen.value), Number(dom.sharpenRadius.value), Number(dom.sharpenThreshold.value));
+  const type = dom.format.value;
+  const quality = Number(dom.quality.value) / 100;
+  state.outputBlob = await canvasToBlob(out, type, type === 'image/png' ? undefined : quality);
+  state.outputCanvas = out;
+  state.view = 'output';
+  state.busy = false;
+  setStatus('変換完了 / Done');
+  updateUi();
+  renderCurrent();
+}
+
+function setView(view){
+  state.view = view;
+  updateUi();
+  renderCurrent();
+}
+
+function renderCurrent(){
+  const canvas = state.view === 'original' ? state.originalCanvas : (state.outputCanvas || state.originalCanvas);
+  if(!canvas){ renderEmpty(); return; }
+  const maxW = 1200;
+  const maxH = 820;
+  const scale = Math.min(1, maxW / canvas.width, maxH / canvas.height);
+  dom.previewCanvas.width = Math.max(1, Math.round(canvas.width * scale));
+  dom.previewCanvas.height = Math.max(1, Math.round(canvas.height * scale));
+  dom.ctx.clearRect(0,0,dom.previewCanvas.width,dom.previewCanvas.height);
+  dom.ctx.imageSmoothingEnabled = scale < 1;
+  dom.ctx.imageSmoothingQuality = 'high';
+  dom.ctx.drawImage(canvas,0,0,dom.previewCanvas.width,dom.previewCanvas.height);
+}
+
+function renderEmpty(){
+  dom.previewCanvas.width = 900;
+  dom.previewCanvas.height = 600;
+  dom.ctx.fillStyle = '#fff';
+  dom.ctx.fillRect(0,0,900,600);
+  dom.ctx.fillStyle = '#66737c';
+  dom.ctx.font = '22px Arial, sans-serif';
+  dom.ctx.textAlign = 'center';
+  dom.ctx.textBaseline = 'middle';
+  dom.ctx.fillText('画像を読み込んでください / Load an image',450,300);
+}
+
+function fileExt(){
+  return dom.format.value === 'image/png' ? 'png' : dom.format.value === 'image/webp' ? 'webp' : 'jpg';
+}
+
+function downloadOutput(){
+  if(!state.outputBlob) return;
+  const url = URL.createObjectURL(state.outputBlob);
+  const a = document.createElement('a');
+  const base = state.file ? state.file.name.replace(/\.[^.]+$/, '') : 'downsized-image';
+  a.href = url;
+  a.download = `${base}_downsized.${fileExt()}`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function formatBytes(bytes){
+  if(!bytes && bytes !== 0) return '-';
+  const units = ['B','KB','MB','GB'];
+  let value = bytes;
+  let unit = 0;
+  while(value >= 1024 && unit < units.length - 1){ value /= 1024; unit++; }
+  return `${value.toFixed(value >= 10 || unit === 0 ? 0 : 1)} ${units[unit]}`;
+}
+
+function setStatus(text){ dom.status.textContent = text; }
+
+function updateUi(){
+  const has = !!state.image;
+  const pct = Math.round(state.scale * 100);
+  dom.scaleVal.textContent = `${pct}%`;
+  dom.scaleRange.value = String(Math.max(5, Math.min(100, pct)));
+  dom.sharpenVal.textContent = dom.sharpen.value;
+  dom.radiusVal.textContent = Number(dom.sharpenRadius.value).toFixed(1);
+  dom.thresholdVal.textContent = dom.sharpenThreshold.value;
+  dom.qualityVal.textContent = dom.quality.value;
+  const isPng = dom.format.value === 'image/png';
+  dom.quality.disabled = isPng;
+  dom.qualityNote.textContent = isPng
+    ? 'PNGは可逆形式のため、この品質スライダーは使いません。'
+    : 'JPEG/WebPでは品質がファイルサイズと見た目に影響します。';
+  setPresetButtonState(dom.halfBtn, Math.abs(state.scale - .5) < .001);
+  setPresetButtonState(dom.thirdBtn, Math.abs(state.scale - 1/3) < .001);
+  setPresetButtonState(dom.quarterBtn, Math.abs(state.scale - .25) < .001);
+  dom.originalViewBtn.classList.toggle('active', state.view === 'original');
+  dom.outputViewBtn.classList.toggle('active', state.view === 'output');
+  dom.convertBtn.disabled = !has || state.busy;
+  dom.downloadBtn.disabled = !state.outputBlob || state.busy;
+  dom.originalViewBtn.disabled = !has;
+  dom.outputViewBtn.disabled = !has;
+  if(has){
+    const size = targetSize();
+    dom.originalInfo.textContent = `${state.image.naturalWidth} x ${state.image.naturalHeight}`;
+    dom.outputInfo.textContent = `${size.w} x ${size.h}`;
+    dom.fileInfo.textContent = state.outputBlob ? `${formatBytes(state.outputBlob.size)} / 元 ${formatBytes(state.file && state.file.size)}` : '-';
+    if(!state.busy && dom.status.textContent.includes('読み込')) setStatus('設定後に変換してください / Choose settings, then convert');
+  }else{
+    dom.originalInfo.textContent = '-';
+    dom.outputInfo.textContent = '-';
+    dom.fileInfo.textContent = '-';
+  }
+}
+
+init();
+</script>
+</body>
+</html>
