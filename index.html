@@ -5,29 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>クリエイター向け画像ツール集 | ブラウザ完結の無料ユーティリティ</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
-    <meta name="description" content="画像分割、SNSプロフィール画像作成、透かし挿入、タップチェンジ画像作成など、クリエイターの作業を効率化する無料ツール集です。すべてブラウザ上で安全に処理されます。">
+    <meta name="description" content="画像分割、SNSプロフィール画像作成、透かし挿入、タップチェンジ画像作成、画像縮小など、クリエイターの作業を効率化する無料ツール集です。すべてブラウザ上で安全に処理されます。">
     <style>
+        * { box-sizing: border-box; }
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; line-height: 1.6; }
-        /* 共通ナビゲーション */
-        .navbar { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; gap: 20px; position: sticky; top: 0; z-index: 10; }
         .navbar a { text-decoration: none; color: #333; font-weight: bold; }
-        .nav-links a { margin-left: 20px; color: #007bff; }
+        .brand { font-size: 1.2rem; white-space: nowrap; }
+        .nav-links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
+        .nav-links a { color: #007bff; font-size: 0.92rem; }
         .nav-links a:hover { text-decoration: underline; }
-        
-        .container { max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        .hero { text-align: center; margin-bottom: 50px; }
-        .hero h1 { font-size: 2.2rem; color: #222; margin-bottom: 10px; }
-        
-        .tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 50px;}
-        .tool-card { background: #fff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; transition: transform 0.2s; border: 1px solid #eee; }
-        .tool-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-        .tool-icon { font-size: 4rem; margin-bottom: 15px; }
-        .tool-card h2 { margin-top: 0; color: #222; font-size: 1.4rem; }
-        .tool-card p { color: #666; font-size: 0.95rem; margin-bottom: 25px; }
-        .btn { display: inline-block; background: #007bff; color: #fff; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: bold; transition: 0.2s; }
-        .btn:hover { background: #0056b3; }
-
-        .seo-text { background: #fff; padding: 30px; border-radius: 8px; border: 1px solid #ddd; }
+        .container { max-width: 1080px; margin: 40px auto; padding: 0 20px; }
+        .hero { text-align: center; margin-bottom: 42px; }
+        .hero h1 { font-size: clamp(1.9rem, 4vw, 2.7rem); color: #222; margin: 0 0 12px; letter-spacing: 0.02em; }
+        .hero p { color: #666; max-width: 760px; margin: 0 auto; }
+        .tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 28px; margin-bottom: 48px; }
+        .tool-card { position: relative; background: #fff; border-radius: 14px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; min-height: 310px; }
+        .tool-card:hover { transform: translateY(-5px); box-shadow: 0 8px 18px rgba(0,0,0,0.1); border-color: #dce8f7; }
+        .tool-card.featured { border-color: #b8d9ff; background: linear-gradient(180deg, #fff 0%, #f7fbff 100%); }
+        .tool-icon { font-size: 4rem; margin-bottom: 15px; line-height: 1; }
+        .tool-card h2 { margin: 0 0 12px; color: #222; font-size: 1.35rem; }
+        .tool-card p { color: #666; font-size: 0.95rem; margin: 0 0 24px; flex: 1; }
+        .badge { position: absolute; top: 16px; right: 16px; background: #eaf4ff; color: #007bff; border: 1px solid #b8d9ff; border-radius: 999px; padding: 4px 10px; font-size: 0.78rem; font-weight: bold; }
+        .btn { display: inline-block; background: #007bff; color: #fff; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: bold; transition: 0.2s; min-width: 150px; }
+        .btn:hover { background: #0056b3; transform: translateY(-1px); }
+        .seo-text { background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .seo-text h3 { margin-top: 0; }
+        @media (max-width: 720px) {
+            .navbar { align-items: flex-start; flex-direction: column; padding: 14px 20px; }
+            .nav-links { justify-content: flex-start; gap: 10px 14px; }
+            .container { margin: 30px auto; }
+            .tool-card { min-height: auto; }
+        }
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
@@ -35,8 +44,9 @@
 <body>
 
     <nav class="navbar">
-        <a href="index.html" style="font-size: 1.2rem;">🎨 クリエイター画像ツール</a>
-
+        <a href="index.html" class="brand">🎨 クリエイター画像ツール</a>
+        <div class="nav-links" aria-label="ツール一覧">
+        </div>
     </nav>
 
     <div class="container">
@@ -59,17 +69,27 @@
                 <p>X(Twitter)のアイコンとヘッダーを、実際のプロフィール画面のプレビューを見ながら直感的にトリミング・ズーム調整できます。</p>
                 <a href="cropper.html" class="btn">ツールを使う</a>
             </div>
+
             <div class="tool-card">
                 <div class="tool-icon">🔏</div>
                 <h2>透かし一括挿入ツール</h2>
                 <p>無断転載防止のウォーターマーク（画像・テキスト）を、複数画像の右下など任意の位置へ一気に合成します。</p>
                 <a href="watermark.html" class="btn">ツールを使う</a>
             </div>
+
             <div class="tool-card">
                 <div class="tool-icon">👆</div>
                 <h2>タップチェンジ画像作成君</h2>
                 <p>本体画像を1px市松模様で透明化し、前面レイヤーを重ねて、X投稿向けのPNG-8 indexed画像を作成します。</p>
                 <a href="tap-change.html" class="btn">ツールを使う</a>
+            </div>
+
+            <div class="tool-card featured">
+                <span class="badge">新ツール</span>
+                <div class="tool-icon">🗜️</div>
+                <h2>ぎゅうぎゅう圧縮君</h2>
+                <p>画像比率を保ったまま、できるだけ見た目の劣化を抑えてサイズダウン。JPEG / PNG / WebPの軽量化に対応した高品質画像縮小ツールです。</p>
+                <a href="image-resolution-downsizer.html" class="btn">ツールを使う</a>
             </div>
         </div>
 
