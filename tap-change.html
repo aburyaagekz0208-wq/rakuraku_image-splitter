@@ -12,11 +12,11 @@
     body{margin:0;background:var(--bg);color:var(--text);font-family:'Helvetica Neue',Arial,sans-serif;line-height:1.6}
     .navbar{background:#fff;padding:15px 30px;box-shadow:0 2px 4px rgba(0,0,0,.1);display:flex;justify-content:space-between;align-items:center}
     .navbar a{text-decoration:none;color:#333;font-weight:bold}.nav-links a{margin-left:20px;color:#007bff}.nav-links a:hover{text-decoration:underline}
-    header{max-width:1080px;margin:0 auto;padding:34px 24px 8px;text-align:center}
+    header{width:min(1680px,calc(100% - 24px));max-width:none;margin:0 auto;padding:24px 0 8px;text-align:center}
     h1{margin:0 0 8px;font-size:2rem}.lead{margin:0;color:var(--muted);font-size:.95rem}
-    main{max-width:1180px;margin:0 auto;padding:20px 24px 40px;display:grid;grid-template-columns:360px 1fr;gap:18px}
-    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 4px 10px rgba(0,0,0,.05)}
-    .controls{position:sticky;top:16px;align-self:start;max-height:calc(100vh - 32px);overflow:auto}
+    main{width:min(1680px,calc(100% - 24px));max-width:none;margin:0 auto;padding:16px 0 40px;display:grid;grid-template-columns:300px minmax(0,1fr);gap:14px}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 4px 10px rgba(0,0,0,.05);min-width:0}
+    .controls{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto}
     h2{margin:0 0 12px;font-size:1.1rem}h3{margin:18px 0 10px;font-size:.95rem;border-top:1px solid var(--line);padding-top:14px}
     label{display:block;margin:12px 0 6px;font-size:.86rem;font-weight:700}
     input[type=file]{width:100%;padding:10px;border:1px dashed #cbd5e1;border-radius:10px;background:#f9fafb;font-size:.82rem}
@@ -26,12 +26,49 @@
     .note{margin-top:10px;font-size:.78rem;color:#666;line-height:1.7}.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
     button{appearance:none;border:0;background:var(--accent);color:#fff;border-radius:999px;padding:11px 16px;font-weight:700;font-size:.88rem;cursor:pointer;transition:.2s}
     button:hover{background:var(--accent-hover)}button.secondary{background:var(--sub);color:var(--sub-text)}button.secondary:hover{background:#d1d5db}.danger{background:#f3f4f6;color:#333}.danger:hover{background:#e5e7eb}
-    .canvas-wrap{padding:10px;border-radius:14px;background:repeating-linear-gradient(45deg,#f3f4f6 0,#f3f4f6 10px,#fff 10px,#fff 20px)}
+    .canvas-wrap{padding:8px;border-radius:14px;background:repeating-linear-gradient(45deg,#f3f4f6 0,#f3f4f6 10px,#fff 10px,#fff 20px);overflow:auto;max-height:82vh;overscroll-behavior:contain}
+    .canvas-stack{position:relative;width:100%;line-height:0;margin:0 auto;transform-origin:top left}
     canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block;background:#fff;touch-action:none;cursor:default}
+    #frontCutWorkCanvas{position:absolute;inset:0;width:100%;height:100%;border:1px solid transparent;background:transparent;display:none;pointer-events:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
+    .cutout-work-active{position:relative;overflow:hidden;min-height:560px;max-height:78vh;background-color:#fafafa;background-image:linear-gradient(45deg,#e8edf1 25%,transparent 25%),linear-gradient(-45deg,#e8edf1 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8edf1 75%),linear-gradient(-45deg,transparent 75%,#e8edf1 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0}
+    .cutout-work-active .canvas-stack{width:100%!important;height:auto!important;aspect-ratio:var(--front-edit-ratio,auto);margin:0 auto;line-height:0}
+    .cutout-work-active #finalCanvas{visibility:hidden;display:block;width:100%;height:auto}
+    .cutout-work-active #frontCutWorkCanvas{display:block;pointer-events:auto}
     .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.82rem;line-height:1.6}.kv div:nth-child(odd){color:#666}
     .stamp-box{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fafafa;margin-top:10px}
     .small{font-size:.76rem;color:#666}
-    @media(max-width:960px){main{grid-template-columns:1fr}.controls{position:static;max-height:none}}
+    .hidden{display:none!important}
+    .mini-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .mini-actions button{flex:1 1 auto;padding:9px 10px;font-size:.78rem}
+    .cutout-editor-shell{margin-top:10px;padding:8px;border:1px solid var(--line);border-radius:12px;background:repeating-linear-gradient(45deg,#f3f4f6 0,#f3f4f6 8px,#fff 8px,#fff 16px)}
+    #frontCutCanvas{width:100%;height:auto;min-height:180px;border-radius:10px;background:#fff;cursor:crosshair}
+    .meter-mini{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin-top:8px;font-size:.76rem}.meter-mini div:nth-child(odd){color:#666}
+    .range-line{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.range-line input{width:100%}
+
+    @media(min-width:1280px){
+      main{grid-template-columns:280px minmax(0,1fr);gap:12px}
+      .controls h3{margin-top:14px}
+      .controls label{margin-top:9px}
+      .canvas-wrap{min-height:620px}
+    }
+    @media(min-width:1600px){
+      main{width:min(1880px,calc(100% - 28px));grid-template-columns:280px minmax(0,1fr)}
+      header{width:min(1880px,calc(100% - 28px))}
+      .bottom-info{width:min(1880px,calc(100% - 28px))}
+    }
+
+    .bottom-info{width:min(1680px,calc(100% - 24px));max-width:none;margin:0 auto 36px;display:block}
+    .guide-panel{padding:16px 18px}
+    .guide-panel details{border:1px solid var(--line);border-radius:12px;background:#fbfcfd;padding:12px 14px;margin-top:12px}
+    .guide-panel summary{cursor:pointer;font-weight:700;font-size:.95rem;list-style:none}
+    .guide-panel summary::-webkit-details-marker{display:none}
+    .guide-panel summary::after{content:'＋';float:right;color:var(--muted);font-weight:700}
+    .guide-panel details[open] summary::after{content:'−'}
+    .guide-panel .guide-body{padding-top:10px;color:#444;font-size:.9rem;line-height:1.8}
+    .guide-panel ul,.guide-panel ol{margin:8px 0 0 1.2em;padding:0}
+    .guide-panel li{margin:6px 0}
+
+    @media(max-width:960px){main{grid-template-columns:1fr}.controls{position:static;max-height:none}.bottom-info{width:min(1680px,calc(100% - 24px))}}
   </style>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
@@ -52,8 +89,55 @@
       <h2>入力</h2>
       <label>本体画像 / Base Image</label>
       <input id="baseInput" type="file" accept="image/png,image/webp,image/jpeg" />
-      <label>前面レイヤー（水着など） / Front Layer (Swimsuit etc.)</label>
-      <input id="frontInput" type="file" accept="image/png,image/webp,image/jpeg" />
+      <label>前面レイヤー / Front Layer</label>
+      <select id="frontMode">
+        <option value="upload" selected>前面レイヤー画像をアップロード / Upload front layer</option>
+        <option value="create">この場で前面レイヤーを作成 / Create here from base image</option>
+      </select>
+
+      <div id="frontUploadPanel">
+        <label>前面レイヤー（水着など） / Front Layer (Swimsuit etc.)</label>
+        <input id="frontInput" type="file" accept="image/png,image/webp,image/jpeg" />
+      </div>
+
+      <div id="frontCreatePanel" class="stamp-box" style="display:none;">
+        <p class="note">本体画像から、前面レイヤーとして残したい部分を青マスクで選択します。作業は右側の大きな「保存 / Saveされる最終画像」上で行います。青い範囲は保存画像には焼き込まれず、前面レイヤーとしてだけ反映されます。</p>
+        <div class="mini-actions">
+          <button id="cutAssistedBtn" type="button">補助ブラシ / Assisted</button>
+          <button id="cutFreehandBtn" type="button" class="secondary">手動 / Freehand</button>
+          <button id="cutPanBtn" type="button" class="secondary">移動 / Pan</button>
+        </div>
+        <div class="mini-actions">
+          <button id="cutAddBtn" type="button">追加 / Add</button>
+          <button id="cutRemoveBtn" type="button" class="secondary">削除 / Remove</button>
+        </div>
+        <label>ブラシサイズ / Brush Size <span id="cutBrushVal" class="value">28</span></label>
+        <input id="cutBrushSize" type="range" min="2" max="180" value="28" />
+        <div id="cutTolerancePanel">
+          <label>色許容差 / Color Tolerance <span id="cutToleranceVal" class="value">34</span></label>
+          <input id="cutTolerance" type="range" min="1" max="100" value="34" />
+          <label>中心サンプル範囲 / Center Sample <span id="cutSampleVal" class="value">9</span></label>
+          <input id="cutSampleSize" type="range" min="3" max="31" step="2" value="9" />
+        </div>
+        <div class="mini-actions">
+          <button id="cutUndoBtn" type="button" class="secondary">Undo</button>
+          <button id="cutRedoBtn" type="button" class="secondary">Redo</button>
+        </div>
+        <div class="mini-actions">
+          <button id="cutCleanupBtn" type="button" class="secondary">小領域除去・穴埋め / Clean</button>
+          <button id="cutClearBtn" type="button" class="secondary">マスク全消去 / Clear</button>
+        </div>
+        <div class="cutout-editor-shell hidden"><canvas id="frontCutCanvas"></canvas></div>
+        <div class="mini-actions">
+          <button id="cutConfirmBtn" type="button">前面レイヤー確定 / Confirm</button>
+          <button id="cutReeditBtn" type="button" class="secondary">再編集 / Re-edit</button>
+        </div>
+        <p class="small">編集中は右側キャンバスでマスク編集します。ホイール / ピンチで拡大縮小できます。確定するとスタンプ位置調整に戻ります。</p>
+        <div class="meter-mini">
+          <div>選択範囲 / Mask</div><div id="cutMaskInfo">-</div>
+          <div>状態 / Status</div><div id="cutStatus">本体画像を読み込んでください</div>
+        </div>
+      </div>
 
       <h3>キャンバス</h3>
       <div class="row">
@@ -64,18 +148,25 @@
       <select id="outputSize">
         <option value="original" selected>元画像サイズ / Original Size</option>
         <option value="half">1/2サイズ / Half Size</option>
-        <option value="2048">長辺2048px</option>
-        <option value="1536">長辺1536px</option>
-        <option value="1331">長辺1331px</option>
-        <option value="1200">長辺1200px</option>
-        <option value="900">長辺900px</option>
+        <option value="third">1/3サイズ / One-third Size</option>
+        <option value="custom">カスタムサイズ / Custom Size</option>
       </select>
+      <div id="customSizePanel" class="stamp-box" style="display:none; margin-top:10px;">
+        <div class="row">
+          <div>
+            <label>カスタム幅 / Custom Width</label>
+            <input id="customW" type="number" min="1" step="1" />
+          </div>
+          <div>
+            <label>カスタム高さ / Custom Height</label>
+            <input id="customH" type="number" min="1" step="1" />
+          </div>
+        </div>
+        <p class="note">幅または高さを変更すると、元画像の縦横比を保ってもう片方を自動計算します。</p>
+      </div>
+      <p class="note">リサイズ処理は常に最高品質・Lanczos3相当で実行し、保存形式はPNG固定です。画質方式や保存形式の選択肢は表示しません。</p>
 
-      <h3>処理仕様 / Processing</h3>
-      <p class="note">1pxごとの市松模様で透明/不透明を交互に適用します。左上ピクセルは常に不透明スタートです。</p>
-      <p class="note">前面レイヤーは読み込んだ透明情報を保持し、透明でない部分を完全不透明にして上に重ねます。/ The front layer keeps its transparency and any non-transparent pixels are made fully opaque when composited on top. No white-to-transparent processing is applied.</p>
-
-      <h3>不透明スタンプ / Opaque Stamp</h3>
+            <h3>不透明スタンプ / Opaque Stamp</h3>
       <p class="note">手書き風の不透明スタンプ / Opaque Stampを画像の上に追加できます。追加後は、プレビュー上でドラッグして移動できます。</p>
       <div class="actions">
         <button id="addStampBtn" type="button">不透明スタンプ / Opaque Stamp追加</button>
@@ -136,6 +227,7 @@
             </div>
           </div>
           <div class="actions">
+            <button id="copyStampBtn" type="button" class="secondary">選択中スタンプをコピー / Copy Selected Stamp</button>
             <button id="deleteStampBtn" type="button" class="secondary">選択中スタンプ削除 / Delete Selected Stamp</button>
           </div>
           <div class="small">※ プレビュー上でドラッグ移動できます / You can drag it on the preview</div>
@@ -165,26 +257,842 @@
 
     <section class="panel">
       <h2>保存 / Saveされる最終画像</h2>
-      <div class="canvas-wrap"><canvas id="finalCanvas"></canvas></div>
+      <div id="finalCanvasWrap" class="canvas-wrap">
+        <div id="finalCanvasStack" class="canvas-stack">
+          <canvas id="finalCanvas"></canvas>
+          <canvas id="frontCutWorkCanvas" aria-label="前面レイヤーマスク編集用キャンバス"></canvas>
+        </div>
+      </div>
     </section>
   </main>
 
+  <section class="bottom-info panel guide-panel">
+    <h2>ガイド / Guide</h2>
+
+    <details>
+      <summary>処理仕様 / Processing Specification</summary>
+      <div class="guide-body">
+        <ul>
+          <li><strong>本体画像</strong>は、背景と白地の抜けを考慮しつつ、1px市松模様の透明化処理を使ってタイムライン向け画像を生成します。</li>
+          <li><strong>前面レイヤー</strong>は、別画像をアップロードする方法と、このツール内でマスク作成して切り抜く方法の両方に対応しています。</li>
+          <li>この場で前面レイヤーを作成する場合、青くマスクした部分だけが前面レイヤーとして扱われ、保存画像に青い表示は焼き込まれません。</li>
+          <li><strong>Tapスタンプ</strong>は、文字・色・縁取り・回転・位置・サイズを個別に保持したまま複数配置できます。</li>
+          <li>保存時は、X投稿用途を想定した <strong>PNG-8 indexed</strong> 形式で出力します。透明部分を含みつつ、色数は減色されます。</li>
+          <li>保存サイズは <strong>元画像サイズ / 1/2 / 1/3 / カスタムサイズ</strong> から選択できます。</li>
+          <li>前面レイヤー作成モードでは、右側の大きなプレビュー上で直接マスク編集し、確定後にスタンプ位置調整へ戻れます。</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>このツールの具体的な操作方法 / How to Use This Tool</summary>
+      <div class="guide-body">
+        <ol>
+          <li><strong>本体画像</strong>を読み込みます。</li>
+          <li><strong>前面レイヤー</strong>を「アップロード」または「この場で作成」から選びます。</li>
+          <li>「この場で作成」を使う場合は、<strong>補助ブラシ / 手動 / Pan</strong> を切り替えながら、右側プレビュー上で残したい部分を青マスクで指定します。</li>
+          <li>補助ブラシは、ブラシ中心付近の色に近い部分だけを追加・削除できます。境界の細かい修正は手動ブラシが向いています。</li>
+          <li>表示を動かしたい時は、<strong>マウスホイール中央ボタンのドラッグ</strong>、または <strong>Pan</strong>、<strong>Space + ドラッグ</strong> を使います。ホイール回転で拡大縮小できます。</li>
+          <li>前面レイヤーの編集が終わったら <strong>前面レイヤー確定 / Confirm</strong> を押します。あとから直したい場合は <strong>再編集 / Re-edit</strong> で戻れます。</li>
+          <li><strong>Tapスタンプ</strong>を追加し、文字内容・色・縁取り・位置・サイズ・回転を調整します。必要ならコピーして量産できます。</li>
+          <li>右側の「保存 / Saveされる最終画像」で仕上がりを確認し、最後に <strong>保存 / Save</strong> で出力します。</li>
+        </ol>
+      </div>
+    </details>
+  </section>
+
+
 <script>
 const $=id=>document.getElementById(id);
-const state={baseImg:null,frontImg:null,stamps:[],selectedStampId:null,lastPng8Blob:null,lastPaletteCount:0,draggingStampId:null,dragOffsetX:0,dragOffsetY:0};
+const state={
+  baseImg:null,
+  frontImg:null,
+  stamps:[],
+  selectedStampId:null,
+  lastPng8Blob:null,
+  lastPaletteCount:0,
+  draggingStampId:null,
+  dragOffsetX:0,
+  dragOffsetY:0,
+  layerCache:{key:null,base:null,front:null},
+  diagnosticsTimer:null,
+  diagnosticsToken:0,
+  renderRequestId:null,
+  pendingDiagnostics:false,
+  pendingDiagDelay:450,
+  frontMode:'upload',
+  frontCutMask:null,
+  frontCutSourceCanvas:null,
+  frontCutSourceData:null,
+  frontCutoutCanvas:null,
+  frontCutOverlayCanvas:null,
+  frontCutDirty:true,
+  frontCutOverlayDirty:true,
+  frontCutRevision:0,
+  frontCutTool:'assisted',
+  frontCutAction:'add',
+  frontCutBrushSize:28,
+  frontCutTolerance:34,
+  frontCutSampleSize:9,
+  frontCutPointerDown:false,
+  frontCutLastPoint:null,
+  frontCutCursor:null,
+  frontCutUndoStack:[],
+  frontCutRedoStack:[],
+  frontCutMaxHistory:30,
+  frontCutEditing:false,
+  frontWorkspaceZoom:1,
+  frontWorkspaceMinZoom:.1,
+  frontWorkspaceMaxZoom:8,
+  frontWorkspacePanX:0,
+  frontWorkspacePanY:0,
+  frontCutPanning:false,
+  frontCutLastScreenPoint:null,
+  frontSpaceDown:false,
+  frontTouchPointers:{},
+  frontPinching:false,
+  frontLastPinchDistance:0
+};
 const WHITE_THRESHOLD=255;
 const MAX_OPAQUE_COLORS=255;
 const STAMP_FONT_STACK="'Segoe Print','Bradley Hand','Comic Sans MS','Hiragino Maru Gothic ProN','Yu Gothic',cursive";
 
 function setCanvasSize(canvas,w,h){canvas.width=Math.max(1,Math.round(w));canvas.height=Math.max(1,Math.round(h));}
 function readImage(file){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=reject;img.src=url})}
-function getBaseSize(){if(state.baseImg)return{w:state.baseImg.naturalWidth,h:state.baseImg.naturalHeight};if(state.frontImg)return{w:state.frontImg.naturalWidth,h:state.frontImg.naturalHeight};return{w:800,h:800}}
-function getOutputSize(){const base=getBaseSize();const setting=$('outputSize').value;if(setting==='original')return{w:base.w,h:base.h,scale:1};if(setting==='half')return{w:Math.max(1,Math.round(base.w/2)),h:Math.max(1,Math.round(base.h/2)),scale:.5};const longEdge=Number(setting);const scale=longEdge/Math.max(base.w,base.h);return{w:Math.max(1,Math.round(base.w*scale)),h:Math.max(1,Math.round(base.h*scale)),scale}}
+function getSourceWidth(src){return src ? (src.naturalWidth || src.width || 1) : 1}
+function getSourceHeight(src){return src ? (src.naturalHeight || src.height || 1) : 1}
+function getActiveFrontSource(){return state.frontMode==='create' ? getFrontCutoutCanvas() : state.frontImg}
+function getBaseSize(){if(state.baseImg)return{w:getSourceWidth(state.baseImg),h:getSourceHeight(state.baseImg)};const front=getActiveFrontSource();if(front)return{w:getSourceWidth(front),h:getSourceHeight(front)};return{w:800,h:800}}
+function clampInt(v,fallback=1,min=1){const n=Number(v);const safe=Number.isFinite(n)&&n>0?n:fallback;return Math.max(min,Math.round(safe))}
+function getOutputSize(){
+  const base=getBaseSize();
+  const setting=$('outputSize').value;
+  let w=base.w,h=base.h;
+  if(setting==='half'){w=Math.max(1,Math.round(base.w/2));h=Math.max(1,Math.round(base.h/2));}
+  else if(setting==='third'){w=Math.max(1,Math.round(base.w/3));h=Math.max(1,Math.round(base.h/3));}
+  else if(setting==='custom'){w=clampInt($('customW').value,1);h=clampInt($('customH').value,1);}
+  const scaleX=w/base.w;
+  const scaleY=h/base.h;
+  return{w,h,scale:scaleX,scaleX,scaleY};
+}
+function updateCustomSizePanel(){
+  const show=$('outputSize').value==='custom';
+  $('customSizePanel').style.display=show?'block':'none';
+  if(show) ensureCustomSizeValues();
+}
+function ensureCustomSizeValues(){
+  const base=getBaseSize();
+  if(!$('customW').value || !$('customH').value){
+    $('customW').value=base.w;
+    $('customH').value=base.h;
+  }
+}
+function resetCustomSizeToBase(){
+  const base=getBaseSize();
+  $('customW').value=base.w;
+  $('customH').value=base.h;
+}
+function syncCustomHeightFromWidth(){
+  const base=getBaseSize();
+  const w=clampInt($('customW').value,base.w);
+  $('customW').value=w;
+  $('customH').value=Math.max(1,Math.round(w*base.h/base.w));
+}
+function syncCustomWidthFromHeight(){
+  const base=getBaseSize();
+  const h=clampInt($('customH').value,base.h);
+  $('customH').value=h;
+  $('customW').value=Math.max(1,Math.round(h*base.w/base.h));
+}
 function isTransparentByChecker(x,y){return ((x+y)&1)===1}
-function drawLayerToCanvas(img,outScale){const out=getOutputSize();const c=document.createElement('canvas');setCanvasSize(c,out.w,out.h);const ctx=c.getContext('2d',{willReadFrequently:true});ctx.clearRect(0,0,out.w,out.h);ctx.imageSmoothingEnabled=false;ctx.drawImage(img,0,0,img.naturalWidth*outScale,img.naturalHeight*outScale);return c}
+
+function makeCanvas(w,h){
+  const c=document.createElement('canvas');
+  setCanvasSize(c,w,h);
+  return c;
+}
+function imageToCanvas(img){
+  const sw=getSourceWidth(img), sh=getSourceHeight(img);
+  const c=makeCanvas(sw,sh);
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.clearRect(0,0,c.width,c.height);
+  ctx.drawImage(img,0,0,sw,sh);
+  return c;
+}
+function drawScaled(source,w,h){
+  const c=makeCanvas(w,h);
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.imageSmoothingEnabled=true;
+  ctx.imageSmoothingQuality='high';
+  ctx.drawImage(source,0,0,w,h);
+  return c;
+}
+function sinc(x){
+  if(x===0)return 1;
+  const pix=Math.PI*x;
+  return Math.sin(pix)/pix;
+}
+function lanczosWeight(x,radius){
+  x=Math.abs(x);
+  if(x>=radius)return 0;
+  return sinc(x)*sinc(x/radius);
+}
+function resizeLanczos(source,targetW,targetH,radius=3){
+  targetW=Math.max(1,Math.round(targetW));
+  targetH=Math.max(1,Math.round(targetH));
+  if(source.width===targetW && source.height===targetH) return source;
+  const srcCtx=source.getContext('2d',{willReadFrequently:true});
+  const src=srcCtx.getImageData(0,0,source.width,source.height).data;
+  const sw=source.width, sh=source.height;
+  const scaleX=sw/targetW, scaleY=sh/targetH;
+  const tmp=new Float32Array(targetW*sh*4);
+  for(let y=0;y<sh;y++){
+    for(let x=0;x<targetW;x++){
+      const center=(x+.5)*scaleX-.5;
+      const left=Math.ceil(center-radius*scaleX);
+      const right=Math.floor(center+radius*scaleX);
+      let total=0,r=0,g=0,b=0,a=0;
+      for(let sx=left;sx<=right;sx++){
+        if(sx<0||sx>=sw)continue;
+        const weight=lanczosWeight((center-sx)/Math.max(1,scaleX),radius);
+        if(weight===0)continue;
+        const si=(y*sw+sx)*4;
+        r+=src[si]*weight;g+=src[si+1]*weight;b+=src[si+2]*weight;a+=src[si+3]*weight;total+=weight;
+      }
+      const ti=(y*targetW+x)*4;
+      tmp[ti]=total?r/total:0;tmp[ti+1]=total?g/total:0;tmp[ti+2]=total?b/total:0;tmp[ti+3]=total?a/total:0;
+    }
+  }
+  const outCanvas=makeCanvas(targetW,targetH);
+  const outCtx=outCanvas.getContext('2d',{willReadFrequently:true});
+  const out=outCtx.createImageData(targetW,targetH);
+  const dst=out.data;
+  for(let y=0;y<targetH;y++){
+    const center=(y+.5)*scaleY-.5;
+    const top=Math.ceil(center-radius*scaleY);
+    const bottom=Math.floor(center+radius*scaleY);
+    for(let x=0;x<targetW;x++){
+      let total=0,r=0,g=0,b=0,a=0;
+      for(let sy=top;sy<=bottom;sy++){
+        if(sy<0||sy>=sh)continue;
+        const weight=lanczosWeight((center-sy)/Math.max(1,scaleY),radius);
+        if(weight===0)continue;
+        const si=(sy*targetW+x)*4;
+        r+=tmp[si]*weight;g+=tmp[si+1]*weight;b+=tmp[si+2]*weight;a+=tmp[si+3]*weight;total+=weight;
+      }
+      const di=(y*targetW+x)*4;
+      dst[di]=total?Math.max(0,Math.min(255,r/total)):0;
+      dst[di+1]=total?Math.max(0,Math.min(255,g/total)):0;
+      dst[di+2]=total?Math.max(0,Math.min(255,b/total)):0;
+      dst[di+3]=total?Math.max(0,Math.min(255,a/total)):0;
+    }
+  }
+  outCtx.putImageData(out,0,0);
+  return outCanvas;
+}
+function drawLayerToCanvas(img,out){
+  const c=makeCanvas(out.w,out.h);
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.clearRect(0,0,out.w,out.h);
+  const sw=getSourceWidth(img), sh=getSourceHeight(img);
+  const targetW=Math.max(1,Math.round(sw*out.scaleX));
+  const targetH=Math.max(1,Math.round(sh*out.scaleY));
+
+  // 元サイズ・等倍の場合は、色や輪郭を変えないためリサイズ処理を完全に通さない。
+  // 旧tap-changeと同じく smoothing OFF の直接描画にする。
+  if(targetW===sw && targetH===sh){
+    ctx.imageSmoothingEnabled=false;
+    ctx.drawImage(img,0,0,targetW,targetH);
+    return c;
+  }
+
+  // 1/2・1/3・カスタム縮小時のみ、高品質なLanczos3リサイズを使う。
+  const source=imageToCanvas(img);
+  const resized=resizeLanczos(source,targetW,targetH,3);
+  ctx.drawImage(resized,0,0);
+  return c;
+}
+function getLayerCacheKey(){
+  const out=getOutputSize();
+  const baseKey=state.baseImg?`b${getSourceWidth(state.baseImg)}x${getSourceHeight(state.baseImg)}`:'b-none';
+  const front=getActiveFrontSource();
+  const frontKey=front?`f${state.frontMode}:${getSourceWidth(front)}x${getSourceHeight(front)}:r${state.frontCutRevision}`:'f-none';
+  return `${out.w}x${out.h}:${out.scaleX.toFixed(8)}:${out.scaleY.toFixed(8)}:${baseKey}:${frontKey}`;
+}
+function invalidateLayerCache(){
+  state.layerCache={key:null,base:null,front:null};
+  state.lastPng8Blob=null;
+}
+function ensureLayerCache(){
+  const key=getLayerCacheKey();
+  if(state.layerCache.key===key)return;
+  const out=getOutputSize();
+  let base=null,front=null;
+  const frontSource=getActiveFrontSource();
+  if(state.baseImg){base=processBaseLayer(drawLayerToCanvas(state.baseImg,out));}
+  if(frontSource){front=processFrontLayer(drawLayerToCanvas(frontSource,out));}
+  state.layerCache={key,base,front};
+}
 function getBorderConnectedWhiteMask(data,w,h){const mask=new Uint8Array(w*h);const queue=[];const push=(x,y)=>{if(x<0||y<0||x>=w||y>=h)return;const p=y*w+x;if(mask[p])return;const i=p*4;if(data[i+3]===0)return;if(data[i]!==WHITE_THRESHOLD||data[i+1]!==WHITE_THRESHOLD||data[i+2]!==WHITE_THRESHOLD)return;mask[p]=1;queue.push(p)};for(let x=0;x<w;x++){push(x,0);push(x,h-1)}for(let y=1;y<h-1;y++){push(0,y);push(w-1,y)}for(let qi=0;qi<queue.length;qi++){const p=queue[qi];const x=p%w;const y=(p/w)|0;push(x-1,y);push(x+1,y);push(x,y-1);push(x,y+1)}return mask}
 function processBaseLayer(layer){const ctx=layer.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,layer.width,layer.height);const d=im.data;const whiteMask=getBorderConnectedWhiteMask(d,layer.width,layer.height);for(let y=0;y<layer.height;y++){for(let x=0;x<layer.width;x++){const p=y*layer.width+x;const i=p*4;const a=d[i+3];if(a===0)continue;if(whiteMask[p]){d[i+3]=0;continue}d[i+3]=isTransparentByChecker(x,y)?0:255}}ctx.putImageData(im,0,0);return layer}
 function processFrontLayer(layer){const ctx=layer.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,layer.width,layer.height);const d=im.data;for(let i=0;i<d.length;i+=4){if(d[i+3]!==0)d[i+3]=255}ctx.putImageData(im,0,0);return layer}
+
+
+
+function updateFrontModeUI(){
+  state.frontMode=$('frontMode').value;
+  $('frontUploadPanel').style.display=state.frontMode==='upload'?'block':'none';
+  $('frontCreatePanel').style.display=state.frontMode==='create'?'block':'none';
+  if(state.frontMode==='create'){
+    initFrontCutoutFromBase(false);
+  }else{
+    state.frontCutEditing=false;
+  }
+  updateFrontCutoutUI();
+  updateFrontCutWorkspaceMode();
+  renderFrontCutoutEditor();
+}
+function resetFrontCutoutState(){
+  state.frontCutMask=null;
+  state.frontCutSourceCanvas=null;
+  state.frontCutSourceData=null;
+  state.frontCutoutCanvas=null;
+  state.frontCutOverlayCanvas=null;
+  state.frontCutDirty=true;
+  state.frontCutOverlayDirty=true;
+  state.frontCutRevision++;
+  state.frontCutUndoStack=[];
+  state.frontCutRedoStack=[];
+  state.frontCutEditing=false;
+  clearFrontTouchState();
+  state.frontWorkspaceZoom=1;
+  state.frontWorkspacePanX=0;
+  state.frontWorkspacePanY=0;
+  state.frontCutPanning=false;
+  state.frontCutLastScreenPoint=null;
+}
+function initFrontCutoutFromBase(force=false){
+  if(!state.baseImg){resetFrontCutoutState();return;}
+  const w=getSourceWidth(state.baseImg), h=getSourceHeight(state.baseImg);
+  if(!force && state.frontCutMask && state.frontCutSourceCanvas && state.frontCutSourceCanvas.width===w && state.frontCutSourceCanvas.height===h)return;
+  state.frontCutSourceCanvas=makeCanvas(w,h);
+  const ctx=state.frontCutSourceCanvas.getContext('2d',{willReadFrequently:true});
+  ctx.clearRect(0,0,w,h);
+  ctx.drawImage(state.baseImg,0,0,w,h);
+  state.frontCutSourceData=ctx.getImageData(0,0,w,h);
+  state.frontCutMask=new Uint8Array(w*h);
+  state.frontCutoutCanvas=null;
+  state.frontCutOverlayCanvas=null;
+  state.frontCutDirty=true;
+  state.frontCutOverlayDirty=true;
+  state.frontCutRevision++;
+  state.frontCutUndoStack=[];
+  state.frontCutRedoStack=[];
+  state.frontCutEditing=state.frontMode==='create';
+  clearFrontTouchState();
+  state.frontWorkspaceZoom=1;
+}
+function selectedMaskRatio(mask){
+  if(!mask||!mask.length)return 0;
+  let n=0;
+  for(let i=0;i<mask.length;i++)if(mask[i])n++;
+  return n/mask.length*100;
+}
+function hasFrontCutoutPixels(){return state.frontCutMask && selectedMaskRatio(state.frontCutMask)>0;}
+function isFrontCutEditActive(){return state.frontMode==='create' && state.frontCutEditing && !!state.baseImg && !!state.frontCutMask;}
+function frontClamp(v,min,max){return Math.max(min,Math.min(max,v));}
+function getFrontWorkspaceViewportSize(){
+  const overlay=$('frontCutWorkCanvas');
+  const stack=$('finalCanvasStack');
+  const wrap=$('finalCanvasWrap');
+  const rect=(overlay && overlay.getBoundingClientRect && overlay.getBoundingClientRect()) || (stack && stack.getBoundingClientRect && stack.getBoundingClientRect());
+  const w=rect&&rect.width?rect.width:(stack&&stack.clientWidth?stack.clientWidth:(wrap?wrap.clientWidth:0));
+  const h=rect&&rect.height?rect.height:(stack&&stack.clientHeight?stack.clientHeight:(wrap?wrap.clientHeight:0));
+  return {w:Math.max(1,w||1),h:Math.max(1,h||1)};
+}
+function getFrontWorkspaceFitScale(){return 1;}
+function applyFrontWorkspaceZoom(){
+  const stack=$('finalCanvasStack');
+  if(!stack)return;
+  if(isFrontCutEditActive() && state.frontCutSourceCanvas){
+    const w=state.frontCutSourceCanvas.width||1;
+    const h=state.frontCutSourceCanvas.height||1;
+    stack.style.width='100%';
+    stack.style.height='auto';
+    stack.style.setProperty('--front-edit-ratio', `${w} / ${h}`);
+    stack.style.aspectRatio=`${w} / ${h}`;
+  }else{
+    stack.style.width='100%';
+    stack.style.height='auto';
+    stack.style.removeProperty('--front-edit-ratio');
+    stack.style.removeProperty('aspect-ratio');
+  }
+}
+function frontCutScreenPoint(evt){
+  const rect=$('frontCutWorkCanvas').getBoundingClientRect();
+  return {x:evt.clientX-rect.left,y:evt.clientY-rect.top};
+}
+function frontCutImagePointFromScreen(p){
+  return {
+    x:Math.floor((p.x-state.frontWorkspacePanX)/state.frontWorkspaceZoom),
+    y:Math.floor((p.y-state.frontWorkspacePanY)/state.frontWorkspaceZoom),
+    sx:p.x,
+    sy:p.y
+  };
+}
+function fitFrontCutWorkspaceToView(){
+  if(!state.frontCutSourceCanvas)return;
+  applyFrontWorkspaceZoom();
+  const pad=20;
+  const srcW=state.frontCutSourceCanvas.width;
+  const srcH=state.frontCutSourceCanvas.height;
+  const view=getFrontWorkspaceViewportSize();
+  const availW=Math.max(1,view.w-pad);
+  const availH=Math.max(1,view.h-pad);
+  const zw=availW/srcW;
+  const zh=availH/srcH;
+  state.frontWorkspaceZoom=frontClamp(Math.min(zw,zh),state.frontWorkspaceMinZoom,state.frontWorkspaceMaxZoom);
+  state.frontWorkspacePanX=(view.w-srcW*state.frontWorkspaceZoom)/2;
+  state.frontWorkspacePanY=(view.h-srcH*state.frontWorkspaceZoom)/2;
+}
+function setFrontWorkspaceZoom(nextZoom,anchor=null){
+  if(!state.frontCutSourceCanvas)return;
+  const view=getFrontWorkspaceViewportSize();
+  const p=anchor||{x:view.w/2,y:view.h/2};
+  const before={
+    x:(p.x-state.frontWorkspacePanX)/state.frontWorkspaceZoom,
+    y:(p.y-state.frontWorkspacePanY)/state.frontWorkspaceZoom
+  };
+  state.frontWorkspaceZoom=frontClamp(nextZoom,state.frontWorkspaceMinZoom,state.frontWorkspaceMaxZoom);
+  state.frontWorkspacePanX=p.x-before.x*state.frontWorkspaceZoom;
+  state.frontWorkspacePanY=p.y-before.y*state.frontWorkspaceZoom;
+}
+function zoomFrontWorkspaceBy(factor,anchor){setFrontWorkspaceZoom(state.frontWorkspaceZoom*factor,anchor);}
+function storeFrontTouchPointer(evt){
+  if(evt.pointerType!=='touch')return;
+  state.frontTouchPointers[evt.pointerId]={x:evt.clientX,y:evt.clientY};
+}
+function removeFrontTouchPointer(evt){delete state.frontTouchPointers[evt.pointerId];}
+function countFrontTouchPointers(){return Object.keys(state.frontTouchPointers).length;}
+function getFrontTouchPoints(){return Object.values(state.frontTouchPointers);}
+function getFrontPinchInfo(){
+  const pts=getFrontTouchPoints();
+  if(pts.length<2)return null;
+  const [a,b]=pts;
+  return {distance:Math.hypot(a.x-b.x,a.y-b.y),centerX:(a.x+b.x)/2,centerY:(a.y+b.y)/2};
+}
+function clearFrontTouchState(){
+  state.frontTouchPointers={};
+  state.frontPinching=false;
+  state.frontLastPinchDistance=0;
+}
+function confirmFrontCutout(){
+  if(state.frontMode!=='create'||!state.frontCutMask)return;
+  state.frontCutEditing=false;
+  state.frontCutCursor=null;
+  clearFrontTouchState();
+  updateFrontCutoutUI();
+  updateFrontCutWorkspaceMode();
+  renderFrontCutWorkspaceOverlay();
+  requestRender({diagnostics:true,diagDelay:450});
+}
+function reeditFrontCutout(){
+  if(state.frontMode!=='create')return;
+  if(!state.frontCutMask && state.baseImg) initFrontCutoutFromBase(false);
+  state.frontCutEditing=!!state.baseImg && !!state.frontCutMask;
+  updateFrontCutoutUI();
+  updateFrontCutWorkspaceMode();
+  fitFrontCutWorkspaceToView();
+  renderFrontCutWorkspaceOverlay();
+}
+function updateFrontCutoutUI(){
+  if(!$('frontCreatePanel'))return;
+  const create=state.frontMode==='create';
+  const hasBase=!!state.baseImg;
+  const hasMask=!!state.frontCutMask;
+  const editing=isFrontCutEditActive();
+  $('cutBrushVal').textContent=state.frontCutBrushSize;
+  $('cutToleranceVal').textContent=state.frontCutTolerance;
+  $('cutSampleVal').textContent=state.frontCutSampleSize;
+  $('cutTolerancePanel').style.display=state.frontCutTool==='assisted'?'block':'none';
+  $('cutAssistedBtn').classList.toggle('secondary',state.frontCutTool!=='assisted');
+  $('cutFreehandBtn').classList.toggle('secondary',state.frontCutTool!=='freehand');
+  $('cutPanBtn').classList.toggle('secondary',state.frontCutTool!=='pan');
+  $('cutAddBtn').classList.toggle('secondary',state.frontCutAction!=='add');
+  $('cutRemoveBtn').classList.toggle('secondary',state.frontCutAction!=='remove');
+  $('cutUndoBtn').disabled=!editing || state.frontCutUndoStack.length===0;
+  $('cutRedoBtn').disabled=!editing || state.frontCutRedoStack.length===0;
+  $('cutCleanupBtn').disabled=!editing;
+  $('cutClearBtn').disabled=!editing;
+  $('cutConfirmBtn').disabled=!editing;
+  $('cutReeditBtn').disabled=!create || !hasBase;
+  ['cutAssistedBtn','cutFreehandBtn','cutPanBtn','cutAddBtn','cutRemoveBtn','cutBrushSize','cutTolerance','cutSampleSize'].forEach(id=>{$(id).disabled=!editing;});
+  $('cutMaskInfo').textContent=hasMask?selectedMaskRatio(state.frontCutMask).toFixed(2)+'%':'-';
+  if(!create)$('cutStatus').textContent='アップロードモード';
+  else if(!hasBase)$('cutStatus').textContent='本体画像を読み込んでください';
+  else if(editing)$('cutStatus').textContent='右側キャンバスで編集中です（ホイールで拡大縮小、移動/PanまたはSpace+ドラッグで移動）';
+  else $('cutStatus').textContent='前面レイヤー確定済みです。スタンプ調整可能。必要なら再編集してください';
+}
+function getFrontCutoutCanvas(){
+  if(state.frontMode!=='create' || !state.frontCutMask || !state.frontCutSourceData)return null;
+  if(!hasFrontCutoutPixels())return null;
+  if(!state.frontCutDirty && state.frontCutoutCanvas)return state.frontCutoutCanvas;
+  const w=state.frontCutSourceCanvas.width, h=state.frontCutSourceCanvas.height;
+  const out=makeCanvas(w,h);
+  const ctx=out.getContext('2d');
+  const src=state.frontCutSourceData.data;
+  const img=ctx.createImageData(w,h);
+  const dst=img.data;
+  for(let i=0;i<state.frontCutMask.length;i++){
+    if(!state.frontCutMask[i])continue;
+    const p=i*4;
+    dst[p]=src[p];dst[p+1]=src[p+1];dst[p+2]=src[p+2];dst[p+3]=src[p+3];
+  }
+  ctx.putImageData(img,0,0);
+  state.frontCutoutCanvas=out;
+  state.frontCutDirty=false;
+  return out;
+}
+function buildFrontCutOverlay(){
+  if(!state.frontCutMask || !state.frontCutSourceCanvas)return null;
+  const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
+  if(!state.frontCutOverlayCanvas)state.frontCutOverlayCanvas=makeCanvas(w,h);
+  if(state.frontCutOverlayCanvas.width!==w||state.frontCutOverlayCanvas.height!==h)setCanvasSize(state.frontCutOverlayCanvas,w,h);
+  const ctx=state.frontCutOverlayCanvas.getContext('2d');
+  const img=ctx.createImageData(w,h);
+  const d=img.data;
+  for(let i=0;i<state.frontCutMask.length;i++){
+    if(!state.frontCutMask[i])continue;
+    const p=i*4;
+    d[p]=0;d[p+1]=120;d[p+2]=255;d[p+3]=118;
+  }
+  ctx.putImageData(img,0,0);
+  state.frontCutOverlayDirty=false;
+  return state.frontCutOverlayCanvas;
+}
+function updateFrontCutWorkspaceMode(){
+  const wrap=$('finalCanvasWrap');
+  const overlay=$('frontCutWorkCanvas');
+  if(!wrap||!overlay)return;
+  const active=isFrontCutEditActive();
+  wrap.classList.toggle('cutout-work-active',active);
+  overlay.style.display=active?'block':'none';
+  overlay.style.pointerEvents=active?'auto':'none';
+  overlay.style.cursor=active?(state.frontCutTool==='pan'?'grab':'crosshair'):'default';
+  applyFrontWorkspaceZoom();
+}
+function resizeFrontCutWorkspaceCanvas(){
+  const overlay=$('frontCutWorkCanvas');
+  if(!overlay)return null;
+  const rect=overlay.getBoundingClientRect();
+  const dpr=window.devicePixelRatio||1;
+  const logicalW=Math.max(1,Math.round(rect.width));
+  const logicalH=Math.max(1,Math.round(rect.height));
+  const pixelW=Math.max(1,Math.round(logicalW*dpr));
+  const pixelH=Math.max(1,Math.round(logicalH*dpr));
+  if(overlay.width!==pixelW||overlay.height!==pixelH){
+    overlay.width=pixelW;
+    overlay.height=pixelH;
+  }
+  const ctx=overlay.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx,w:logicalW,h:logicalH};
+}
+function renderFrontCutWorkspaceOverlay(){
+  const overlay=$('frontCutWorkCanvas');
+  if(!overlay)return;
+  updateFrontCutWorkspaceMode();
+  const resized=resizeFrontCutWorkspaceCanvas();
+  if(!resized)return;
+  const {ctx,w:vw,h:vh}=resized;
+  ctx.clearRect(0,0,vw,vh);
+  if(!isFrontCutEditActive()||!state.frontCutSourceCanvas)return;
+  if(state.frontCutOverlayDirty)buildFrontCutOverlay();
+  ctx.save();
+  ctx.imageSmoothingEnabled=state.frontWorkspaceZoom<1.5;
+  ctx.translate(state.frontWorkspacePanX,state.frontWorkspacePanY);
+  ctx.scale(state.frontWorkspaceZoom,state.frontWorkspaceZoom);
+  ctx.drawImage(state.frontCutSourceCanvas,0,0);
+  if(state.frontCutOverlayCanvas)ctx.drawImage(state.frontCutOverlayCanvas,0,0);
+  if(state.frontCutCursor&&frontCutInImage(state.frontCutCursor)&&state.frontCutTool!=='pan'){
+    const r=Math.max(1,state.frontCutBrushSize/2);
+    ctx.beginPath();
+    ctx.arc(state.frontCutCursor.x,state.frontCutCursor.y,r,0,Math.PI*2);
+    ctx.lineWidth=Math.max(1/state.frontWorkspaceZoom,1);
+    ctx.strokeStyle=state.frontCutAction==='add'?'#006fd6':'#dc3b3b';
+    ctx.stroke();
+    if(state.frontCutTool==='assisted'){
+      ctx.beginPath();
+      ctx.arc(state.frontCutCursor.x,state.frontCutCursor.y,Math.max(2,state.frontCutSampleSize/2),0,Math.PI*2);
+      ctx.strokeStyle='#00a28a';
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.strokeStyle='rgba(24,32,37,.12)';
+  ctx.lineWidth=1;
+  const label=`前面レイヤー編集中 / ${Math.round(state.frontWorkspaceZoom*100)}%`;
+  ctx.font='14px Arial, sans-serif';
+  const tw=ctx.measureText(label).width+24;
+  ctx.fillRect(14,14,tw,34);
+  ctx.strokeRect(14,14,tw,34);
+  ctx.fillStyle='#182025';
+  ctx.textBaseline='middle';
+  ctx.fillText(label,26,31);
+}
+function frontCutPointFromWorkspaceEvent(evt){
+  return frontCutImagePointFromScreen(frontCutScreenPoint(evt));
+}
+function frontCutPointFromEvent(evt){
+  if(evt.currentTarget&&evt.currentTarget.id==='frontCutWorkCanvas')return frontCutPointFromWorkspaceEvent(evt);
+  const canvas=$('frontCutCanvas');
+  const rect=canvas.getBoundingClientRect();
+  if(!state.frontCutSourceCanvas)return{x:0,y:0};
+  const x=Math.floor((evt.clientX-rect.left)*state.frontCutSourceCanvas.width/rect.width);
+  const y=Math.floor((evt.clientY-rect.top)*state.frontCutSourceCanvas.height/rect.height);
+  return{x,y};
+}
+function frontCutInImage(p){return state.frontCutSourceCanvas && p.x>=0&&p.y>=0&&p.x<state.frontCutSourceCanvas.width&&p.y<state.frontCutSourceCanvas.height;}
+function handleFrontCutWheel(evt){
+  if(!isFrontCutEditActive())return;
+  evt.preventDefault();
+  const p=frontCutScreenPoint(evt);
+  const factor=evt.deltaY<0?1.12:.89;
+  zoomFrontWorkspaceBy(factor,p);
+  updateFrontCutoutUI();
+  renderFrontCutWorkspaceOverlay();
+}
+function renderFrontCutoutEditor(){
+  // 旧バージョンの小型編集キャンバスは非表示。
+  // 現在は右側の最終画像キャンバス上に透明オーバーレイを重ねて編集する。
+  updateFrontCutWorkspaceMode();
+  renderFrontCutWorkspaceOverlay();
+  updateFrontCutoutUI();
+}
+function pushFrontCutHistory(){
+  if(!state.frontCutMask)return;
+  state.frontCutUndoStack.push(state.frontCutMask.slice());
+  if(state.frontCutUndoStack.length>state.frontCutMaxHistory)state.frontCutUndoStack.shift();
+  state.frontCutRedoStack=[];
+}
+function markFrontCutoutDirty({renderFinalToo=false}={}){
+  state.frontCutDirty=true;
+  state.frontCutOverlayDirty=true;
+  state.frontCutRevision++;
+  invalidateLayerCache();
+  renderFrontCutWorkspaceOverlay();
+  updateFrontCutoutUI();
+  if(renderFinalToo)requestRender({diagnostics:true,diagDelay:700});
+}
+function frontCutAverageColor(cx,cy,size){
+  const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
+  const data=state.frontCutSourceData.data;
+  const half=Math.floor(size/2);
+  let r=0,g=0,b=0,n=0;
+  for(let y=cy-half;y<=cy+half;y++){
+    if(y<0||y>=h)continue;
+    for(let x=cx-half;x<=cx+half;x++){
+      if(x<0||x>=w)continue;
+      const i=(y*w+x)*4;
+      if(data[i+3]===0)continue;
+      r+=data[i];g+=data[i+1];b+=data[i+2];n++;
+    }
+  }
+  return n?{r:r/n,g:g/n,b:b/n}:{r:0,g:0,b:0};
+}
+function rgbToYcc(r,g,b){return{y:.299*r+.587*g+.114*b,cb:128-.168736*r-.331264*g+.5*b,cr:128+.5*r-.418688*g-.081312*b};}
+function perceptualDistanceYcc(a,b){const dy=a.y-b.y,dcb=a.cb-b.cb,dcr=a.cr-b.cr;return Math.sqrt(dy*dy*.38+dcb*dcb*1.35+dcr*dcr*1.35);}
+function colorDistance(r,g,b,s){return perceptualDistanceYcc(rgbToYcc(r,g,b),rgbToYcc(s.r,s.g,s.b));}
+function frontCutToleranceDistance(){return 10+state.frontCutTolerance*1.45;}
+function applyFrontCutFreehandAt(x,y){
+  const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
+  const r=Math.max(1,Math.floor(state.frontCutBrushSize/2));
+  const r2=r*r;
+  const value=state.frontCutAction==='add'?255:0;
+  for(let dy=-r;dy<=r;dy++){
+    const py=y+dy;if(py<0||py>=h)continue;
+    for(let dx=-r;dx<=r;dx++){
+      if(dx*dx+dy*dy>r2)continue;
+      const px=x+dx;if(px<0||px>=w)continue;
+      state.frontCutMask[py*w+px]=value;
+    }
+  }
+}
+function applyFrontCutAssistedAt(x,y){
+  const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
+  const sample=frontCutAverageColor(x,y,state.frontCutSampleSize);
+  const limit=frontCutToleranceDistance();
+  const r=Math.max(1,Math.floor(state.frontCutBrushSize/2));
+  const r2=r*r;
+  const value=state.frontCutAction==='add'?255:0;
+  const data=state.frontCutSourceData.data;
+  for(let dy=-r;dy<=r;dy++){
+    const py=y+dy;if(py<0||py>=h)continue;
+    for(let dx=-r;dx<=r;dx++){
+      if(dx*dx+dy*dy>r2)continue;
+      const px=x+dx;if(px<0||px>=w)continue;
+      const p=py*w+px;
+      const i=p*4;
+      if(data[i+3]===0)continue;
+      if(colorDistance(data[i],data[i+1],data[i+2],sample)<=limit)state.frontCutMask[p]=value;
+    }
+  }
+}
+function drawFrontCutStroke(from,to){
+  const dx=to.x-from.x,dy=to.y-from.y;
+  const dist=Math.max(1,Math.hypot(dx,dy));
+  const step=Math.max(1,state.frontCutBrushSize*.22);
+  const count=Math.ceil(dist/step);
+  if(state.frontCutTool==='pan')return;
+  const fn=state.frontCutTool==='assisted'?applyFrontCutAssistedAt:applyFrontCutFreehandAt;
+  for(let i=0;i<=count;i++){
+    const t=i/count;
+    fn(Math.round(from.x+dx*t),Math.round(from.y+dy*t));
+  }
+}
+function undoFrontCutout(){
+  if(!state.frontCutMask||state.frontCutUndoStack.length===0)return;
+  state.frontCutRedoStack.push(state.frontCutMask.slice());
+  state.frontCutMask=state.frontCutUndoStack.pop();
+  markFrontCutoutDirty({renderFinalToo:true});
+}
+function redoFrontCutout(){
+  if(!state.frontCutMask||state.frontCutRedoStack.length===0)return;
+  state.frontCutUndoStack.push(state.frontCutMask.slice());
+  state.frontCutMask=state.frontCutRedoStack.pop();
+  markFrontCutoutDirty({renderFinalToo:true});
+}
+function clearFrontCutout(){
+  if(!state.frontCutMask)return;
+  pushFrontCutHistory();
+  state.frontCutMask.fill(0);
+  markFrontCutoutDirty({renderFinalToo:true});
+}
+function processFrontCutComponents(targetValue,fillValue,limit,protectEdges){
+  const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
+  const visited=new Uint8Array(w*h);
+  const queue=new Int32Array(w*h);
+  const pixels=new Int32Array(w*h);
+  for(let start=0;start<state.frontCutMask.length;start++){
+    if(visited[start]||state.frontCutMask[start]!==targetValue)continue;
+    let head=0,tail=0,count=0,touchesEdge=false;
+    visited[start]=1;queue[tail++]=start;
+    while(head<tail){
+      const p=queue[head++];pixels[count++]=p;
+      const x=p%w,y=(p/w)|0;
+      if(x===0||y===0||x===w-1||y===h-1)touchesEdge=true;
+      const nbs=[p-1,p+1,p-w,p+w];
+      if(x===0)nbs[0]=-1;if(x===w-1)nbs[1]=-1;if(y===0)nbs[2]=-1;if(y===h-1)nbs[3]=-1;
+      for(let i=0;i<4;i++){const np=nbs[i];if(np<0||visited[np]||state.frontCutMask[np]!==targetValue)continue;visited[np]=1;queue[tail++]=np;}
+    }
+    if(count<=limit&&!(protectEdges&&touchesEdge)){for(let i=0;i<count;i++)state.frontCutMask[pixels[i]]=fillValue;}
+  }
+}
+function cleanupFrontCutout(){
+  if(!state.frontCutMask)return;
+  pushFrontCutHistory();
+  processFrontCutComponents(255,0,100,false);
+  processFrontCutComponents(0,255,160,true);
+  markFrontCutoutDirty({renderFinalToo:true});
+}
+function handleFrontCutPointerDown(evt){
+  if(state.frontMode!=='create' || !state.frontCutMask || !isFrontCutEditActive()) return;
+  storeFrontTouchPointer(evt);
+  if(evt.pointerType==='touch' && countFrontTouchPointers()>=2){
+    state.frontCutPointerDown=false;
+    state.frontCutLastPoint=null;
+    state.frontCutPanning=false;
+    state.frontPinching=true;
+    const info=getFrontPinchInfo();
+    state.frontLastPinchDistance=info?info.distance:0;
+    evt.preventDefault();
+    return;
+  }
+  evt.preventDefault();
+  const screen = frontCutScreenPoint(evt);
+  state.frontCutCursor = frontCutImagePointFromScreen(screen);
+  const wantsPan = state.frontCutTool==='pan' || state.frontSpaceDown || evt.button===1 || evt.button===2;
+  if(wantsPan){
+    state.frontCutPanning = true;
+    state.frontCutLastScreenPoint = screen;
+    try{ evt.currentTarget.setPointerCapture(evt.pointerId); }catch(e){}
+    renderFrontCutWorkspaceOverlay();
+    return;
+  }
+  const p = state.frontCutCursor;
+  if(!frontCutInImage(p)) return;
+  pushFrontCutHistory();
+  state.frontCutPointerDown = true;
+  state.frontCutLastPoint = p;
+  drawFrontCutStroke(p,p);
+  markFrontCutoutDirty();
+  try{ evt.currentTarget.setPointerCapture(evt.pointerId); }catch(e){}
+}
+function handleFrontCutPointerMove(evt){
+  if(state.frontMode!=='create' || !state.frontCutMask) return;
+  storeFrontTouchPointer(evt);
+  if(state.frontPinching || (evt.pointerType==='touch' && countFrontTouchPointers()>=2)){
+    const info=getFrontPinchInfo();
+    if(info){
+      if(!state.frontPinching){
+        state.frontPinching=true;
+        state.frontLastPinchDistance=info.distance;
+      }else if(state.frontLastPinchDistance>0){
+        const rect=$('frontCutWorkCanvas').getBoundingClientRect();
+        const factor=info.distance/state.frontLastPinchDistance;
+        zoomFrontWorkspaceBy(factor,{x:info.centerX-rect.left,y:info.centerY-rect.top});
+        state.frontLastPinchDistance=info.distance;
+      }
+      evt.preventDefault();
+      renderFrontCutWorkspaceOverlay();
+    }
+    state.frontCutPointerDown=false;
+    state.frontCutLastPoint=null;
+    return;
+  }
+  if(!isFrontCutEditActive()) return;
+  const screen = frontCutScreenPoint(evt);
+  if(state.frontCutPanning && state.frontCutLastScreenPoint){
+    evt.preventDefault();
+    state.frontWorkspacePanX += screen.x - state.frontCutLastScreenPoint.x;
+    state.frontWorkspacePanY += screen.y - state.frontCutLastScreenPoint.y;
+    state.frontCutLastScreenPoint = screen;
+    renderFrontCutWorkspaceOverlay();
+    return;
+  }
+  const p = frontCutImagePointFromScreen(screen);
+  state.frontCutCursor = p;
+  if(state.frontCutPointerDown && state.frontCutLastPoint){
+    evt.preventDefault();
+    if(!frontCutInImage(p)){ renderFrontCutWorkspaceOverlay(); return; }
+    drawFrontCutStroke(state.frontCutLastPoint,p);
+    state.frontCutLastPoint = p;
+    markFrontCutoutDirty();
+  }else{
+    renderFrontCutWorkspaceOverlay();
+  }
+}
+function handleFrontCutPointerEnd(evt){
+  removeFrontTouchPointer(evt);
+  if(state.frontPinching && countFrontTouchPointers()<2){
+    state.frontPinching=false;
+    state.frontLastPinchDistance=0;
+  }
+  const wasDrawing = state.frontCutPointerDown;
+  state.frontCutPointerDown = false;
+  state.frontCutPanning = false;
+  state.frontCutLastPoint = null;
+  state.frontCutLastScreenPoint = null;
+  try{ evt.currentTarget.releasePointerCapture(evt.pointerId); }catch(e){}
+  if(wasDrawing) markFrontCutoutDirty({renderFinalToo:true});
+  else renderFrontCutWorkspaceOverlay();
+}
+function handleFrontCutPointerLeave(){
+  if(state.frontCutPointerDown || state.frontCutPanning || state.frontPinching) return;
+  state.frontCutCursor = null;
+  renderFrontCutWorkspaceOverlay();
+}
 
 function getStampTextFromInputs(){return $('stampPreset').value==='__custom__' ? ($('stampTextInput').value.trim() || 'Tap me!') : $('stampPreset').value}
 function openStampCreatePanel(){$('stampCreatePanel').style.display='block';}
@@ -194,16 +1102,112 @@ function getSelectedStamp(){return state.stamps.find(s=>s.id===state.selectedSta
 function measureStamp(stamp){const canvas=$('finalCanvas');const ctx=canvas.getContext('2d');ctx.save();ctx.font=`900 ${stamp.size}px ${stamp.fontFamily}`;const m=ctx.measureText(stamp.text);ctx.restore();const width=m.width||stamp.text.length*stamp.size*0.6;const ascent=m.actualBoundingBoxAscent || stamp.size*0.7;const descent=m.actualBoundingBoxDescent || stamp.size*0.3;const height=ascent+descent;return {width,height,ascent,descent}}
 function drawStamp(ctx,stamp){ctx.save();ctx.translate(stamp.x,stamp.y);ctx.rotate(stamp.rotation*Math.PI/180);ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineJoin='round';ctx.lineCap='round';ctx.font=`900 ${stamp.size}px ${stamp.fontFamily}`;ctx.lineWidth=stamp.strokeWidth;ctx.strokeStyle=stamp.stroke;ctx.fillStyle=stamp.fill;ctx.strokeText(stamp.text,0,0);ctx.fillText(stamp.text,0,0);ctx.restore()}
 function hitTestStamp(stamp,px,py){const m=measureStamp(stamp);const rad=-stamp.rotation*Math.PI/180;const dx=px-stamp.x, dy=py-stamp.y;const lx=dx*Math.cos(rad)-dy*Math.sin(rad);const ly=dx*Math.sin(rad)+dy*Math.cos(rad);const pad=stamp.strokeWidth+8;return lx>=-(m.width/2)-pad && lx<=(m.width/2)+pad && ly>=-(m.height/2)-pad && ly<=(m.height/2)+pad}
-function updateStampListUI(){const list=$('stampList');const current=state.selectedStampId;list.innerHTML='';if(state.stamps.length===0){list.innerHTML='<option value="">（不透明スタンプ / Opaque Stampなし）</option>';state.selectedStampId=null;$('stampEditor').style.display='none';return}
-  state.stamps.forEach((s,i)=>{const opt=document.createElement('option');opt.value=s.id;opt.textContent=`${i+1}: ${s.text}`;list.appendChild(opt)});
+function updateStampListUI(){
+  const list=$('stampList');
+  const current=state.selectedStampId;
+  list.innerHTML='';
+  if(state.stamps.length===0){
+    list.innerHTML='<option value="">（不透明スタンプ / Opaque Stampなし）</option>';
+    state.selectedStampId=null;
+    $('stampEditor').style.display='none';
+    return;
+  }
+  state.stamps.forEach((s,i)=>{
+    const opt=document.createElement('option');
+    opt.value=s.id;
+    opt.textContent=`${i+1}: ${s.text}`;
+    list.appendChild(opt);
+  });
   if(!state.stamps.some(s=>s.id===current)) state.selectedStampId=state.stamps[state.stamps.length-1].id;
   list.value=state.selectedStampId;
-  const stamp=getSelectedStamp();
-  if(stamp){$('stampEditor').style.display='block';$('stampTextEdit').value=stamp.text;$('stampSize').value=stamp.size;$('stampRotation').value=stamp.rotation;$('stampFill').value=stamp.fill;$('stampStroke').value=stamp.stroke;$('stampStrokeWidth').value=stamp.strokeWidth;$('stampX').value=Math.round(stamp.x);$('stampY').value=Math.round(stamp.y);} else {$('stampEditor').style.display='none';}
+  syncStampEditorUI();
 }
-function syncSelectedStampFromEditor(){const stamp=getSelectedStamp();if(!stamp)return;stamp.text=$('stampTextEdit').value || 'Tap me!';stamp.size=Math.max(12,Number($('stampSize').value)||72);stamp.rotation=Number($('stampRotation').value)||0;stamp.fill=$('stampFill').value;stamp.stroke=$('stampStroke').value;stamp.strokeWidth=Math.max(0,Number($('stampStrokeWidth').value)||0);stamp.x=Number($('stampX').value)||0;stamp.y=Number($('stampY').value)||0;updateStampListUI();renderAll();}
+function syncStampEditorUI(){
+  const stamp=getSelectedStamp();
+  if(!stamp){$('stampEditor').style.display='none';return;}
+  $('stampEditor').style.display='block';
+  $('stampTextEdit').value=stamp.text;
+  $('stampSize').value=stamp.size;
+  $('stampRotation').value=stamp.rotation;
+  $('stampFill').value=stamp.fill;
+  $('stampStroke').value=stamp.stroke;
+  $('stampStrokeWidth').value=stamp.strokeWidth;
+  $('stampX').value=Math.round(stamp.x);
+  $('stampY').value=Math.round(stamp.y);
+}
+function refreshSelectedStampOptionLabel(){
+  const stamp=getSelectedStamp();
+  if(!stamp)return;
+  const index=state.stamps.findIndex(s=>s.id===stamp.id);
+  const opt=$('stampList').querySelector(`option[value="${stamp.id}"]`);
+  if(opt)opt.textContent=`${index+1}: ${stamp.text}`;
+}
+function syncStampPositionInputs(stamp){
+  if(!stamp || stamp.id!==state.selectedStampId)return;
+  $('stampX').value=Math.round(stamp.x);
+  $('stampY').value=Math.round(stamp.y);
+}
+function syncSelectedStampFromEditor(){
+  const stamp=getSelectedStamp();
+  if(!stamp)return;
+  stamp.text=$('stampTextEdit').value || 'Tap me!';
+  stamp.size=Math.max(12,Number($('stampSize').value)||72);
+  stamp.rotation=Number($('stampRotation').value)||0;
+  stamp.fill=$('stampFill').value;
+  stamp.stroke=$('stampStroke').value;
+  stamp.strokeWidth=Math.max(0,Number($('stampStrokeWidth').value)||0);
+  stamp.x=Number($('stampX').value)||0;
+  stamp.y=Number($('stampY').value)||0;
+  refreshSelectedStampOptionLabel();
+  requestRender({diagnostics:true,diagDelay:650});
+}
+function copySelectedStamp(){
+  const stamp=getSelectedStamp();
+  if(!stamp)return;
+  const offset=Math.max(12,Math.round(stamp.size*.35));
+  const copy={...stamp,id:`stamp_${Date.now()}_${Math.random().toString(36).slice(2,8)}`,x:stamp.x+offset,y:stamp.y+offset};
+  state.stamps.push(copy);
+  state.selectedStampId=copy.id;
+  updateStampListUI();
+  requestRender({diagnostics:true,diagDelay:450});
+}
 
-function renderFinal(){const out=getOutputSize();const final=$('finalCanvas');setCanvasSize(final,out.w,out.h);const ctx=final.getContext('2d');ctx.clearRect(0,0,out.w,out.h);if(state.baseImg){let base=drawLayerToCanvas(state.baseImg,out.scale);base=processBaseLayer(base);ctx.drawImage(base,0,0)}if(state.frontImg){let front=drawLayerToCanvas(state.frontImg,out.scale);front=processFrontLayer(front);ctx.drawImage(front,0,0)}state.stamps.forEach(stamp=>drawStamp(ctx,stamp));}
+function renderFinal(){
+  const out=getOutputSize();
+  const final=$('finalCanvas');
+  setCanvasSize(final,out.w,out.h);
+  const ctx=final.getContext('2d');
+  ctx.clearRect(0,0,out.w,out.h);
+  ensureLayerCache();
+  if(state.layerCache.base)ctx.drawImage(state.layerCache.base,0,0);
+  if(state.layerCache.front)ctx.drawImage(state.layerCache.front,0,0);
+  state.stamps.forEach(stamp=>drawStamp(ctx,stamp));
+  applyFrontWorkspaceZoom();
+  renderFrontCutWorkspaceOverlay();
+}
+function markOutputDirty(){
+  state.lastPng8Blob=null;
+  state.lastPaletteCount=0;
+  state.diagnosticsToken++;
+}
+function scheduleDiagnostics(delay=450){
+  clearTimeout(state.diagnosticsTimer);
+  $('diagSize').textContent='更新待ち';
+  $('diagPalette').textContent='更新待ち';
+  state.diagnosticsTimer=setTimeout(()=>{updateDiagnostics();},delay);
+}
+function requestRender({diagnostics=true,diagDelay=450}={}){
+  markOutputDirty();
+  state.pendingDiagnostics=state.pendingDiagnostics||diagnostics;
+  state.pendingDiagDelay=diagDelay;
+  if(state.renderRequestId)return;
+  state.renderRequestId=requestAnimationFrame(()=>{
+    state.renderRequestId=null;
+    renderFinal();
+    if(state.pendingDiagnostics)scheduleDiagnostics(state.pendingDiagDelay);
+    state.pendingDiagnostics=false;
+  });
+}
 function analyzeAlpha(canvas){const ctx=canvas.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,canvas.width,canvas.height);const d=im.data;let tr=0,se=0,op=0;const used=new Set();const total=canvas.width*canvas.height;for(let i=0;i<d.length;i+=4){const a=d[i+3];used.add(a);if(a===0)tr++;else if(a===255)op++;else se++}return{tr:tr/total*100,se:se/total*100,op:op/total*100,count:used.size}}
 function bytes(n){if(n==null)return'-';if(n<1024)return n+' B';if(n<1024*1024)return(n/1024).toFixed(1)+' KB';return(n/(1024*1024)).toFixed(2)+' MB'}
 function makeCrcTable(){const table=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=(c&1)?(0xedb88320^(c>>>1)):(c>>>1);table[n]=c>>>0}return table}
@@ -223,33 +1227,211 @@ function medianCutPalette(colors,maxColors){if(colors.length===0)return[];let bo
 function nearestPaletteIndex(r,g,b,palette){let best=1,bestD=Infinity;for(let i=1;i<palette.length;i++){const p=palette[i];const d=(r-p[0])*(r-p[0])+(g-p[1])*(g-p[1])+(b-p[2])*(b-p[2]);if(d<bestD){bestD=d;best=i}}return best}
 function buildIndexedImage(canvas){const ctx=canvas.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,canvas.width,canvas.height);const d=im.data;const hist=buildColorHistogram(d);const opaquePalette=medianCutPalette(hist,MAX_OPAQUE_COLORS);const palette=[[0,0,0,0],...opaquePalette];const indices=new Uint8Array(canvas.width*canvas.height);const cache=new Map();for(let p=0,i=0;i<d.length;i+=4,p++){if(d[i+3]===0){indices[p]=0;continue}const key=(d[i]<<16)|(d[i+1]<<8)|d[i+2];let idx=cache.get(key);if(idx===undefined){idx=nearestPaletteIndex(d[i],d[i+1],d[i+2],palette);cache.set(key,idx)}indices[p]=idx}return{width:canvas.width,height:canvas.height,palette,indices}}
 async function encodePNG8(canvas){const info=buildIndexedImage(canvas);state.lastPaletteCount=info.palette.length;const scan=new Uint8Array((info.width+1)*info.height);let sp=0,ip=0;for(let y=0;y<info.height;y++){scan[sp++]=0;scan.set(info.indices.subarray(ip,ip+info.width),sp);sp+=info.width;ip+=info.width}const compressed=await zlibDeflate(scan);const ihdr=new Uint8Array(13);ihdr.set(u32be(info.width),0);ihdr.set(u32be(info.height),4);ihdr[8]=8;ihdr[9]=3;ihdr[10]=0;ihdr[11]=0;ihdr[12]=0;const plte=new Uint8Array(info.palette.length*3);const trns=new Uint8Array(info.palette.length);for(let i=0;i<info.palette.length;i++){plte[i*3]=info.palette[i][0];plte[i*3+1]=info.palette[i][1];plte[i*3+2]=info.palette[i][2];trns[i]=info.palette[i][3]}const sig=new Uint8Array([137,80,78,71,13,10,26,10]);const png=concatArrays([sig,chunk('IHDR',ihdr),chunk('PLTE',plte),chunk('tRNS',trns),chunk('IDAT',compressed),chunk('IEND',new Uint8Array(0))]);return new Blob([png],{type:'image/png'})}
-async function updateDiagnostics(){const c=$('finalCanvas');const a=analyzeAlpha(c);$('diagTransparent').textContent=a.tr.toFixed(2)+'%';$('diagSemi').textContent=a.se.toFixed(2)+'%';$('diagOpaque').textContent=a.op.toFixed(2)+'%';$('diagAlphaCount').textContent=a.count;try{const blob=await encodePNG8(c);state.lastPng8Blob=blob;$('diagSize').textContent=bytes(blob.size);$('diagPalette').textContent=state.lastPaletteCount}catch(e){$('diagSize').textContent='エラー';$('diagPalette').textContent='-'}}
-async function renderAll(){renderFinal();await updateDiagnostics()}
-async function savePNG8(){await renderAll();const blob=state.lastPng8Blob||await encodePNG8($('finalCanvas'));const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tap-change-post-png8.png';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)}
-function saveNormalPNG(){renderFinal();const canvas=$('finalCanvas');canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='tap-change-normal.png';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url)},'image/png')}
-function resetAll(){state.baseImg=null;state.frontImg=null;state.stamps=[];state.selectedStampId=null;state.lastPng8Blob=null;state.lastPaletteCount=0;$('baseInput').value='';$('frontInput').value='';$('canvasW').value='800';$('canvasH').value='800';$('outputSize').value='original';$('stampPreset').value='Tap me!';$('stampTextInput').value='Tap me!';closeStampCreatePanel();updateStampListUI();renderAll()}
+async function updateDiagnostics(){
+  const token=++state.diagnosticsToken;
+  clearTimeout(state.diagnosticsTimer);
+  const c=$('finalCanvas');
+  const a=analyzeAlpha(c);
+  $('diagTransparent').textContent=a.tr.toFixed(2)+'%';
+  $('diagSemi').textContent=a.se.toFixed(2)+'%';
+  $('diagOpaque').textContent=a.op.toFixed(2)+'%';
+  $('diagAlphaCount').textContent=a.count;
+  try{
+    const blob=await encodePNG8(c);
+    if(token!==state.diagnosticsToken)return;
+    state.lastPng8Blob=blob;
+    $('diagSize').textContent=bytes(blob.size);
+    $('diagPalette').textContent=state.lastPaletteCount;
+  }catch(e){
+    if(token!==state.diagnosticsToken)return;
+    $('diagSize').textContent='エラー';
+    $('diagPalette').textContent='-';
+  }
+}
+async function renderAll(){
+  clearTimeout(state.diagnosticsTimer);
+  if(state.renderRequestId){cancelAnimationFrame(state.renderRequestId);state.renderRequestId=null;}
+  markOutputDirty();
+  renderFinal();
+  await updateDiagnostics();
+}
+async function savePNG8(){
+  await renderAll();
+  const blob=state.lastPng8Blob||await encodePNG8($('finalCanvas'));
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='tap-change-post-png8.png';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+function saveNormalPNG(){
+  clearTimeout(state.diagnosticsTimer);
+  if(state.renderRequestId){cancelAnimationFrame(state.renderRequestId);state.renderRequestId=null;}
+  renderFinal();
+  const canvas=$('finalCanvas');
+  canvas.toBlob(blob=>{
+    if(!blob)return;
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='tap-change-normal.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  },'image/png');
+}
+function resetAll(){
+  state.baseImg=null;
+  state.frontImg=null;
+  state.frontMode='upload';
+  resetFrontCutoutState();
+  state.stamps=[];
+  state.selectedStampId=null;
+  state.lastPng8Blob=null;
+  state.lastPaletteCount=0;
+  invalidateLayerCache();
+  $('baseInput').value='';
+  $('frontMode').value='upload';
+  $('frontInput').value='';
+  updateFrontModeUI();
+  $('canvasW').value='800';
+  $('canvasH').value='800';
+  $('outputSize').value='original';
+  window.addEventListener('resize',()=>{if(isFrontCutEditActive()){fitFrontCutWorkspaceToView();renderFrontCutWorkspaceOverlay();}});
+window.addEventListener('keydown',evt=>{if(evt.code==='Space'&&isFrontCutEditActive()){state.frontSpaceDown=true;evt.preventDefault();renderFrontCutWorkspaceOverlay();}});
+window.addEventListener('keyup',evt=>{if(evt.code==='Space'){state.frontSpaceDown=false;renderFrontCutWorkspaceOverlay();}});
 
-$('baseInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;state.baseImg=await readImage(file);$('canvasW').value=state.baseImg.naturalWidth;$('canvasH').value=state.baseImg.naturalHeight;renderAll()});
-$('frontInput').addEventListener('change',async e=>{const file=e.target.files[0];if(!file)return;state.frontImg=await readImage(file);if(!state.baseImg){$('canvasW').value=state.frontImg.naturalWidth;$('canvasH').value=state.frontImg.naturalHeight}renderAll()});
-$('outputSize').addEventListener('change',renderAll);
+resetCustomSizeToBase();
+  updateCustomSizePanel();
+  $('stampPreset').value='Tap me!';
+  $('stampTextInput').value='Tap me!';
+  closeStampCreatePanel();
+  updateStampListUI();
+  renderAll();
+}
+
+$('baseInput').addEventListener('change',async e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  state.baseImg=await readImage(file);
+  $('canvasW').value=state.baseImg.naturalWidth;
+  $('canvasH').value=state.baseImg.naturalHeight;
+  resetCustomSizeToBase();
+  initFrontCutoutFromBase(true);
+  invalidateLayerCache();
+  updateCustomSizePanel();
+  renderFrontCutoutEditor();
+  renderAll();
+});
+$('frontInput').addEventListener('change',async e=>{
+  const file=e.target.files[0];
+  if(!file)return;
+  state.frontMode='upload';
+  $('frontMode').value='upload';
+  updateFrontModeUI();
+  state.frontImg=await readImage(file);
+  if(!state.baseImg){
+    $('canvasW').value=state.frontImg.naturalWidth;
+    $('canvasH').value=state.frontImg.naturalHeight;
+    resetCustomSizeToBase();
+  }
+  invalidateLayerCache();
+  updateCustomSizePanel();
+  renderAll();
+});
+$('outputSize').addEventListener('change',()=>{
+  ensureCustomSizeValues();
+  updateCustomSizePanel();
+  invalidateLayerCache();
+  renderAll();
+});
+$('customW').addEventListener('input',()=>{
+  if($('outputSize').value!=='custom')return;
+  syncCustomHeightFromWidth();
+  invalidateLayerCache();
+  requestRender({diagnostics:true,diagDelay:650});
+});
+$('customH').addEventListener('input',()=>{
+  if($('outputSize').value!=='custom')return;
+  syncCustomWidthFromHeight();
+  invalidateLayerCache();
+  requestRender({diagnostics:true,diagDelay:650});
+});
+
+$('frontMode').addEventListener('change',()=>{
+  state.frontCutEditing=$('frontMode').value==='create';
+  updateFrontModeUI();
+  invalidateLayerCache();
+  renderAll().then(()=>{if(isFrontCutEditActive()){fitFrontCutWorkspaceToView();renderFrontCutWorkspaceOverlay();}});
+});
+$('cutAssistedBtn').addEventListener('click',()=>{state.frontCutTool='assisted';updateFrontCutoutUI();renderFrontCutoutEditor();});
+$('cutFreehandBtn').addEventListener('click',()=>{state.frontCutTool='freehand';updateFrontCutoutUI();renderFrontCutoutEditor();});
+$('cutPanBtn').addEventListener('click',()=>{state.frontCutTool='pan';updateFrontCutoutUI();renderFrontCutoutEditor();});
+$('cutAddBtn').addEventListener('click',()=>{state.frontCutAction='add';updateFrontCutoutUI();});
+$('cutRemoveBtn').addEventListener('click',()=>{state.frontCutAction='remove';updateFrontCutoutUI();});
+$('cutBrushSize').addEventListener('input',()=>{state.frontCutBrushSize=Number($('cutBrushSize').value)||28;updateFrontCutoutUI();});
+$('cutTolerance').addEventListener('input',()=>{state.frontCutTolerance=Number($('cutTolerance').value)||34;updateFrontCutoutUI();});
+$('cutSampleSize').addEventListener('input',()=>{state.frontCutSampleSize=Number($('cutSampleSize').value)||9;updateFrontCutoutUI();});
+$('cutUndoBtn').addEventListener('click',undoFrontCutout);
+$('cutRedoBtn').addEventListener('click',redoFrontCutout);
+$('cutCleanupBtn').addEventListener('click',cleanupFrontCutout);
+$('cutClearBtn').addEventListener('click',clearFrontCutout);
+$('cutConfirmBtn').addEventListener('click',confirmFrontCutout);
+$('cutReeditBtn').addEventListener('click',reeditFrontCutout);
+$('frontCutCanvas').addEventListener('pointerdown',handleFrontCutPointerDown);
+$('frontCutCanvas').addEventListener('pointermove',handleFrontCutPointerMove);
+$('frontCutCanvas').addEventListener('pointerup',handleFrontCutPointerEnd);
+$('frontCutCanvas').addEventListener('pointercancel',handleFrontCutPointerEnd);
+$('frontCutWorkCanvas').addEventListener('pointerdown',handleFrontCutPointerDown);
+$('frontCutWorkCanvas').addEventListener('pointermove',handleFrontCutPointerMove);
+$('frontCutWorkCanvas').addEventListener('pointerup',handleFrontCutPointerEnd);
+$('frontCutWorkCanvas').addEventListener('pointercancel',handleFrontCutPointerEnd);
+$('frontCutWorkCanvas').addEventListener('pointerleave',handleFrontCutPointerLeave);
+$('frontCutWorkCanvas').addEventListener('wheel',handleFrontCutWheel,{passive:false});
+$('frontCutWorkCanvas').addEventListener('contextmenu',evt=>evt.preventDefault());
+$('frontCutWorkCanvas').addEventListener('auxclick',evt=>evt.preventDefault());
+$('frontCutWorkCanvas').addEventListener('mousedown',evt=>{if(evt.button===1||evt.button===2)evt.preventDefault();});
+$('frontCutWorkCanvas').addEventListener('contextmenu',evt=>evt.preventDefault());
+
 $('stampPreset').addEventListener('change',()=>{if($('stampPreset').value!=='__custom__')$('stampTextInput').value=$('stampPreset').value;});
 $('addStampBtn').addEventListener('click',()=>{openStampCreatePanel();});
-$('confirmAddStampBtn').addEventListener('click',()=>{const stamp=createStamp(getStampTextFromInputs());state.stamps.push(stamp);state.selectedStampId=stamp.id;updateStampListUI();closeStampCreatePanel();renderAll();});
+$('confirmAddStampBtn').addEventListener('click',()=>{
+  const stamp=createStamp(getStampTextFromInputs());
+  state.stamps.push(stamp);
+  state.selectedStampId=stamp.id;
+  updateStampListUI();
+  closeStampCreatePanel();
+  requestRender({diagnostics:true,diagDelay:450});
+});
 $('cancelAddStampBtn').addEventListener('click',()=>{closeStampCreatePanel();});
-$('stampList').addEventListener('change',()=>{state.selectedStampId=$('stampList').value||null;updateStampListUI();});
+$('stampList').addEventListener('change',()=>{state.selectedStampId=$('stampList').value||null;syncStampEditorUI();});
 ['stampTextEdit','stampSize','stampRotation','stampFill','stampStroke','stampStrokeWidth','stampX','stampY'].forEach(id=>$(id).addEventListener('input',syncSelectedStampFromEditor));
-$('deleteStampBtn').addEventListener('click',()=>{if(!state.selectedStampId)return;state.stamps=state.stamps.filter(s=>s.id!==state.selectedStampId);state.selectedStampId=state.stamps[0]?.id||null;updateStampListUI();renderAll();});
+$('copyStampBtn').addEventListener('click',copySelectedStamp);
+$('deleteStampBtn').addEventListener('click',()=>{
+  if(!state.selectedStampId)return;
+  state.stamps=state.stamps.filter(s=>s.id!==state.selectedStampId);
+  state.selectedStampId=state.stamps[0]?.id||null;
+  updateStampListUI();
+  requestRender({diagnostics:true,diagDelay:450});
+});
 $('clearBtn').addEventListener('click',resetAll);
 $('savePng8Btn').addEventListener('click',savePNG8);
 $('saveNormalBtn').addEventListener('click',saveNormalPNG);
 
 function canvasPointFromEvent(evt){const canvas=$('finalCanvas');const rect=canvas.getBoundingClientRect();const scaleX=canvas.width/rect.width;const scaleY=canvas.height/rect.height;return{x:(evt.clientX-rect.left)*scaleX,y:(evt.clientY-rect.top)*scaleY}}
-$('finalCanvas').addEventListener('pointerdown',evt=>{const p=canvasPointFromEvent(evt);for(let i=state.stamps.length-1;i>=0;i--){const stamp=state.stamps[i];if(hitTestStamp(stamp,p.x,p.y)){state.selectedStampId=stamp.id;state.draggingStampId=stamp.id;state.dragOffsetX=p.x-stamp.x;state.dragOffsetY=p.y-stamp.y;updateStampListUI();$('finalCanvas').setPointerCapture(evt.pointerId);$('finalCanvas').style.cursor='grabbing';return}}state.selectedStampId=null;state.draggingStampId=null;updateStampListUI();});
-$('finalCanvas').addEventListener('pointermove',evt=>{const p=canvasPointFromEvent(evt);if(state.draggingStampId){const stamp=getSelectedStamp();if(stamp){stamp.x=Math.round(p.x-state.dragOffsetX);stamp.y=Math.round(p.y-state.dragOffsetY);updateStampListUI();renderAll();}return}let hovering=false;for(let i=state.stamps.length-1;i>=0;i--){if(hitTestStamp(state.stamps[i],p.x,p.y)){hovering=true;break}}$('finalCanvas').style.cursor=hovering?'grab':'default';});
+$('finalCanvas').addEventListener('pointerdown',evt=>{if(isFrontCutEditActive())return;const p=canvasPointFromEvent(evt);for(let i=state.stamps.length-1;i>=0;i--){const stamp=state.stamps[i];if(hitTestStamp(stamp,p.x,p.y)){state.selectedStampId=stamp.id;state.draggingStampId=stamp.id;state.dragOffsetX=p.x-stamp.x;state.dragOffsetY=p.y-stamp.y;updateStampListUI();$('finalCanvas').setPointerCapture(evt.pointerId);$('finalCanvas').style.cursor='grabbing';return}}state.selectedStampId=null;state.draggingStampId=null;updateStampListUI();});
+$('finalCanvas').addEventListener('pointermove',evt=>{if(isFrontCutEditActive())return;const p=canvasPointFromEvent(evt);if(state.draggingStampId){const stamp=getSelectedStamp();if(stamp){stamp.x=Math.round(p.x-state.dragOffsetX);stamp.y=Math.round(p.y-state.dragOffsetY);syncStampPositionInputs(stamp);requestRender({diagnostics:true,diagDelay:700});}return}let hovering=false;for(let i=state.stamps.length-1;i>=0;i--){if(hitTestStamp(state.stamps[i],p.x,p.y)){hovering=true;break}}$('finalCanvas').style.cursor=hovering?'grab':'default';});
 function endDrag(evt){state.draggingStampId=null;$('finalCanvas').style.cursor='default';try{$('finalCanvas').releasePointerCapture(evt.pointerId)}catch(e){}}
 $('finalCanvas').addEventListener('pointerup',endDrag);
 $('finalCanvas').addEventListener('pointercancel',endDrag);
 
+resetCustomSizeToBase();
+updateCustomSizePanel();
+updateFrontModeUI();
 updateStampListUI();
 renderAll();
 </script>
