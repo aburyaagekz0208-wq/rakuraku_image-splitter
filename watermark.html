@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>スケスケ透かし挿入君 | 透かし（ウォーターマーク）一括挿入ツール</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔏</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
     <meta name="description" content="画像にテキストやロゴ画像の透かし（ウォーターマーク）を挿入できるツールです。透明度やピクセル単位の位置調整が可能で、複数画像の一括処理にも対応しています。">
     <style>
         /* --- 共通デザイン --- */
@@ -13,10 +13,10 @@
         .navbar a { text-decoration: none; color: #333; font-weight: bold; }
         .nav-links a { margin-left: 15px; color: #007bff; font-size: 0.95rem;}
         .nav-links a:hover { text-decoration: underline; }
-        
+
         .container { max-width: 800px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { font-size: 1.6rem; text-align: center; margin-bottom: 20px; color: #222; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        
+
         /* --- タブ（モード切替） --- */
         .tabs { display: flex; border-bottom: 2px solid #ddd; margin-bottom: 25px; background: #f8f9fa; border-radius: 8px 8px 0 0; overflow: hidden; }
         .tab-btn { flex: 1; padding: 15px; text-align: center; cursor: pointer; font-weight: bold; font-size: 1.1rem; border: none; background: transparent; color: #666; transition: all 0.3s; }
@@ -29,11 +29,11 @@
         input[type="file"], input[type="number"], input[type="text"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
         input[type="range"] { width: 100%; margin: 10px 0; cursor: pointer; }
         input[type="color"] { width: 60px; height: 40px; padding: 0; border: none; cursor: pointer; }
-        
+
         .radio-group { display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap; }
         .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; background: #f1f3f5; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;}
         .radio-group input[type="radio"]:checked + span { font-weight: bold; color: #007bff; }
-        
+
         .flex-row { display: flex; gap: 15px; align-items: center; margin-top: 10px;}
         .flex-row > div { flex: 1; }
 
@@ -43,7 +43,7 @@
         .btn-primary:hover { background-color: #0056b3; }
         .btn-primary:disabled { background-color: #ccc; cursor: not-allowed; }
         .btn-warning { display: inline-block; background-color: #28a745; color: white; padding: 12px 30px; border-radius: 4px; font-weight: bold; text-decoration: none; text-align: center; cursor: pointer; width: 100%; box-sizing: border-box;}
-        
+
         /* --- プレビュー --- */
         .preview-container { text-align: center; background: #e9ecef; padding: 10px; border-radius: 8px; border: 2px dashed #ccc; margin-top: 10px; position: relative; overflow: hidden; }
         #previewCanvas { max-width: 100%; height: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.2); background: #fff; cursor: grab; touch-action: none; }
@@ -56,25 +56,32 @@
         .result-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 20px; }
         .result-item { text-align: center; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
         .result-item img { max-width: 100%; height: auto; display: block; margin: 0 auto 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        
+
         .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 30px; color: #444; }
     </style>
+    <link rel="stylesheet" href="assets/styles.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
 </head>
-<body>
+<body class="tool-page watermark-page">
 
-    <nav class="navbar">
-        <a href="index.html" style="font-size: 1.2rem;">🎨 戻る（トップへ）</a>
-
-    </nav>
+    <nav class="navbar" aria-label="メインナビゲーション">
+  <a href="index.html" class="brand">らくらく画像ツール</a>
+  <div class="nav-links" aria-label="ツール一覧">
+    <a href="splitter.html">画像分割</a>
+    <a href="cropper.html">SNS画像</a>
+    <a href="watermark.html">透かし</a>
+    <a href="tap-change.html">タップチェンジ</a>
+    <a href="image-resolution-downsizer.html">画像圧縮</a>
+  </div>
+</nav>
 
     <div class="container">
-        <h1>🔏 スケスケ透かし挿入君</h1>
+        <h1> スケスケ透かし挿入君</h1>
 
         <div class="tabs">
-            <button class="tab-btn active" data-mode="single">📄 単一画像モード</button>
-            <button class="tab-btn" data-mode="batch">📁 一括処理モード <span class="badge">複数OK</span></button>
+            <button class="tab-btn active" data-mode="single"> 単一画像モード</button>
+            <button class="tab-btn" data-mode="batch"> 一括処理モード <span class="badge">複数OK</span></button>
         </div>
 
         <div class="form-group">
@@ -93,7 +100,7 @@
 
         <div id="textSettings" class="form-group">
             <label>透かしの文字内容とフォント</label>
-            <input type="text" id="wmText" value="©️ 2026 Your Name" placeholder="透かしの文字を入力">
+            <input type="text" id="wmText" value="© 2026 Your Name" placeholder="透かしの文字を入力">
             <div class="flex-row">
                 <div>
                     <label style="font-size: 0.9rem;">フォント種類</label>
@@ -128,13 +135,13 @@
 
         <div class="form-group">
             <label>3. 透かしのスタイルと位置調整</label>
-            
+
             <div class="flex-row" style="margin-bottom: 15px;">
                 <div style="flex: 2;">
                     <label style="font-size: 0.9rem;">不透明度 (Opacity)</label>
                     <input type="range" id="wmOpacity" min="0" max="1" step="0.05" value="0.7">
                 </div>
-                
+
                 <div id="originSetting" style="display: none; flex: 2;">
                     <label style="font-size: 0.9rem;">配置の基準点（原点）</label>
                     <select id="wmOrigin">
@@ -165,12 +172,12 @@
             </div>
         </div>
 
-        <button id="processBtn" class="btn-primary" disabled>🔏 画像に透かしを入れて出力する</button>
+        <button id="processBtn" class="btn-primary" disabled> 画像に透かしを入れて出力する</button>
 
         <div id="resultArea">
             <h2 style="text-align: center; color: #28a745;">出力結果</h2>
             <div style="text-align: center; margin-bottom: 20px;">
-                <button id="downloadAllBtn" class="btn-warning">📦 すべて一括保存</button>
+                <button id="downloadAllBtn" class="btn-warning"> すべて一括保存</button>
             </div>
             <div id="resultContainer" class="result-grid"></div>
         </div>
@@ -192,22 +199,22 @@
         baseImages: [], // File オブジェクトの配列
         currentPreviewIndex: 0, // バッチ時のプレビュー用
         loadedBaseImg: null, // 現在プレビュー中のImageオブジェクト
-        
+
         wmType: 'text', // 'text' or 'image'
-        wmText: '©️ 2026 Your Name',
+        wmText: '© 2026 Your Name',
         wmFont: 'sans-serif',
         wmFontSize: 40,
         wmColor: '#ffffff',
-        
+
         wmImgFile: null,
         loadedWmImg: null,
         wmScale: 1,
-        
+
         opacity: 0.7,
         origin: 'bottom-right', // 'top-left', 'top-right', 'bottom-left', 'bottom-right', 'center'
         posX: 20, // 原点からのオフセットX（単一モード時は左上からの絶対座標）
         posY: 20, // 原点からのオフセットY（単一モード時は左上からの絶対座標）
-        
+
         isDragging: false,
         dragStartX: 0,
         dragStartY: 0,
@@ -221,30 +228,30 @@
         baseImageInput: document.getElementById('baseImageInput'),
         uploadLabel: document.getElementById('uploadLabel'),
         uploadHint: document.getElementById('uploadHint'),
-        
+
         wmTypeRadios: document.getElementsByName('wmType'),
         textSettings: document.getElementById('textSettings'),
         imageSettings: document.getElementById('imageSettings'),
-        
+
         wmText: document.getElementById('wmText'),
         wmFont: document.getElementById('wmFont'),
         wmFontSize: document.getElementById('wmFontSize'),
         wmColor: document.getElementById('wmColor'),
-        
+
         wmImageInput: document.getElementById('wmImageInput'),
         wmScale: document.getElementById('wmScale'),
-        
+
         wmOpacity: document.getElementById('wmOpacity'),
         originSetting: document.getElementById('originSetting'),
         wmOrigin: document.getElementById('wmOrigin'),
         posX: document.getElementById('posX'),
         posY: document.getElementById('posY'),
         positionHint: document.getElementById('positionHint'),
-        
+
         previewCanvas: document.getElementById('previewCanvas'),
         ctx: document.getElementById('previewCanvas').getContext('2d'),
         previewPlaceholder: document.getElementById('previewPlaceholder'),
-        
+
         processBtn: document.getElementById('processBtn'),
         resultArea: document.getElementById('resultArea'),
         resultContainer: document.getElementById('resultContainer'),
@@ -262,13 +269,13 @@
     }
 
     // --- イベントリスナー設定 ---
-    
+
     // タブ切替
     els.tabs.forEach(btn => btn.addEventListener('click', (e) => {
         els.tabs.forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
         state.mode = e.target.dataset.mode;
-        
+
         // UIの切り替え
         if (state.mode === 'batch') {
             els.uploadLabel.textContent = '1. ベースとなる画像（複数選択OK）をアップロード';
@@ -292,11 +299,11 @@
         state.baseImages = Array.from(e.target.files);
         state.currentPreviewIndex = 0;
         state.loadedBaseImg = await loadImage(state.baseImages[0]);
-        
+
         els.previewPlaceholder.style.display = 'none';
         els.previewCanvas.style.display = 'block';
         els.processBtn.disabled = false;
-        
+
         // 初期の位置を中心に設定（単一モードの場合）
         if (state.mode === 'single') {
             const dim = getWatermarkDimensions();
@@ -367,7 +374,7 @@
             els.ctx.font = `${state.wmFontSize}px ${state.wmFont}`;
             const metrics = els.ctx.measureText(state.wmText);
             // テキストの高さはフォントサイズで近似
-            return { w: metrics.width, h: state.wmFontSize }; 
+            return { w: metrics.width, h: state.wmFontSize };
         } else {
             if (!state.loadedWmImg) return { w: 0, h: 0 };
             return { w: state.loadedWmImg.width * state.wmScale, h: state.loadedWmImg.height * state.wmScale };
@@ -397,7 +404,7 @@
     // プレビュー描画メイン処理
     function drawPreview() {
         if (!state.loadedBaseImg) return;
-        
+
         const c = els.previewCanvas;
         const ctx = els.ctx;
         c.width = state.loadedBaseImg.width;
@@ -424,7 +431,7 @@
     }
 
     // --- ドラッグ＆ドロップ（プレビュー操作） ---
-    
+
     // イベントからキャンバス内の実座標を取得
     function getCanvasCoords(e) {
         const rect = els.previewCanvas.getBoundingClientRect();
@@ -463,7 +470,7 @@
         if (!state.isDragging) return;
         e.preventDefault();
         const coords = getCanvasCoords(e);
-        
+
         // 移動量（デルタ）を計算
         const dx = coords.x - state.dragStartX;
         const dy = coords.y - state.dragStartY;
@@ -516,9 +523,9 @@
         els.processBtn.textContent = '処理中...';
         els.resultContainer.innerHTML = '';
         els.resultArea.style.display = 'block';
-        
+
         // UIブロックを避けるための微小遅延
-        await new Promise(r => setTimeout(r, 50)); 
+        await new Promise(r => setTimeout(r, 50));
 
         try {
             const workCanvas = document.createElement('canvas');
@@ -529,10 +536,10 @@
             for (let i = 0; i < state.baseImages.length; i++) {
                 const file = state.baseImages[i];
                 const img = await loadImage(file);
-                
+
                 workCanvas.width = img.width;
                 workCanvas.height = img.height;
-                
+
                 // 1. ベース描画
                 workCtx.drawImage(img, 0, 0);
 
@@ -552,7 +559,7 @@
 
                 // 3. 結果アイテムを生成
                 const dataUrl = workCanvas.toDataURL('image/png');
-                
+
                 // 元のファイル名から拡張子を外して _watermarked を付与
                 const originalName = file.name.replace(/\.[^/.]+$/, "");
                 const outFileName = `${originalName}_watermarked.png`;
@@ -562,7 +569,7 @@
                 itemDiv.innerHTML = `
                     <h3 style="margin-top:0; font-size:1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${outFileName}</h3>
                     <img src="${dataUrl}">
-                    <a href="${dataUrl}" download="${outFileName}" class="download-btn wm-dl-btn">⬇️ 保存</a>
+                    <a href="${dataUrl}" download="${outFileName}" class="download-btn wm-dl-btn"> 保存</a>
                 `;
                 els.resultContainer.appendChild(itemDiv);
             }
@@ -574,7 +581,7 @@
             alert('エラーが発生しました。');
         } finally {
             els.processBtn.disabled = false;
-            els.processBtn.textContent = '🔏 画像に透かしを入れて出力する';
+            els.processBtn.textContent = ' 画像に透かしを入れて出力する';
         }
     });
 
@@ -582,22 +589,22 @@
     els.downloadAllBtn.addEventListener('click', async (e) => {
         const links = document.querySelectorAll('.wm-dl-btn');
         if (links.length === 0) return;
-        
+
         if (!confirm(`${links.length}枚の画像を順番にダウンロードします。ブラウザから許可を求められた場合は「許可」を押してください。`)) return;
 
         const btn = e.target;
         btn.disabled = true;
-        btn.textContent = '📦 ダウンロード中...';
+        btn.textContent = ' ダウンロード中...';
 
         for (let i = 0; i < links.length; i++) {
             links[i].click();
             await new Promise(r => setTimeout(r, 500)); // ダウンロード間隔を空ける
         }
 
-        btn.textContent = '✅ 完了！';
+        btn.textContent = ' 完了';
         setTimeout(() => {
             btn.disabled = false;
-            btn.textContent = '📦 すべて一括保存';
+            btn.textContent = ' すべて一括保存';
         }, 3000);
     });
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>らくらく画像分割君 | X(Twitter)プレビュー対応で綺麗にスライス画像分割ツール</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
     <meta name="description" content="ブラウザ上で画像を縦分割・グリッド分割できる無料ツール。X(Twitter)のタイムライン表示をリアルタイムプレビュー！スマホ対応、ドラッグ操作可能。">
     <style>
         /* 基本・共通CSS */
@@ -13,15 +13,15 @@
         .navbar a { text-decoration: none; color: #333; font-weight: bold; }
         .nav-links a { margin-left: 20px; color: #007bff; }
         .nav-links a:hover { text-decoration: underline; }
-        
+
         .container { max-width: 750px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { font-size: 1.6rem; text-align: center; margin-bottom: 20px; color: #222; border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block; width: 100%;}
-        
+
         .form-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
         .form-group:last-child { border-bottom: none; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
         input[type="file"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
-        
+
         .radio-group { display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap; }
         .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; background: #f1f3f5; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;}
         .radio-group input[type="radio"]:checked + span { font-weight: bold; color: #007bff; }
@@ -43,7 +43,7 @@
         .grid-inputs div { flex: 1; }
         .preview-container { text-align: center; border: 2px dashed #ccc; padding: 10px; background: #fafafa; border-radius: 4px; margin-bottom: 20px; position: relative;}
         #previewCanvas { width: 100%; height: auto; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.1); touch-action: none; cursor: crosshair; }
-        
+
         #xSplitPreviewArea { margin-top: 30px; margin-bottom: 30px; border: 2px solid #1da1f2; border-radius: 8px; padding: 20px; display: none; background-color: #f5f8fa; }
         .x-preview-box { background: #fff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 15px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .x-dummy-header { display: flex; margin-bottom: 10px; }
@@ -68,21 +68,28 @@
         .result-item { text-align: center; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
         .result-item img { max-width: 100%; height: auto; display: block; margin: 0 auto 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .download-btn { display: inline-block; background-color: #28a745; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.9rem; width: 100%; box-sizing: border-box;}
-        
+
         .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 30px; color: #444; }
     </style>
+    <link rel="stylesheet" href="assets/styles.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
 </head>
-<body>
+<body class="tool-page splitter-page">
 
-    <nav class="navbar">
-        <a href="index.html" style="font-size: 1.2rem;">🎨 戻る（トップへ）</a>
-
-    </nav>
+    <nav class="navbar" aria-label="メインナビゲーション">
+  <a href="index.html" class="brand">らくらく画像ツール</a>
+  <div class="nav-links" aria-label="ツール一覧">
+    <a href="splitter.html">画像分割</a>
+    <a href="cropper.html">SNS画像</a>
+    <a href="watermark.html">透かし</a>
+    <a href="tap-change.html">タップチェンジ</a>
+    <a href="image-resolution-downsizer.html">画像圧縮</a>
+  </div>
+</nav>
 
     <div class="container">
-        <h1>✂️ らくらく画像分割君</h1>
+        <h1>画像分割ツール</h1>
 
         <div class="form-group">
             <label for="splitImageInput">1. 分割する画像をアップロード</label>
@@ -102,11 +109,11 @@
             <div class="preview-container">
                 <canvas id="previewCanvas" style="display: none;"></canvas>
             </div>
-            
+
             <div id="verticalSettings">
                 <label style="margin-top:15px;">縦の分割数</label>
                 <input type="number" id="splitCount" value="2" min="2" max="50">
-                <button type="button" id="resetEvenBtn" class="btn-secondary" style="margin-top:10px;">🔄 均等割りにリセット</button>
+                <button type="button" id="resetEvenBtn" class="btn-secondary" style="margin-top:10px;"> 均等割りにリセット</button>
                 <div id="cutPointsContainer"></div>
             </div>
 
@@ -119,7 +126,7 @@
         </div>
 
         <div id="xSplitPreviewArea">
-            <h2 style="text-align: center; color: #1da1f2; margin-top: 0; margin-bottom: 15px; font-size: 1.3rem;">📱 X (Twitter) 投稿時の見え方</h2>
+            <h2 style="text-align: center; color: #1da1f2; margin-top: 0; margin-bottom: 15px; font-size: 1.3rem;"> X (Twitter) 投稿時の見え方</h2>
             <p style="text-align: center; font-size: 0.85rem; margin-top: -10px; color: #666;">※線を動かすとリアルタイムで反映されます（先頭4枚まで）</p>
             <div class="x-preview-box">
                 <div class="x-dummy-header">
@@ -133,12 +140,12 @@
             </div>
         </div>
 
-        <button id="splitProcessBtn" class="btn-primary" disabled>✂️ 分割して画像を出力</button>
+        <button id="splitProcessBtn" class="btn-primary" disabled> 分割して画像を出力</button>
 
         <div id="splitResultArea">
             <h2 style="text-align: center; color: #28a745;">出力結果</h2>
             <div style="text-align: center; margin-bottom: 20px;">
-                <button id="splitDownloadAllBtn" class="btn-warning">📦 すべて一括保存</button>
+                <button id="splitDownloadAllBtn" class="btn-warning"> すべて一括保存</button>
             </div>
             <div id="splitResultContainer" class="result-grid"></div>
         </div>
@@ -152,13 +159,13 @@
 
 <script>
     function loadImage(file) { return new Promise((r, j) => { const i = new Image(); i.onload = () => r(i); i.onerror = j; i.src = URL.createObjectURL(file); }); }
-    
+
     const state = { img: null, mode: 'vertical', isDragging: false, draggedLineIndex: -1 };
     const elPreview = document.getElementById('previewCanvas');
     const ctx = elPreview.getContext('2d');
     const xPreviewArea = document.getElementById('xSplitPreviewArea');
     const xGrid = document.getElementById('xGridContainer');
-    
+
     document.getElementById('splitImageInput').addEventListener('change', async (e) => {
         if (!e.target.files[0]) return;
         state.img = await loadImage(e.target.files[0]);
@@ -201,8 +208,8 @@
     function draw() {
         if (!state.img) return;
         elPreview.width = state.img.width; elPreview.height = state.img.height;
-        ctx.drawImage(state.img, 0, 0); ctx.strokeStyle = 'red'; ctx.lineWidth = Math.max(3, Math.floor(state.img.width / 300)); 
-        const slices = []; 
+        ctx.drawImage(state.img, 0, 0); ctx.strokeStyle = 'red'; ctx.lineWidth = Math.max(3, Math.floor(state.img.width / 300));
+        const slices = [];
 
         if (state.mode === 'vertical') {
             let cuts = Array.from(document.querySelectorAll('.cut-input')).map(i => parseInt(i.value, 10)).filter(y => !isNaN(y) && y > 0 && y < state.img.height);
@@ -229,7 +236,7 @@
             items = xGrid.querySelectorAll('.x-grid-item');
         }
         for (let i = 0; i < count; i++) {
-            const canvas = items[i].querySelector('canvas'); const slice = slices[i]; const scale = Math.min(1, 800 / slice.w); 
+            const canvas = items[i].querySelector('canvas'); const slice = slices[i]; const scale = Math.min(1, 800 / slice.w);
             const drawW = Math.floor(slice.w * scale); const drawH = Math.floor(slice.h * scale);
             if (canvas.width !== drawW) canvas.width = drawW; if (canvas.height !== drawH) canvas.height = drawH;
             canvas.getContext('2d').drawImage(state.img, slice.x, slice.y, slice.w, slice.h, 0, 0, drawW, drawH);
@@ -240,7 +247,7 @@
     elPreview.addEventListener('pointerdown', e => {
         if (!state.img || state.mode !== 'vertical') return;
         elPreview.setPointerCapture(e.pointerId); const y = getPointerY(e);
-        const inputs = Array.from(document.querySelectorAll('.cut-input')); const tol = 20 * (elPreview.height / elPreview.getBoundingClientRect().height); 
+        const inputs = Array.from(document.querySelectorAll('.cut-input')); const tol = 20 * (elPreview.height / elPreview.getBoundingClientRect().height);
         for (let i = 0; i < inputs.length; i++) if (Math.abs(y - parseInt(inputs[i].value, 10)) <= tol) { state.isDragging = true; state.draggedLineIndex = i; elPreview.style.cursor = 'ns-resize'; break; }
     });
     elPreview.addEventListener('pointermove', e => {
@@ -250,7 +257,7 @@
             let newY = Math.max(1, Math.min(Math.round(y), state.img.height - 1));
             if (state.draggedLineIndex > 0) newY = Math.max(newY, parseInt(inputs[state.draggedLineIndex - 1].value, 10) + 1);
             if (state.draggedLineIndex < inputs.length - 1) newY = Math.min(newY, parseInt(inputs[state.draggedLineIndex + 1].value, 10) - 1);
-            inputs[state.draggedLineIndex].value = newY; draw(); 
+            inputs[state.draggedLineIndex].value = newY; draw();
         } else {
             const tol = 20 * (elPreview.height / elPreview.getBoundingClientRect().height);
             elPreview.style.cursor = inputs.some(input => Math.abs(y - parseInt(input.value, 10)) <= tol) ? 'ns-resize' : 'crosshair';
@@ -286,15 +293,15 @@
 
     function createResultItem(dataUrl, index, container) {
         const item = document.createElement('div'); item.className = 'result-item'; const fileName = `slice_${String(index).padStart(2, '0')}.png`;
-        item.innerHTML = `<img src="${dataUrl}"><a href="${dataUrl}" download="${fileName}" class="download-btn split-dl-btn">⬇️ ${fileName} を保存</a>`; container.appendChild(item);
+        item.innerHTML = `<img src="${dataUrl}"><a href="${dataUrl}" download="${fileName}" class="download-btn split-dl-btn"> ${fileName} を保存</a>`; container.appendChild(item);
     }
-    
+
     document.getElementById('splitDownloadAllBtn').addEventListener('click', async (e) => {
         const links = document.querySelectorAll('.split-dl-btn');
         if (links.length === 0 || !confirm('一括ダウンロードします。許可を求められたら「許可」を押してください。')) return;
-        const btn = e.target; btn.disabled = true; btn.textContent = '📦 ダウンロード中...';
+        const btn = e.target; btn.disabled = true; btn.textContent = ' ダウンロード中...';
         for (let i = 0; i < links.length; i++) { links[i].click(); await new Promise(r => setTimeout(r, 500)); }
-        btn.textContent = '✅ 完了！'; setTimeout(() => { btn.disabled = false; btn.textContent = '📦 すべて一括保存'; }, 3000);
+        btn.textContent = ' 完了'; setTimeout(() => { btn.disabled = false; btn.textContent = ' すべて一括保存'; }, 3000);
     });
 </script>
 

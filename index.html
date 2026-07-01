@@ -1,103 +1,112 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>クリエイター向け画像ツール集 | ブラウザ完結の無料ユーティリティ</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎨</text></svg>">
-    <meta name="description" content="画像分割、SNSプロフィール画像作成、透かし挿入、タップチェンジ画像作成、画像縮小など、クリエイターの作業を効率化する無料ツール集です。すべてブラウザ上で安全に処理されます。">
-    <style>
-        * { box-sizing: border-box; }
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; line-height: 1.6; }
-        .navbar { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; gap: 20px; position: sticky; top: 0; z-index: 10; }
-        .navbar a { text-decoration: none; color: #333; font-weight: bold; }
-        .brand { font-size: 1.2rem; white-space: nowrap; }
-        .nav-links { display: flex; gap: 16px; flex-wrap: wrap; justify-content: flex-end; }
-        .nav-links a { color: #007bff; font-size: 0.92rem; }
-        .nav-links a:hover { text-decoration: underline; }
-        .container { max-width: 1080px; margin: 40px auto; padding: 0 20px; }
-        .hero { text-align: center; margin-bottom: 42px; }
-        .hero h1 { font-size: clamp(1.9rem, 4vw, 2.7rem); color: #222; margin: 0 0 12px; letter-spacing: 0.02em; }
-        .hero p { color: #666; max-width: 760px; margin: 0 auto; }
-        .tool-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 28px; margin-bottom: 48px; }
-        .tool-card { position: relative; background: #fff; border-radius: 14px; padding: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center; transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s; border: 1px solid #eee; display: flex; flex-direction: column; align-items: center; min-height: 310px; }
-        .tool-card:hover { transform: translateY(-5px); box-shadow: 0 8px 18px rgba(0,0,0,0.1); border-color: #dce8f7; }
-        .tool-card.featured { border-color: #b8d9ff; background: linear-gradient(180deg, #fff 0%, #f7fbff 100%); }
-        .tool-icon { font-size: 4rem; margin-bottom: 15px; line-height: 1; }
-        .tool-card h2 { margin: 0 0 12px; color: #222; font-size: 1.35rem; }
-        .tool-card p { color: #666; font-size: 0.95rem; margin: 0 0 24px; flex: 1; }
-        .badge { position: absolute; top: 16px; right: 16px; background: #eaf4ff; color: #007bff; border: 1px solid #b8d9ff; border-radius: 999px; padding: 4px 10px; font-size: 0.78rem; font-weight: bold; }
-        .btn { display: inline-block; background: #007bff; color: #fff; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: bold; transition: 0.2s; min-width: 150px; }
-        .btn:hover { background: #0056b3; transform: translateY(-1px); }
-        .seo-text { background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
-        .seo-text h3 { margin-top: 0; }
-        @media (max-width: 720px) {
-            .navbar { align-items: flex-start; flex-direction: column; padding: 14px 20px; }
-            .nav-links { justify-content: flex-start; gap: 10px 14px; }
-            .container { margin: 30px auto; }
-            .tool-card { min-height: auto; }
-        }
-    </style>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
-     crossorigin="anonymous"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>らくらく画像ツール | ブラウザ完結の画像処理ユーティリティ</title>
+  <meta name="description" content="画像分割、SNSプロフィール画像作成、透かし挿入、タップチェンジ画像作成、画像縮小など、クリエイターの作業を効率化する無料ツール集です。すべてブラウザ内で安全に処理されます。">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865" crossorigin="anonymous"></script>
 </head>
-<body>
+<body class="home-page">
+  <nav class="site-nav" aria-label="メインナビゲーション">
+    <a href="index.html" class="site-brand">らくらく画像ツール</a>
+    <div class="site-links">
+      <a href="#tools">ツール一覧</a>
+      <a href="#privacy">安全性</a>
+      <a href="splitter.html" class="site-cta">画像分割を開く</a>
+    </div>
+  </nav>
 
-    <nav class="navbar">
-        <a href="index.html" class="brand">🎨 クリエイター画像ツール</a>
-        <div class="nav-links" aria-label="ツール一覧">
+  <header class="home-hero">
+    <div class="home-hero__inner">
+      <div>
+        <p class="home-eyebrow">Local Image Processing Suite</p>
+        <h1>画像作業を、ブラウザだけで高速に。</h1>
+        <p>分割、切り抜き、透かし、圧縮まで。ファイルをサーバーへ送らず、投稿前の画像処理を正確に進められます。</p>
+        <div class="hero-actions">
+          <a href="#tools" class="site-cta">ツールを選ぶ</a>
+          <a href="#privacy" class="btn-outline">安全性を見る</a>
         </div>
-    </nav>
+      </div>
 
-    <div class="container">
-        <div class="hero">
-            <h1>クリエイティブを加速させる無料ツール群</h1>
-            <p>ブラウザ上でサクッと使える、インストール不要・サーバー送信なしの安全な画像編集ユーティリティです。</p>
+      <div class="editor-preview" aria-label="画像分割ツールのプレビュー">
+        <div class="editor-preview__bar">
+          <span>IMAGE SPLITTER</span>
+          <span>LOCAL ONLY</span>
+        </div>
+        <div class="editor-preview__canvas">
+          <div class="editor-preview__image"></div>
+        </div>
+        <div class="editor-preview__footer">
+          <span>Vertical cut: 3 slices</span>
+          <span>Ready</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="section" id="tools">
+      <div class="section__inner">
+        <div class="section-heading">
+          <div>
+            <p class="home-eyebrow">Tools</p>
+            <h2>制作前後の細かい画像処理をまとめて扱えます。</h2>
+          </div>
+          <p>すべて静的なブラウザツールです。画像は端末内で処理され、用途ごとに必要な設定だけを絞り込んでいます。</p>
         </div>
 
         <div class="tool-grid">
-            <div class="tool-card">
-                <div class="tool-icon">✂️</div>
-                <h2>画像分割ツール</h2>
-                <p>縦長画像やWeb漫画を、任意のピクセルや均等グリッドで綺麗に分割。X(Twitter)の投稿プレビューにも対応しています。</p>
-                <a href="splitter.html" class="btn">ツールを使う</a>
-            </div>
-            
-            <div class="tool-card">
-                <div class="tool-icon">🖼️</div>
-                <h2>SNSプロフ画像作成</h2>
-                <p>X(Twitter)のアイコンとヘッダーを、実際のプロフィール画面のプレビューを見ながら直感的にトリミング・ズーム調整できます。</p>
-                <a href="cropper.html" class="btn">ツールを使う</a>
-            </div>
+          <article class="tool-card">
+            <span class="tool-kicker">Tool 01</span>
+            <h2>画像分割</h2>
+            <p>縦長画像やWeb漫画を、自由なカット位置または均等グリッドで分割。X投稿時の見え方も確認できます。</p>
+            <a href="splitter.html" class="btn">開く</a>
+          </article>
 
-            <div class="tool-card">
-                <div class="tool-icon">🔏</div>
-                <h2>透かし一括挿入ツール</h2>
-                <p>無断転載防止のウォーターマーク（画像・テキスト）を、複数画像の右下など任意の位置へ一気に合成します。</p>
-                <a href="watermark.html" class="btn">ツールを使う</a>
-            </div>
+          <article class="tool-card">
+            <span class="tool-kicker">Tool 02</span>
+            <h2>SNSプロフィール画像</h2>
+            <p>X、Instagram、pixiv向けのアイコンやヘッダーを、実際の表示に近いプレビューで調整できます。</p>
+            <a href="cropper.html" class="btn">開く</a>
+          </article>
 
-            <div class="tool-card">
-                <div class="tool-icon">👆</div>
-                <h2>タップチェンジ画像作成君</h2>
-                <p>本体画像を1px市松模様で透明化し、前面レイヤーを重ねて、X投稿向けのPNG-8 indexed画像を作成します。</p>
-                <a href="tap-change.html" class="btn">ツールを使う</a>
-            </div>
+          <article class="tool-card">
+            <span class="tool-kicker">Tool 03</span>
+            <h2>透かし一括挿入</h2>
+            <p>テキストやロゴのウォーターマークを、単体画像または複数画像へまとめて合成します。</p>
+            <a href="watermark.html" class="btn">開く</a>
+          </article>
 
-            <div class="tool-card featured">
-                <span class="badge">新ツール</span>
-                <div class="tool-icon">🗜️</div>
-                <h2>ぎゅうぎゅう圧縮君</h2>
-                <p>画像比率を保ったまま、できるだけ見た目の劣化を抑えてサイズダウン。JPEG / PNG / WebPの軽量化に対応した高品質画像縮小ツールです。</p>
-                <a href="image-resolution-downsizer.html" class="btn">ツールを使う</a>
-            </div>
+          <article class="tool-card">
+            <span class="tool-kicker">Tool 04</span>
+            <h2>タップチェンジ画像</h2>
+            <p>本体画像と前面レイヤーを合成し、X投稿向けのPNG-8 indexed画像を作成します。</p>
+            <a href="tap-change.html" class="btn">開く</a>
+          </article>
+
+          <article class="tool-card">
+            <span class="tool-kicker">Tool 05</span>
+            <h2>高品質画像圧縮</h2>
+            <p>縦横比を保ちながら解像度を下げ、JPEG、PNG、WebPの保存形式と品質を調整できます。</p>
+            <a href="image-resolution-downsizer.html" class="btn">開く</a>
+          </article>
         </div>
 
-        <div class="seo-text">
-            <h3>🔒 プライバシーと安全性について</h3>
-            <p>当サイトのすべての画像処理プログラムは、お客様がお使いのスマートフォンやパソコンの「ブラウザ内」でのみ実行されます。アップロードした画像が当サイトのサーバーや外部に送信・保存されることは物理的に一切ありません。制作途中の未公開イラストや、個人情報を含む画像でも、安心してご利用いただけます。</p>
+        <div class="privacy-strip" id="privacy">
+          <h3>ローカル処理で、画像を外へ送信しません。</h3>
+          <p>各ツールの処理はブラウザ内で完結します。制作途中の未公開イラスト、投稿前の素材、個人情報を含む画像でも、サーバー保存や外部アップロードなしで作業できます。</p>
         </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="section__inner">
+      <span>らくらく画像ツール</span>
+      <span>JPEG / PNG / WebP対応・スマホ表示対応・アップロードなし</span>
     </div>
-
+  </footer>
 </body>
 </html>

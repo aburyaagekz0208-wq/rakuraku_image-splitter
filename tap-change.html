@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>タップチェンジ画像作成君 | クリエイター画像ツール</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👆</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
   <meta name="description" content="本体画像 / Base Imageを1px市松模様で透明化し、前面レイヤーやTapスタンプを重ねて、X投稿向けのPNG-8 indexed画像をブラウザ上で作成します。">
   <style>
     :root{--bg:#f4f7f6;--panel:#fff;--line:#e5e7eb;--text:#222;--muted:#666;--accent:#007bff;--accent-hover:#0056b3;--sub:#e5e7eb;--sub-text:#222}
@@ -70,17 +70,24 @@
 
     @media(max-width:960px){main{grid-template-columns:1fr}.controls{position:static;max-height:none}.bottom-info{width:min(1680px,calc(100% - 24px))}}
   </style>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
+    <link rel="stylesheet" href="assets/styles.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
 </head>
-<body>
-  <nav class="navbar">
-    <a href="index.html" style="font-size:1.2rem;">🎨 クリエイター画像ツール</a>
-    <div class="nav-links"><a href="index.html">ツール一覧へ戻る</a></div>
-  </nav>
+<body class="tool-page tap-change-page">
+  <nav class="navbar" aria-label="メインナビゲーション">
+  <a href="index.html" class="brand">らくらく画像ツール</a>
+  <div class="nav-links" aria-label="ツール一覧">
+    <a href="splitter.html">画像分割</a>
+    <a href="cropper.html">SNS画像</a>
+    <a href="watermark.html">透かし</a>
+    <a href="tap-change.html">タップチェンジ</a>
+    <a href="image-resolution-downsizer.html">画像圧縮</a>
+  </div>
+</nav>
 
   <header>
-    <h1>👆 タップチェンジ画像作成君</h1>
+    <h1> タップチェンジ画像作成君</h1>
     <p class="lead">本体画像 / Base Imageを1px市松模様で透明化し、前面レイヤーやTapスタンプを重ねて、X投稿向けPNG-8 indexed画像を作成します。</p>
   </header>
 
