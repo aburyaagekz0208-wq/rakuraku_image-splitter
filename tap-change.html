@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>タップチェンジ画像作成君 | クリエイター画像ツール</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22></text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👆</text></svg>">
   <meta name="description" content="本体画像 / Base Imageを1px市松模様で透明化し、前面レイヤーやTapスタンプを重ねて、X投稿向けのPNG-8 indexed画像をブラウザ上で作成します。">
   <style>
     :root{--bg:#f4f7f6;--panel:#fff;--line:#e5e7eb;--text:#222;--muted:#666;--accent:#007bff;--accent-hover:#0056b3;--sub:#e5e7eb;--sub-text:#222}
@@ -30,20 +30,44 @@
     .canvas-stack{position:relative;width:100%;line-height:0;margin:0 auto;transform-origin:top left}
     canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block;background:#fff;touch-action:none;cursor:default}
     #frontCutWorkCanvas{position:absolute;inset:0;width:100%;height:100%;border:1px solid transparent;background:transparent;display:none;pointer-events:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
-    .cutout-work-active{position:relative;overflow:hidden;min-height:560px;max-height:78vh;background-color:#fafafa;background-image:linear-gradient(45deg,#e8edf1 25%,transparent 25%),linear-gradient(-45deg,#e8edf1 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8edf1 75%),linear-gradient(-45deg,transparent 75%,#e8edf1 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0}
-    .cutout-work-active .canvas-stack{width:100%!important;height:auto!important;aspect-ratio:var(--front-edit-ratio,auto);margin:0 auto;line-height:0}
-    .cutout-work-active #finalCanvas{visibility:hidden;display:block;width:100%;height:auto}
-    .cutout-work-active #frontCutWorkCanvas{display:block;pointer-events:auto}
+    .cutout-work-active{position:relative;overflow:hidden;max-height:none;padding:0;background-color:#fafafa;background-image:linear-gradient(45deg,#e8edf1 25%,transparent 25%),linear-gradient(-45deg,#e8edf1 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8edf1 75%),linear-gradient(-45deg,transparent 75%,#e8edf1 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0}
+    .cutout-work-active .canvas-stack{position:relative;width:100%!important;height:clamp(360px,72vh,860px)!important;aspect-ratio:auto!important;margin:0;line-height:0}
+    .cutout-work-active #finalCanvas{position:absolute;inset:0;visibility:hidden;display:block;width:100%;height:100%;border:0}
+    .cutout-work-active #frontCutWorkCanvas{display:block;pointer-events:auto;position:absolute;inset:0;width:100%;height:100%}
     .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.82rem;line-height:1.6}.kv div:nth-child(odd){color:#666}
     .stamp-box{padding:12px;border:1px solid var(--line);border-radius:12px;background:#fafafa;margin-top:10px}
     .small{font-size:.76rem;color:#666}
     .hidden{display:none!important}
     .mini-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
     .mini-actions button{flex:1 1 auto;padding:9px 10px;font-size:.78rem}
-    .cutout-editor-shell{margin-top:10px;padding:8px;border:1px solid var(--line);border-radius:12px;background:repeating-linear-gradient(45deg,#f3f4f6 0,#f3f4f6 8px,#fff 8px,#fff 16px)}
-    #frontCutCanvas{width:100%;height:auto;min-height:180px;border-radius:10px;background:#fff;cursor:crosshair}
     .meter-mini{display:grid;grid-template-columns:1fr auto;gap:4px 10px;margin-top:8px;font-size:.76rem}.meter-mini div:nth-child(odd){color:#666}
     .range-line{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.range-line input{width:100%}
+
+    /* ── 前面レイヤー編集パネル ───────────────────────────── */
+    .guide-link{display:flex;align-items:center;justify-content:center;gap:6px;margin:10px 0 4px;padding:10px 12px;border-radius:10px;background:#eaf4ff;border:1px solid #b8d9ff;color:#005fcc;font-weight:700;font-size:.82rem;text-decoration:none}
+    .guide-link:hover{background:#dbecff;text-decoration:none}
+    .tool-picker{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+    .tool-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:78px;padding:8px 2px;border-radius:12px;border:2px solid #d5dde6;background:#eef2f7;color:#334155;font-size:.72rem;font-weight:700;line-height:1.3;letter-spacing:-.02em;text-align:center;transition:.15s}
+    .tool-btn .tool-emoji{font-size:1.25rem;line-height:1}
+    .tool-btn .tool-name{display:block;white-space:nowrap}
+    .tool-btn small{display:block;font-size:.6rem;font-weight:600;opacity:.75}
+    .tool-btn:hover{background:#e2e9f2;color:#334155}
+    .tool-btn.is-on,.tool-btn.is-on:hover{background:#111;border-color:#000;color:#fff;box-shadow:0 0 0 3px rgba(0,0,0,.18)}
+    .tool-btn.is-on small{opacity:.9}
+    .tool-btn:disabled{opacity:.45;cursor:not-allowed}
+    .mode-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+    .mode-btn{min-height:52px;border-radius:12px;border:2px solid;font-size:.86rem;font-weight:800;transition:.15s}
+    .mode-add{background:#e9f7ee;border-color:#8fd0a8;color:#12603a}
+    .mode-add:hover{background:#dcf0e4;color:#12603a}
+    .mode-add.is-on,.mode-add.is-on:hover{background:#0f9d58;border-color:#0a7340;color:#fff;box-shadow:0 0 0 3px rgba(15,157,88,.22)}
+    .mode-remove{background:#fdeceb;border-color:#f2aaa6;color:#9c2019}
+    .mode-remove:hover{background:#fbdedb;color:#9c2019}
+    .mode-remove.is-on,.mode-remove.is-on:hover{background:#e03131;border-color:#b12222;color:#fff;box-shadow:0 0 0 3px rgba(224,49,49,.22)}
+    .mode-btn:disabled{opacity:.45;cursor:not-allowed}
+    .mode-banner{margin-top:8px;padding:9px 10px;border-radius:10px;font-size:.78rem;font-weight:800;text-align:center;line-height:1.5}
+    .mode-banner-add{background:#e9f7ee;border:1px solid #8fd0a8;color:#12603a}
+    .mode-banner-remove{background:#fdeceb;border:1px solid #f2aaa6;color:#9c2019}
+    .zoom-row button{flex:1 1 0;min-width:0}
 
     @media(min-width:1280px){
       main{grid-template-columns:280px minmax(0,1fr);gap:12px}
@@ -83,11 +107,12 @@
     <a href="watermark.html">透かし</a>
     <a href="tap-change.html">タップチェンジ</a>
     <a href="image-resolution-downsizer.html">画像圧縮</a>
+    <a href="front-layer-guide.html">前面レイヤーの使い方</a>
   </div>
 </nav>
 
   <header>
-    <h1> タップチェンジ画像作成君</h1>
+    <h1>👆 タップチェンジ画像作成君</h1>
     <p class="lead">本体画像 / Base Imageを1px市松模様で透明化し、前面レイヤーやTapスタンプを重ねて、X投稿向けPNG-8 indexed画像を作成します。</p>
   </header>
 
@@ -109,22 +134,49 @@
 
       <div id="frontCreatePanel" class="stamp-box" style="display:none;">
         <p class="note">本体画像から、前面レイヤーとして残したい部分を青マスクで選択します。作業は右側の大きな「保存 / Saveされる最終画像」上で行います。青い範囲は保存画像には焼き込まれず、前面レイヤーとしてだけ反映されます。</p>
-        <div class="mini-actions">
-          <button id="cutAssistedBtn" type="button">補助ブラシ / Assisted</button>
-          <button id="cutFreehandBtn" type="button" class="secondary">手動 / Freehand</button>
-          <button id="cutPanBtn" type="button" class="secondary">移動 / Pan</button>
+        <a class="guide-link" href="front-layer-guide.html" target="_blank" rel="noopener">📖 前面レイヤー作成の使い方ガイドを開く</a>
+
+        <label>編集ツール / Tool</label>
+        <div class="tool-picker">
+          <button id="cutFreehandBtn" type="button" class="tool-btn"><span class="tool-emoji">✏️</span><span class="tool-name">手動<br>ブラシ</span><small>Freehand</small></button>
+          <button id="cutAssistedBtn" type="button" class="tool-btn"><span class="tool-emoji">🪄</span><span class="tool-name">補助<br>ブラシ</span><small>Assisted</small></button>
+          <button id="cutEdgeLassoBtn" type="button" class="tool-btn"><span class="tool-emoji">🎯</span><span class="tool-name">境界<br>投げ縄</span><small>Lasso</small></button>
         </div>
-        <div class="mini-actions">
-          <button id="cutAddBtn" type="button">追加 / Add</button>
-          <button id="cutRemoveBtn" type="button" class="secondary">削除 / Remove</button>
+
+        <label>編集モード / Mode</label>
+        <div class="mode-picker">
+          <button id="cutAddBtn" type="button" class="mode-btn mode-add">＋ 追加 / Add</button>
+          <button id="cutRemoveBtn" type="button" class="mode-btn mode-remove">− 削除 / Remove</button>
         </div>
-        <label>ブラシサイズ / Brush Size <span id="cutBrushVal" class="value">28</span></label>
-        <input id="cutBrushSize" type="range" min="2" max="180" value="28" />
+        <div id="cutModeBanner" class="mode-banner mode-banner-add">いまは「追加」モード：なぞった所が前面レイヤーになります</div>
+
+        <div id="cutBrushPanel">
+          <label>ブラシサイズ / Brush Size <span id="cutBrushVal" class="value">28</span></label>
+          <input id="cutBrushSize" type="range" min="2" max="180" value="28" />
+        </div>
         <div id="cutTolerancePanel">
           <label>色許容差 / Color Tolerance <span id="cutToleranceVal" class="value">34</span></label>
           <input id="cutTolerance" type="range" min="1" max="100" value="34" />
-          <label>中心サンプル範囲 / Center Sample <span id="cutSampleVal" class="value">9</span></label>
-          <input id="cutSampleSize" type="range" min="3" max="31" step="2" value="9" />
+          <div id="cutSamplePanel">
+            <label>中心サンプル範囲 / Center Sample <span id="cutSampleVal" class="value">9</span></label>
+            <input id="cutSampleSize" type="range" min="3" max="31" step="2" value="9" />
+          </div>
+        </div>
+        <div id="cutEdgePanel" style="display:none;">
+          <label>境界幅 / Edge Width <span id="cutEdgeWidthVal" class="value">28</span></label>
+          <input id="cutEdgeWidth" type="range" min="4" max="96" value="28" />
+          <label>境界感度 / Edge Contrast <span id="cutEdgeContrastVal" class="value">50</span></label>
+          <input id="cutEdgeContrast" type="range" min="1" max="100" value="50" />
+        </div>
+        <div id="cutLassoActions" class="mini-actions" style="display:none;">
+          <button id="cutLassoCloseBtn" type="button">投げ縄を閉じる / Close</button>
+          <button id="cutLassoBackBtn" type="button" class="secondary">1点戻す</button>
+          <button id="cutLassoCancelBtn" type="button" class="secondary">取消</button>
+        </div>
+        <div class="mini-actions zoom-row">
+          <button id="cutZoomOutBtn" type="button" class="secondary">− 縮小</button>
+          <button id="cutZoomFitBtn" type="button" class="secondary">全体表示 / Fit</button>
+          <button id="cutZoomInBtn" type="button" class="secondary">＋ 拡大</button>
         </div>
         <div class="mini-actions">
           <button id="cutUndoBtn" type="button" class="secondary">Undo</button>
@@ -134,12 +186,11 @@
           <button id="cutCleanupBtn" type="button" class="secondary">小領域除去・穴埋め / Clean</button>
           <button id="cutClearBtn" type="button" class="secondary">マスク全消去 / Clear</button>
         </div>
-        <div class="cutout-editor-shell hidden"><canvas id="frontCutCanvas"></canvas></div>
         <div class="mini-actions">
           <button id="cutConfirmBtn" type="button">前面レイヤー確定 / Confirm</button>
           <button id="cutReeditBtn" type="button" class="secondary">再編集 / Re-edit</button>
         </div>
-        <p class="small">編集中は右側キャンバスでマスク編集します。ホイール / ピンチで拡大縮小できます。確定するとスタンプ位置調整に戻ります。</p>
+        <p class="small">表示の移動はマウスホイール（横方向はShift＋ホイール）、スマホは2本指スワイプ。拡大縮小はCtrl＋ホイール／ピンチ／上の＋−ボタンです。</p>
         <div class="meter-mini">
           <div>選択範囲 / Mask</div><div id="cutMaskInfo">-</div>
           <div>状態 / Status</div><div id="cutStatus">本体画像を読み込んでください</div>
@@ -244,11 +295,11 @@
       <h3>保存 / Save</h3>
       <p class="note">投稿用PNGは、255色・GIMP相当のPNG-8 indexedとして保存 / Saveします。通常PNG保存 / Save Normal PNG / Saveは比較・確認用です。</p>
       <div class="actions">
-        <button id="clearBtn" class="danger">すべてクリア / Clear All</button>
+        <button id="clearBtn" type="button" class="danger">すべてクリア / Clear All</button>
       </div>
       <div class="actions">
-        <button id="savePng8Btn">投稿用PNG保存 / Save Post PNG / Save</button>
-        <button id="saveNormalBtn" class="secondary">通常PNG保存 / Save Normal PNG / Save</button>
+        <button id="savePng8Btn" type="button">投稿用PNG保存 / Save Post PNG / Save</button>
+        <button id="saveNormalBtn" type="button" class="secondary">通常PNG保存 / Save Normal PNG / Save</button>
       </div>
 
       <h3>診断 / Diagnostics</h3>
@@ -266,7 +317,7 @@
       <h2>保存 / Saveされる最終画像</h2>
       <div id="finalCanvasWrap" class="canvas-wrap">
         <div id="finalCanvasStack" class="canvas-stack">
-          <canvas id="finalCanvas"></canvas>
+          <canvas id="finalCanvas" aria-label="保存される最終画像のプレビュー"></canvas>
           <canvas id="frontCutWorkCanvas" aria-label="前面レイヤーマスク編集用キャンバス"></canvas>
         </div>
       </div>
@@ -297,9 +348,10 @@
         <ol>
           <li><strong>本体画像</strong>を読み込みます。</li>
           <li><strong>前面レイヤー</strong>を「アップロード」または「この場で作成」から選びます。</li>
-          <li>「この場で作成」を使う場合は、<strong>補助ブラシ / 手動 / Pan</strong> を切り替えながら、右側プレビュー上で残したい部分を青マスクで指定します。</li>
-          <li>補助ブラシは、ブラシ中心付近の色に近い部分だけを追加・削除できます。境界の細かい修正は手動ブラシが向いています。</li>
-          <li>表示を動かしたい時は、<strong>マウスホイール中央ボタンのドラッグ</strong>、または <strong>Pan</strong>、<strong>Space + ドラッグ</strong> を使います。ホイール回転で拡大縮小できます。</li>
+          <li>「この場で作成」を使う場合は、<strong>手動ブラシ / 補助ブラシ / 境界投げ縄</strong> の3つを切り替えながら、右側プレビュー上で残したい部分を青マスクで指定します。詳しい手順は <a href="front-layer-guide.html">前面レイヤー作成の使い方ガイド</a> にまとめています。</li>
+          <li>手動ブラシはブラシ範囲をそのまま塗ります。補助ブラシはブラシ中心付近の色に近い部分だけを塗るので、はみ出しにくくなります。境界投げ縄は点を置くたびに輪郭へ吸い付き、囲んだ内側をまとめて選択します。</li>
+          <li><strong>追加 / 削除</strong> はいま塗る方向を決めるモードで、緑＝追加・赤＝削除として常に画面に表示されます。</li>
+          <li>表示を動かす時は、<strong>マウスホイール</strong>（横方向は Shift＋ホイール）、スマホは <strong>2本指スワイプ</strong>。<strong>Space＋ドラッグ</strong>やマウス中ボタン・右ボタンのドラッグでも動かせます。拡大縮小は <strong>Ctrl＋ホイール</strong>、<strong>ピンチ</strong>、パネルの <strong>＋ / − / 全体表示</strong> ボタンです。</li>
           <li>前面レイヤーの編集が終わったら <strong>前面レイヤー確定 / Confirm</strong> を押します。あとから直したい場合は <strong>再編集 / Re-edit</strong> で戻れます。</li>
           <li><strong>Tapスタンプ</strong>を追加し、文字内容・色・縁取り・位置・サイズ・回転を調整します。必要ならコピーして量産できます。</li>
           <li>右側の「保存 / Saveされる最終画像」で仕上がりを確認し、最後に <strong>保存 / Save</strong> で出力します。</li>
@@ -329,21 +381,36 @@ const state={
   pendingDiagDelay:450,
   frontMode:'upload',
   frontCutMask:null,
+  frontCutMaskCount:0,
+  frontCutMaskWidth:0,
   frontCutSourceCanvas:null,
   frontCutSourceData:null,
   frontCutoutCanvas:null,
   frontCutOverlayCanvas:null,
   frontCutDirty:true,
   frontCutOverlayDirty:true,
+  frontCutOverlayFull:true,
+  frontCutOverlayRect:null,
+  frontCutOverlayRequestId:null,
   frontCutRevision:0,
   frontCutTool:'assisted',
   frontCutAction:'add',
   frontCutBrushSize:28,
   frontCutTolerance:34,
   frontCutSampleSize:9,
+  frontCutEdgeWidth:28,
+  frontCutEdgeContrast:50,
+  frontCutAnalysis:null,
+  frontCutAnalysisKey:'',
   frontCutPointerDown:false,
   frontCutLastPoint:null,
   frontCutCursor:null,
+  frontCutLassoAnchors:[],
+  frontCutLassoSegments:[],
+  frontCutLassoPreviewPath:null,
+  frontCutLassoPreviewPoint:null,
+  frontCutLassoPreviewTime:0,
+  frontCutStrokeActive:false,
   frontCutUndoStack:[],
   frontCutRedoStack:[],
   frontCutMaxHistory:30,
@@ -358,14 +425,16 @@ const state={
   frontSpaceDown:false,
   frontTouchPointers:{},
   frontPinching:false,
-  frontLastPinchDistance:0
+  frontLastPinchDistance:0,
+  frontLastPinchCenter:null,
+  frontCutFitRequestId:null
 };
 const WHITE_THRESHOLD=255;
 const MAX_OPAQUE_COLORS=255;
 const STAMP_FONT_STACK="'Segoe Print','Bradley Hand','Comic Sans MS','Hiragino Maru Gothic ProN','Yu Gothic',cursive";
 
 function setCanvasSize(canvas,w,h){canvas.width=Math.max(1,Math.round(w));canvas.height=Math.max(1,Math.round(h));}
-function readImage(file){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=reject;img.src=url})}
+function readImage(file){return new Promise((resolve,reject)=>{const url=URL.createObjectURL(file);const img=new Image();img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};img.onerror=error=>{URL.revokeObjectURL(url);reject(error)};img.src=url})}
 function getSourceWidth(src){return src ? (src.naturalWidth || src.width || 1) : 1}
 function getSourceHeight(src){return src ? (src.naturalHeight || src.height || 1) : 1}
 function getActiveFrontSource(){return state.frontMode==='create' ? getFrontCutoutCanvas() : state.frontImg}
@@ -560,17 +629,25 @@ function updateFrontModeUI(){
   renderFrontCutoutEditor();
 }
 function resetFrontCutoutState(){
+  if(state.frontCutOverlayRequestId){cancelAnimationFrame(state.frontCutOverlayRequestId);state.frontCutOverlayRequestId=null;}
+  if(state.frontCutFitRequestId){cancelAnimationFrame(state.frontCutFitRequestId);state.frontCutFitRequestId=null;}
   state.frontCutMask=null;
+  state.frontCutMaskCount=0;
+  state.frontCutMaskWidth=0;
   state.frontCutSourceCanvas=null;
   state.frontCutSourceData=null;
   state.frontCutoutCanvas=null;
   state.frontCutOverlayCanvas=null;
+  state.frontCutAnalysis=null;
+  state.frontCutAnalysisKey='';
+  resetFrontCutLasso();
   state.frontCutDirty=true;
-  state.frontCutOverlayDirty=true;
+  markFrontCutOverlayFullDirty();
   state.frontCutRevision++;
   state.frontCutUndoStack=[];
   state.frontCutRedoStack=[];
   state.frontCutEditing=false;
+  state.frontCutStrokeActive=false;
   clearFrontTouchState();
   state.frontWorkspaceZoom=1;
   state.frontWorkspacePanX=0;
@@ -588,24 +665,84 @@ function initFrontCutoutFromBase(force=false){
   ctx.drawImage(state.baseImg,0,0,w,h);
   state.frontCutSourceData=ctx.getImageData(0,0,w,h);
   state.frontCutMask=new Uint8Array(w*h);
+  state.frontCutMaskCount=0;
+  state.frontCutMaskWidth=w;
   state.frontCutoutCanvas=null;
   state.frontCutOverlayCanvas=null;
+  state.frontCutAnalysis=null;
+  state.frontCutAnalysisKey='';
+  resetFrontCutLasso();
   state.frontCutDirty=true;
-  state.frontCutOverlayDirty=true;
+  markFrontCutOverlayFullDirty();
   state.frontCutRevision++;
   state.frontCutUndoStack=[];
   state.frontCutRedoStack=[];
-  state.frontCutEditing=state.frontMode==='create';
+  // モード判定はセレクトの値を正とする（state.frontMode の更新順に依存しないため）
+  state.frontCutEditing=$('frontMode').value==='create';
+  state.frontCutStrokeActive=false;
   clearFrontTouchState();
   state.frontWorkspaceZoom=1;
+  state.frontWorkspacePanX=0;
+  state.frontWorkspacePanY=0;
+  state.frontCutPanning=false;
+  state.frontCutLastScreenPoint=null;
+  // 読み込み直後は必ず全体が見える状態から始める（拡大率・位置の取り残しを防ぐ）
+  scheduleFrontCutFit();
+}
+// 表示領域の実サイズが確定してからフィットさせる。連続呼び出しは1回にまとめる。
+function scheduleFrontCutFit(){
+  if(state.frontCutFitRequestId)return;
+  state.frontCutFitRequestId=requestAnimationFrame(()=>{
+    state.frontCutFitRequestId=null;
+    if(!isFrontCutEditActive())return;
+    fitFrontCutWorkspaceToView();
+    renderFrontCutWorkspaceOverlay();
+    updateFrontCutoutUI();
+  });
 }
 function selectedMaskRatio(mask){
   if(!mask||!mask.length)return 0;
+  if(mask===state.frontCutMask)return state.frontCutMaskCount/mask.length*100;
   let n=0;
   for(let i=0;i<mask.length;i++)if(mask[i])n++;
   return n/mask.length*100;
 }
-function hasFrontCutoutPixels(){return state.frontCutMask && selectedMaskRatio(state.frontCutMask)>0;}
+function recountFrontCutMask(){
+  let count=0;
+  if(state.frontCutMask)for(let i=0;i<state.frontCutMask.length;i++)if(state.frontCutMask[i])count++;
+  state.frontCutMaskCount=count;
+  return count;
+}
+// マスク変更のあった範囲だけを覚えておき、青オーバーレイの再構築を部分更新に抑える。
+// 全画素の再構築を毎フレーム行うと大きい画像で描画が固まるため。
+function markFrontCutOverlayFullDirty(){
+  state.frontCutOverlayFull=true;
+  state.frontCutOverlayRect=null;
+  state.frontCutOverlayDirty=true;
+}
+function markFrontCutOverlayPixel(x,y){
+  const r=state.frontCutOverlayRect;
+  if(!r){state.frontCutOverlayRect={x0:x,y0:y,x1:x,y1:y};}
+  else{
+    if(x<r.x0)r.x0=x;
+    if(x>r.x1)r.x1=x;
+    if(y<r.y0)r.y0=y;
+    if(y>r.y1)r.y1=y;
+  }
+  state.frontCutOverlayDirty=true;
+}
+function setFrontCutMaskValue(index,value){
+  const previous=state.frontCutMask[index];
+  if(previous===value)return false;
+  state.frontCutMask[index]=value;
+  state.frontCutMaskCount+=value?1:-1;
+  if(!state.frontCutOverlayFull){
+    const w=state.frontCutMaskWidth||1;
+    markFrontCutOverlayPixel(index%w,(index/w)|0);
+  }
+  return true;
+}
+function hasFrontCutoutPixels(){return !!state.frontCutMaskCount;}
 function isFrontCutEditActive(){return state.frontMode==='create' && state.frontCutEditing && !!state.baseImg && !!state.frontCutMask;}
 function frontClamp(v,min,max){return Math.max(min,Math.min(max,v));}
 function getFrontWorkspaceViewportSize(){
@@ -617,23 +754,15 @@ function getFrontWorkspaceViewportSize(){
   const h=rect&&rect.height?rect.height:(stack&&stack.clientHeight?stack.clientHeight:(wrap?wrap.clientHeight:0));
   return {w:Math.max(1,w||1),h:Math.max(1,h||1)};
 }
-function getFrontWorkspaceFitScale(){return 1;}
+// 編集中の作業領域はCSS側で固定高さにする。以前は画像のアスペクト比を
+// .canvas-stack に流し込んでいたが、縦長画像で領域がはみ出して切れる原因だった。
 function applyFrontWorkspaceZoom(){
   const stack=$('finalCanvasStack');
   if(!stack)return;
-  if(isFrontCutEditActive() && state.frontCutSourceCanvas){
-    const w=state.frontCutSourceCanvas.width||1;
-    const h=state.frontCutSourceCanvas.height||1;
-    stack.style.width='100%';
-    stack.style.height='auto';
-    stack.style.setProperty('--front-edit-ratio', `${w} / ${h}`);
-    stack.style.aspectRatio=`${w} / ${h}`;
-  }else{
-    stack.style.width='100%';
-    stack.style.height='auto';
-    stack.style.removeProperty('--front-edit-ratio');
-    stack.style.removeProperty('aspect-ratio');
-  }
+  stack.style.width='100%';
+  stack.style.removeProperty('height');
+  stack.style.removeProperty('--front-edit-ratio');
+  stack.style.removeProperty('aspect-ratio');
 }
 function frontCutScreenPoint(evt){
   const rect=$('frontCutWorkCanvas').getBoundingClientRect();
@@ -662,6 +791,21 @@ function fitFrontCutWorkspaceToView(){
   state.frontWorkspacePanX=(view.w-srcW*state.frontWorkspaceZoom)/2;
   state.frontWorkspacePanY=(view.h-srcH*state.frontWorkspaceZoom)/2;
 }
+// 画像を画面外まで飛ばして見失う事故を防ぐ。最低でも一部が見えるところで止める。
+function clampFrontWorkspacePan(){
+  if(!state.frontCutSourceCanvas)return;
+  const view=getFrontWorkspaceViewportSize();
+  const w=state.frontCutSourceCanvas.width*state.frontWorkspaceZoom;
+  const h=state.frontCutSourceCanvas.height*state.frontWorkspaceZoom;
+  const keep=Math.min(60,w*.5,h*.5);
+  state.frontWorkspacePanX=frontClamp(state.frontWorkspacePanX,keep-w,view.w-keep);
+  state.frontWorkspacePanY=frontClamp(state.frontWorkspacePanY,keep-h,view.h-keep);
+}
+function panFrontWorkspaceBy(dx,dy){
+  state.frontWorkspacePanX+=dx;
+  state.frontWorkspacePanY+=dy;
+  clampFrontWorkspacePan();
+}
 function setFrontWorkspaceZoom(nextZoom,anchor=null){
   if(!state.frontCutSourceCanvas)return;
   const view=getFrontWorkspaceViewportSize();
@@ -673,8 +817,15 @@ function setFrontWorkspaceZoom(nextZoom,anchor=null){
   state.frontWorkspaceZoom=frontClamp(nextZoom,state.frontWorkspaceMinZoom,state.frontWorkspaceMaxZoom);
   state.frontWorkspacePanX=p.x-before.x*state.frontWorkspaceZoom;
   state.frontWorkspacePanY=p.y-before.y*state.frontWorkspaceZoom;
+  clampFrontWorkspacePan();
 }
 function zoomFrontWorkspaceBy(factor,anchor){setFrontWorkspaceZoom(state.frontWorkspaceZoom*factor,anchor);}
+function zoomFrontWorkspaceFromButton(factor){
+  if(!isFrontCutEditActive())return;
+  zoomFrontWorkspaceBy(factor,null);
+  renderFrontCutWorkspaceOverlay();
+  updateFrontCutoutUI();
+}
 function storeFrontTouchPointer(evt){
   if(evt.pointerType!=='touch')return;
   state.frontTouchPointers[evt.pointerId]={x:evt.clientX,y:evt.clientY};
@@ -692,52 +843,84 @@ function clearFrontTouchState(){
   state.frontTouchPointers={};
   state.frontPinching=false;
   state.frontLastPinchDistance=0;
+  state.frontLastPinchCenter=null;
 }
 function confirmFrontCutout(){
   if(state.frontMode!=='create'||!state.frontCutMask)return;
+  const empty=!hasFrontCutoutPixels();
   state.frontCutEditing=false;
   state.frontCutCursor=null;
+  state.frontCutStrokeActive=false;
+  resetFrontCutLasso();
   clearFrontTouchState();
   updateFrontCutoutUI();
   updateFrontCutWorkspaceMode();
   renderFrontCutWorkspaceOverlay();
+  if(empty)$('cutStatus').textContent='選択範囲が空のまま確定しました。前面レイヤーは重なりません。再編集から選び直せます';
   requestRender({diagnostics:true,diagDelay:450});
 }
 function reeditFrontCutout(){
   if(state.frontMode!=='create')return;
   if(!state.frontCutMask && state.baseImg) initFrontCutoutFromBase(false);
   state.frontCutEditing=!!state.baseImg && !!state.frontCutMask;
+  resetFrontCutLasso();
+  markFrontCutOverlayFullDirty();
   updateFrontCutoutUI();
   updateFrontCutWorkspaceMode();
-  fitFrontCutWorkspaceToView();
+  scheduleFrontCutFit();
   renderFrontCutWorkspaceOverlay();
+}
+// 描画中に何度も呼ぶのはこの軽い版だけにする（DOM書き換えを最小限に）
+function updateFrontCutMaskInfo(){
+  const el=$('cutMaskInfo');
+  if(!el)return;
+  el.textContent=state.frontCutMask?selectedMaskRatio(state.frontCutMask).toFixed(2)+'%':'-';
 }
 function updateFrontCutoutUI(){
   if(!$('frontCreatePanel'))return;
   const create=state.frontMode==='create';
   const hasBase=!!state.baseImg;
-  const hasMask=!!state.frontCutMask;
   const editing=isFrontCutEditActive();
+  const lasso=state.frontCutTool==='edgeLasso';
   $('cutBrushVal').textContent=state.frontCutBrushSize;
   $('cutToleranceVal').textContent=state.frontCutTolerance;
   $('cutSampleVal').textContent=state.frontCutSampleSize;
+  $('cutEdgeWidthVal').textContent=state.frontCutEdgeWidth;
+  $('cutEdgeContrastVal').textContent=state.frontCutEdgeContrast;
+  $('cutBrushPanel').style.display=(state.frontCutTool==='assisted'||state.frontCutTool==='freehand')?'block':'none';
   $('cutTolerancePanel').style.display=state.frontCutTool==='assisted'?'block':'none';
-  $('cutAssistedBtn').classList.toggle('secondary',state.frontCutTool!=='assisted');
-  $('cutFreehandBtn').classList.toggle('secondary',state.frontCutTool!=='freehand');
-  $('cutPanBtn').classList.toggle('secondary',state.frontCutTool!=='pan');
-  $('cutAddBtn').classList.toggle('secondary',state.frontCutAction!=='add');
-  $('cutRemoveBtn').classList.toggle('secondary',state.frontCutAction!=='remove');
+  $('cutSamplePanel').style.display=state.frontCutTool==='assisted'?'block':'none';
+  $('cutEdgePanel').style.display=lasso?'block':'none';
+  $('cutLassoActions').style.display=lasso?'flex':'none';
+  $('cutAssistedBtn').classList.toggle('is-on',state.frontCutTool==='assisted');
+  $('cutEdgeLassoBtn').classList.toggle('is-on',lasso);
+  $('cutFreehandBtn').classList.toggle('is-on',state.frontCutTool==='freehand');
+  const adding=state.frontCutAction==='add';
+  $('cutAddBtn').classList.toggle('is-on',adding);
+  $('cutRemoveBtn').classList.toggle('is-on',!adding);
+  const banner=$('cutModeBanner');
+  banner.classList.toggle('mode-banner-add',adding);
+  banner.classList.toggle('mode-banner-remove',!adding);
+  banner.textContent=adding
+    ?'いまは「追加」モード：なぞった所が前面レイヤーになります'
+    :'いまは「削除」モード：なぞった所を選択から外します';
   $('cutUndoBtn').disabled=!editing || state.frontCutUndoStack.length===0;
   $('cutRedoBtn').disabled=!editing || state.frontCutRedoStack.length===0;
   $('cutCleanupBtn').disabled=!editing;
   $('cutClearBtn').disabled=!editing;
   $('cutConfirmBtn').disabled=!editing;
   $('cutReeditBtn').disabled=!create || !hasBase;
-  ['cutAssistedBtn','cutFreehandBtn','cutPanBtn','cutAddBtn','cutRemoveBtn','cutBrushSize','cutTolerance','cutSampleSize'].forEach(id=>{$(id).disabled=!editing;});
-  $('cutMaskInfo').textContent=hasMask?selectedMaskRatio(state.frontCutMask).toFixed(2)+'%':'-';
+  $('cutLassoCloseBtn').disabled=!editing || !lasso || state.frontCutLassoAnchors.length<3;
+  $('cutLassoBackBtn').disabled=!editing || !lasso || state.frontCutLassoAnchors.length===0;
+  $('cutLassoCancelBtn').disabled=!editing || !lasso || state.frontCutLassoAnchors.length===0;
+  ['cutAssistedBtn','cutEdgeLassoBtn','cutFreehandBtn','cutAddBtn','cutRemoveBtn','cutBrushSize','cutTolerance','cutSampleSize','cutEdgeWidth','cutEdgeContrast','cutZoomInBtn','cutZoomOutBtn','cutZoomFitBtn'].forEach(id=>{$(id).disabled=!editing;});
+  updateFrontCutMaskInfo();
+  const mode=state.frontCutAction==='add'?'追加':'削除';
   if(!create)$('cutStatus').textContent='アップロードモード';
   else if(!hasBase)$('cutStatus').textContent='本体画像を読み込んでください';
-  else if(editing)$('cutStatus').textContent='右側キャンバスで編集中です（ホイールで拡大縮小、移動/PanまたはSpace+ドラッグで移動）';
+  else if(editing&&lasso)$('cutStatus').textContent=`境界投げ縄[${mode}]: 輪郭に沿って点を置き、最初の点をタップするか「投げ縄を閉じる」で確定。Backspaceで1点戻す、Escで取消`;
+  else if(editing&&state.frontCutTool==='assisted')$('cutStatus').textContent=`補助ブラシ[${mode}]: ブラシ内で中心色に近い部分だけを${mode}します`;
+  else if(editing&&state.frontCutTool==='freehand')$('cutStatus').textContent=`手動ブラシ[${mode}]: ブラシ範囲をそのまま${mode}します`;
   else $('cutStatus').textContent='前面レイヤー確定済みです。スタンプ調整可能。必要なら再編集してください';
 }
 function getFrontCutoutCanvas(){
@@ -763,17 +946,40 @@ function getFrontCutoutCanvas(){
 function buildFrontCutOverlay(){
   if(!state.frontCutMask || !state.frontCutSourceCanvas)return null;
   const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
-  if(!state.frontCutOverlayCanvas)state.frontCutOverlayCanvas=makeCanvas(w,h);
-  if(state.frontCutOverlayCanvas.width!==w||state.frontCutOverlayCanvas.height!==h)setCanvasSize(state.frontCutOverlayCanvas,w,h);
+  if(!state.frontCutOverlayCanvas){state.frontCutOverlayCanvas=makeCanvas(w,h);state.frontCutOverlayFull=true;}
+  if(state.frontCutOverlayCanvas.width!==w||state.frontCutOverlayCanvas.height!==h){setCanvasSize(state.frontCutOverlayCanvas,w,h);state.frontCutOverlayFull=true;}
   const ctx=state.frontCutOverlayCanvas.getContext('2d');
-  const img=ctx.createImageData(w,h);
-  const d=img.data;
-  for(let i=0;i<state.frontCutMask.length;i++){
-    if(!state.frontCutMask[i])continue;
-    const p=i*4;
-    d[p]=0;d[p+1]=120;d[p+2]=255;d[p+3]=118;
+  let x0=0,y0=0,x1=w-1,y1=h-1;
+  if(!state.frontCutOverlayFull && state.frontCutOverlayRect){
+    const r=state.frontCutOverlayRect;
+    x0=Math.max(0,r.x0);y0=Math.max(0,r.y0);
+    x1=Math.min(w-1,r.x1);y1=Math.min(h-1,r.y1);
+  }else if(!state.frontCutOverlayFull && !state.frontCutOverlayRect){
+    state.frontCutOverlayDirty=false;
+    return state.frontCutOverlayCanvas;
   }
-  ctx.putImageData(img,0,0);
+  const rw=x1-x0+1,rh=y1-y0+1;
+  if(rw<=0||rh<=0){
+    state.frontCutOverlayFull=false;
+    state.frontCutOverlayRect=null;
+    state.frontCutOverlayDirty=false;
+    return state.frontCutOverlayCanvas;
+  }
+  // putImageDataは合成ではなく置換なので、部分更新でも消し残りは出ない
+  const img=ctx.createImageData(rw,rh);
+  const d=img.data;
+  const mask=state.frontCutMask;
+  for(let yy=0;yy<rh;yy++){
+    let mi=(y0+yy)*w+x0;
+    let p=yy*rw*4;
+    for(let xx=0;xx<rw;xx++,mi++,p+=4){
+      if(!mask[mi])continue;
+      d[p]=0;d[p+1]=120;d[p+2]=255;d[p+3]=118;
+    }
+  }
+  ctx.putImageData(img,x0,y0);
+  state.frontCutOverlayFull=false;
+  state.frontCutOverlayRect=null;
   state.frontCutOverlayDirty=false;
   return state.frontCutOverlayCanvas;
 }
@@ -785,13 +991,14 @@ function updateFrontCutWorkspaceMode(){
   wrap.classList.toggle('cutout-work-active',active);
   overlay.style.display=active?'block':'none';
   overlay.style.pointerEvents=active?'auto':'none';
-  overlay.style.cursor=active?(state.frontCutTool==='pan'?'grab':'crosshair'):'default';
+  overlay.style.cursor=active?(state.frontCutPanning?'grabbing':(state.frontSpaceDown?'grab':'crosshair')):'default';
   applyFrontWorkspaceZoom();
 }
 function resizeFrontCutWorkspaceCanvas(){
   const overlay=$('frontCutWorkCanvas');
   if(!overlay)return null;
   const rect=overlay.getBoundingClientRect();
+  if(rect.width<1||rect.height<1)return null;
   const dpr=window.devicePixelRatio||1;
   const logicalW=Math.max(1,Math.round(rect.width));
   const logicalH=Math.max(1,Math.round(rect.height));
@@ -806,6 +1013,7 @@ function resizeFrontCutWorkspaceCanvas(){
   return {ctx,w:logicalW,h:logicalH};
 }
 function renderFrontCutWorkspaceOverlay(){
+  if(state.frontCutOverlayRequestId){cancelAnimationFrame(state.frontCutOverlayRequestId);state.frontCutOverlayRequestId=null;}
   const overlay=$('frontCutWorkCanvas');
   if(!overlay)return;
   updateFrontCutWorkspaceMode();
@@ -821,12 +1029,13 @@ function renderFrontCutWorkspaceOverlay(){
   ctx.scale(state.frontWorkspaceZoom,state.frontWorkspaceZoom);
   ctx.drawImage(state.frontCutSourceCanvas,0,0);
   if(state.frontCutOverlayCanvas)ctx.drawImage(state.frontCutOverlayCanvas,0,0);
-  if(state.frontCutCursor&&frontCutInImage(state.frontCutCursor)&&state.frontCutTool!=='pan'){
-    const r=Math.max(1,state.frontCutBrushSize/2);
+  drawFrontCutLasso(ctx);
+  if(state.frontCutCursor&&frontCutInImage(state.frontCutCursor)&&!state.frontCutPanning&&!state.frontSpaceDown){
+    const r=state.frontCutTool==='edgeLasso'?Math.max(4,Math.min(10,state.frontCutEdgeWidth/4)):Math.max(1,state.frontCutBrushSize/2);
     ctx.beginPath();
     ctx.arc(state.frontCutCursor.x,state.frontCutCursor.y,r,0,Math.PI*2);
     ctx.lineWidth=Math.max(1/state.frontWorkspaceZoom,1);
-    ctx.strokeStyle=state.frontCutAction==='add'?'#006fd6':'#dc3b3b';
+    ctx.strokeStyle=state.frontCutTool==='edgeLasso'?'#00a28a':(state.frontCutAction==='add'?'#006fd6':'#dc3b3b');
     ctx.stroke();
     if(state.frontCutTool==='assisted'){
       ctx.beginPath();
@@ -836,38 +1045,62 @@ function renderFrontCutWorkspaceOverlay(){
     }
   }
   ctx.restore();
-  ctx.fillStyle='rgba(255,255,255,.9)';
-  ctx.strokeStyle='rgba(24,32,37,.12)';
-  ctx.lineWidth=1;
-  const label=`前面レイヤー編集中 / ${Math.round(state.frontWorkspaceZoom*100)}%`;
-  ctx.font='14px Arial, sans-serif';
-  const tw=ctx.measureText(label).width+24;
-  ctx.fillRect(14,14,tw,34);
-  ctx.strokeRect(14,14,tw,34);
-  ctx.fillStyle='#182025';
+  // 画面上でも「いま追加か削除か」が常に分かるようにバッジを出す
+  const adding=state.frontCutAction==='add';
+  const toolLabel=state.frontCutTool==='freehand'?'手動ブラシ':state.frontCutTool==='assisted'?'補助ブラシ':'境界投げ縄';
+  const label=`${toolLabel} / ${adding?'追加':'削除'} / ${Math.round(state.frontWorkspaceZoom*100)}%`;
+  ctx.font='bold 14px Arial, sans-serif';
   ctx.textBaseline='middle';
-  ctx.fillText(label,26,31);
+  const tw=ctx.measureText(label).width+40;
+  ctx.fillStyle=adding?'rgba(15,157,88,.94)':'rgba(224,49,49,.94)';
+  ctx.strokeStyle='rgba(255,255,255,.85)';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.roundRect?ctx.roundRect(14,14,tw,34,10):ctx.rect(14,14,tw,34);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.arc(30,31,6,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle=adding?'#0f9d58':'#e03131';
+  ctx.font='bold 13px Arial, sans-serif';
+  ctx.textAlign='center';
+  ctx.fillText(adding?'＋':'−',30,31);
+  ctx.textAlign='left';
+  ctx.fillStyle='#fff';
+  ctx.font='bold 14px Arial, sans-serif';
+  ctx.fillText(label,44,31);
 }
-function frontCutPointFromWorkspaceEvent(evt){
-  return frontCutImagePointFromScreen(frontCutScreenPoint(evt));
-}
-function frontCutPointFromEvent(evt){
-  if(evt.currentTarget&&evt.currentTarget.id==='frontCutWorkCanvas')return frontCutPointFromWorkspaceEvent(evt);
-  const canvas=$('frontCutCanvas');
-  const rect=canvas.getBoundingClientRect();
-  if(!state.frontCutSourceCanvas)return{x:0,y:0};
-  const x=Math.floor((evt.clientX-rect.left)*state.frontCutSourceCanvas.width/rect.width);
-  const y=Math.floor((evt.clientY-rect.top)*state.frontCutSourceCanvas.height/rect.height);
-  return{x,y};
+function requestFrontCutOverlayRender(){
+  if(state.frontCutOverlayRequestId)return;
+  state.frontCutOverlayRequestId=requestAnimationFrame(()=>{
+    state.frontCutOverlayRequestId=null;
+    renderFrontCutWorkspaceOverlay();
+  });
 }
 function frontCutInImage(p){return state.frontCutSourceCanvas && p.x>=0&&p.y>=0&&p.x<state.frontCutSourceCanvas.width&&p.y<state.frontCutSourceCanvas.height;}
+// ホイールは「表示の移動」。拡大縮小はCtrl(⌘)＋ホイール、またはトラックパッドのピンチ。
+// deltaMode(行/ページ単位)を画素数へ揃えてから使う。
+function normalizeWheelDelta(value,mode,pageSize){
+  if(mode===1)return value*16;
+  if(mode===2)return value*pageSize;
+  return value;
+}
 function handleFrontCutWheel(evt){
   if(!isFrontCutEditActive())return;
   evt.preventDefault();
   const p=frontCutScreenPoint(evt);
-  const factor=evt.deltaY<0?1.12:.89;
-  zoomFrontWorkspaceBy(factor,p);
-  updateFrontCutoutUI();
+  const view=getFrontWorkspaceViewportSize();
+  if(evt.ctrlKey||evt.metaKey){
+    const dy=normalizeWheelDelta(evt.deltaY,evt.deltaMode,view.h);
+    zoomFrontWorkspaceBy(Math.pow(0.9985,dy),p);
+  }else{
+    let dx=normalizeWheelDelta(evt.deltaX,evt.deltaMode,view.w);
+    let dy=normalizeWheelDelta(evt.deltaY,evt.deltaMode,view.h);
+    if(evt.shiftKey&&dx===0){dx=dy;dy=0;}
+    panFrontWorkspaceBy(-dx,-dy);
+  }
   renderFrontCutWorkspaceOverlay();
 }
 function renderFrontCutoutEditor(){
@@ -877,20 +1110,61 @@ function renderFrontCutoutEditor(){
   renderFrontCutWorkspaceOverlay();
   updateFrontCutoutUI();
 }
+function setFrontCutTool(tool){
+  if(state.frontCutTool!==tool){
+    resetFrontCutLasso();
+    abortFrontCutStroke();
+  }
+  state.frontCutTool=tool;
+  updateFrontCutoutUI();
+  renderFrontCutoutEditor();
+}
+function setFrontCutAction(action){
+  if(state.frontCutAction===action)return;
+  resetFrontCutLasso();
+  abortFrontCutStroke();
+  state.frontCutAction=action;
+  updateFrontCutoutUI();
+  renderFrontCutWorkspaceOverlay();
+}
 function pushFrontCutHistory(){
   if(!state.frontCutMask)return;
   state.frontCutUndoStack.push(state.frontCutMask.slice());
-  if(state.frontCutUndoStack.length>state.frontCutMaxHistory)state.frontCutUndoStack.shift();
+  const memoryBound=Math.max(3,Math.floor((64*1024*1024)/Math.max(1,state.frontCutMask.length)));
+  const historyLimit=Math.min(state.frontCutMaxHistory,memoryBound);
+  while(state.frontCutUndoStack.length>historyLimit)state.frontCutUndoStack.shift();
   state.frontCutRedoStack=[];
 }
-function markFrontCutoutDirty({renderFinalToo=false}={}){
+// 描き終わり（renderFinalToo=true）でだけ重い処理を回す。
+// ドラッグ中は軽い部分描画と数値更新だけに留める。
+function markFrontCutoutDirty({renderFinalToo=false,fullUI=false}={}){
   state.frontCutDirty=true;
   state.frontCutOverlayDirty=true;
   state.frontCutRevision++;
   invalidateLayerCache();
-  renderFrontCutWorkspaceOverlay();
-  updateFrontCutoutUI();
+  requestFrontCutOverlayRender();
+  if(fullUI||renderFinalToo)updateFrontCutoutUI();
+  else updateFrontCutMaskInfo();
   if(renderFinalToo)requestRender({diagnostics:true,diagDelay:700});
+}
+// 2本指操作へ移行した時など、始めてしまった一筆をなかったことにする
+function abortFrontCutStroke(){
+  if(!state.frontCutStrokeActive)return;
+  state.frontCutStrokeActive=false;
+  state.frontCutPointerDown=false;
+  state.frontCutLastPoint=null;
+  const previous=state.frontCutUndoStack.pop();
+  if(previous){
+    state.frontCutMask=previous;
+    state.frontCutMaskWidth=state.frontCutSourceCanvas?state.frontCutSourceCanvas.width:state.frontCutMaskWidth;
+    recountFrontCutMask();
+    markFrontCutOverlayFullDirty();
+    state.frontCutDirty=true;
+    state.frontCutRevision++;
+    invalidateLayerCache();
+    requestFrontCutOverlayRender();
+  }
+  updateFrontCutoutUI();
 }
 function frontCutAverageColor(cx,cy,size){
   const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
@@ -912,6 +1186,298 @@ function rgbToYcc(r,g,b){return{y:.299*r+.587*g+.114*b,cb:128-.168736*r-.331264*
 function perceptualDistanceYcc(a,b){const dy=a.y-b.y,dcb=a.cb-b.cb,dcr=a.cr-b.cr;return Math.sqrt(dy*dy*.38+dcb*dcb*1.35+dcr*dcr*1.35);}
 function colorDistance(r,g,b,s){return perceptualDistanceYcc(rgbToYcc(r,g,b),rgbToYcc(s.r,s.g,s.b));}
 function frontCutToleranceDistance(){return 10+state.frontCutTolerance*1.45;}
+function resetFrontCutLasso(){
+  state.frontCutLassoAnchors=[];
+  state.frontCutLassoSegments=[];
+  state.frontCutLassoPreviewPath=null;
+  state.frontCutLassoPreviewPoint=null;
+  state.frontCutLassoPreviewTime=0;
+}
+function frontCutAnalysisCacheKey(){
+  return state.frontCutSourceCanvas?`${state.frontCutSourceCanvas.width}x${state.frontCutSourceCanvas.height}`:'';
+}
+function getFrontCutAnalysis(){
+  if(!state.frontCutSourceCanvas||!state.frontCutSourceData)return null;
+  const key=frontCutAnalysisCacheKey();
+  if(state.frontCutAnalysis&&state.frontCutAnalysisKey===key)return state.frontCutAnalysis;
+  const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
+  const total=w*h;
+  const src=state.frontCutSourceData.data;
+  const y=new Uint8Array(total);
+  const cb=new Uint8Array(total);
+  const cr=new Uint8Array(total);
+  const edge=new Uint8Array(total);
+  for(let p=0,i=0;p<total;p++,i+=4){
+    const r=src[i],g=src[i+1],b=src[i+2];
+    y[p]=Math.max(0,Math.min(255,Math.round(.299*r+.587*g+.114*b)));
+    cb[p]=Math.max(0,Math.min(255,Math.round(128-.168736*r-.331264*g+.5*b)));
+    cr[p]=Math.max(0,Math.min(255,Math.round(128+.5*r-.418688*g-.081312*b)));
+  }
+  for(let py=1;py<h-1;py++){
+    const row=py*w;
+    for(let px=1;px<w-1;px++){
+      const p=row+px;
+      const gx=-y[p-w-1]-2*y[p-1]-y[p+w-1]+y[p-w+1]+2*y[p+1]+y[p+w+1];
+      const gy=-y[p-w-1]-2*y[p-w]-y[p-w+1]+y[p+w-1]+2*y[p+w]+y[p+w+1];
+      edge[p]=Math.max(0,Math.min(255,Math.round(Math.hypot(gx,gy)/4)));
+    }
+  }
+  state.frontCutAnalysis={w,h,y,cb,cr,edge};
+  state.frontCutAnalysisKey=key;
+  return state.frontCutAnalysis;
+}
+function frontCutYccDistanceBetweenInfo(info,a,b){
+  const dy=info.y[a]-info.y[b],dcb=info.cb[a]-info.cb[b],dcr=info.cr[a]-info.cr[b];
+  return Math.sqrt(dy*dy*.38+dcb*dcb*1.35+dcr*dcr*1.35);
+}
+class FrontCutMinHeap{
+  constructor(){this.items=[];}
+  get length(){return this.items.length;}
+  push(idx,priority){
+    const item={idx,priority};
+    const a=this.items;
+    a.push(item);
+    let i=a.length-1;
+    while(i>0){
+      const p=(i-1)>>1;
+      if(a[p].priority<=priority)break;
+      a[i]=a[p];i=p;
+    }
+    a[i]=item;
+  }
+  pop(){
+    const a=this.items;
+    if(a.length===0)return null;
+    const top=a[0];
+    const last=a.pop();
+    if(a.length&&last){
+      let i=0;
+      while(true){
+        let l=i*2+1,r=l+1;
+        if(l>=a.length)break;
+        let c=(r<a.length&&a[r].priority<a[l].priority)?r:l;
+        if(a[c].priority>=last.priority)break;
+        a[i]=a[c];i=c;
+      }
+      a[i]=last;
+    }
+    return top;
+  }
+}
+function frontCutPointDistance(a,b){return Math.hypot(a.x-b.x,a.y-b.y);}
+function frontCutStraightPath(a,b){
+  const dist=Math.max(1,Math.ceil(frontCutPointDistance(a,b)));
+  const path=[];
+  for(let i=0;i<=dist;i++){
+    const t=i/dist;
+    path.push({x:Math.round(a.x+(b.x-a.x)*t),y:Math.round(a.y+(b.y-a.y)*t)});
+  }
+  return path;
+}
+function frontCutLineDistance(px,py,a,b){
+  const vx=b.x-a.x,vy=b.y-a.y;
+  const len2=vx*vx+vy*vy;
+  if(len2===0)return Math.hypot(px-a.x,py-a.y);
+  const t=Math.max(0,Math.min(1,((px-a.x)*vx+(py-a.y)*vy)/len2));
+  return Math.hypot(px-(a.x+vx*t),py-(a.y+vy*t));
+}
+function findFrontCutEdgePath(a,b){
+  const analysis=getFrontCutAnalysis();
+  if(!analysis)return frontCutStraightPath(a,b);
+  const w=analysis.w,h=analysis.h;
+  const direct=frontCutPointDistance(a,b);
+  if(direct<2)return [a,b];
+  let pad=Math.max(24,state.frontCutEdgeWidth*3,direct*.15);
+  let minX=Math.max(0,Math.floor(Math.min(a.x,b.x)-pad));
+  let maxX=Math.min(w-1,Math.ceil(Math.max(a.x,b.x)+pad));
+  let minY=Math.max(0,Math.floor(Math.min(a.y,b.y)-pad));
+  let maxY=Math.min(h-1,Math.ceil(Math.max(a.y,b.y)+pad));
+  let bw=maxX-minX+1,bh=maxY-minY+1;
+  if(bw*bh>420000){
+    pad=Math.max(12,state.frontCutEdgeWidth*1.5);
+    minX=Math.max(0,Math.floor(Math.min(a.x,b.x)-pad));
+    maxX=Math.min(w-1,Math.ceil(Math.max(a.x,b.x)+pad));
+    minY=Math.max(0,Math.floor(Math.min(a.y,b.y)-pad));
+    maxY=Math.min(h-1,Math.ceil(Math.max(a.y,b.y)+pad));
+    bw=maxX-minX+1;bh=maxY-minY+1;
+    if(bw*bh>420000)return frontCutStraightPath(a,b);
+  }
+  const start=(a.y-minY)*bw+(a.x-minX);
+  const end=(b.y-minY)*bw+(b.x-minX);
+  const size=bw*bh;
+  const dist=new Float32Array(size);
+  const prev=new Int32Array(size);
+  const seen=new Uint8Array(size);
+  dist.fill(Infinity);
+  prev.fill(-1);
+  const heap=new FrontCutMinHeap();
+  dist[start]=0;
+  heap.push(start,0);
+  const offsets=[[-1,-1,1.414], [0,-1,1], [1,-1,1.414], [-1,0,1], [1,0,1], [-1,1,1.414], [0,1,1], [1,1,1.414]];
+  const alpha=state.frontCutSourceData.data;
+  const contrast=state.frontCutEdgeContrast/100;
+  while(heap.length){
+    const item=heap.pop();
+    if(!item)break;
+    const idx=item.idx;
+    if(seen[idx])continue;
+    seen[idx]=1;
+    if(idx===end)break;
+    const lx=idx%bw,ly=(idx/bw)|0;
+    const gx=minX+lx,gy=minY+ly;
+    const gp=gy*w+gx;
+    for(const [dx,dy,step] of offsets){
+      const nlx=lx+dx,nly=ly+dy;
+      if(nlx<0||nly<0||nlx>=bw||nly>=bh)continue;
+      const nidx=nly*bw+nlx;
+      if(seen[nidx])continue;
+      const ngx=minX+nlx,ngy=minY+nly;
+      const ngp=ngy*w+ngx;
+      if(alpha[ngp*4+3]===0)continue;
+      const edgeReward=analysis.edge[ngp]/255;
+      const diffReward=Math.min(1,frontCutYccDistanceBetweenInfo(analysis,gp,ngp)/85);
+      const linePenalty=Math.max(0,frontCutLineDistance(ngx,ngy,a,b)-state.frontCutEdgeWidth)*.035;
+      const cost=step*(1+(1-edgeReward)*(1.7+contrast*2.2)+(1-diffReward)*.5+linePenalty);
+      const next=dist[idx]+cost;
+      if(next<dist[nidx]){
+        dist[nidx]=next;
+        prev[nidx]=idx;
+        heap.push(nidx,next+Math.hypot(b.x-ngx,b.y-ngy)*.035);
+      }
+    }
+  }
+  if(prev[end]===-1)return frontCutStraightPath(a,b);
+  const path=[];
+  let cur=end,guard=0;
+  while(cur!==-1&&guard++<size){
+    const lx=cur%bw,ly=(cur/bw)|0;
+    path.push({x:minX+lx,y:minY+ly});
+    if(cur===start)break;
+    cur=prev[cur];
+  }
+  path.reverse();
+  return path.length?path:frontCutStraightPath(a,b);
+}
+function buildFrontCutCommittedLassoPath(includePreview=false){
+  if(state.frontCutLassoAnchors.length===0)return [];
+  const path=[state.frontCutLassoAnchors[0]];
+  state.frontCutLassoSegments.forEach(seg=>{for(let i=1;i<seg.length;i++)path.push(seg[i]);});
+  if(includePreview&&state.frontCutLassoPreviewPath){
+    const seg=state.frontCutLassoPreviewPath;
+    for(let i=1;i<seg.length;i++)path.push(seg[i]);
+  }
+  return path;
+}
+function drawFrontCutLasso(ctx){
+  if(state.frontCutTool!=='edgeLasso')return;
+  const lineWidth=Math.max(1/state.frontWorkspaceZoom,1);
+  const committed=buildFrontCutCommittedLassoPath(false);
+  if(committed.length>1){
+    ctx.beginPath();
+    ctx.moveTo(committed[0].x,committed[0].y);
+    for(let i=1;i<committed.length;i++)ctx.lineTo(committed[i].x,committed[i].y);
+    ctx.lineWidth=lineWidth*2;
+    ctx.strokeStyle=state.frontCutAction==='add'?'#006fd6':'#dc3b3b';
+    ctx.stroke();
+  }
+  if(state.frontCutLassoPreviewPath&&state.frontCutLassoPreviewPath.length>1){
+    ctx.save();
+    ctx.setLineDash([6/state.frontWorkspaceZoom,4/state.frontWorkspaceZoom]);
+    ctx.beginPath();
+    ctx.moveTo(state.frontCutLassoPreviewPath[0].x,state.frontCutLassoPreviewPath[0].y);
+    for(let i=1;i<state.frontCutLassoPreviewPath.length;i++)ctx.lineTo(state.frontCutLassoPreviewPath[i].x,state.frontCutLassoPreviewPath[i].y);
+    ctx.lineWidth=lineWidth*2;
+    ctx.strokeStyle='#00a28a';
+    ctx.stroke();
+    ctx.restore();
+  }
+  state.frontCutLassoAnchors.forEach((p,i)=>{
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,Math.max(3/state.frontWorkspaceZoom,3),0,Math.PI*2);
+    ctx.fillStyle=i===0?'#fff':'#182025';
+    ctx.strokeStyle=i===0?'#00a28a':'#fff';
+    ctx.lineWidth=lineWidth;
+    ctx.fill();
+    ctx.stroke();
+  });
+}
+function updateFrontCutLassoPreview(p,{force=false}={}){
+  if(state.frontCutTool!=='edgeLasso'||state.frontCutLassoAnchors.length===0){state.frontCutLassoPreviewPath=null;return;}
+  const last=state.frontCutLassoAnchors[state.frontCutLassoAnchors.length-1];
+  const now=performance.now();
+  const prev=state.frontCutLassoPreviewPoint;
+  if(!force&&prev&&frontCutPointDistance(prev,p)<2&&now-state.frontCutLassoPreviewTime<40)return;
+  state.frontCutLassoPreviewPoint={x:p.x,y:p.y};
+  state.frontCutLassoPreviewTime=now;
+  state.frontCutLassoPreviewPath=findFrontCutEdgePath(last,{x:p.x,y:p.y});
+}
+function addFrontCutLassoAnchor(p,evt){
+  const point={x:p.x,y:p.y};
+  const anchors=state.frontCutLassoAnchors;
+  if(anchors.length>=3){
+    // 画面上での距離で判定する（拡大率によって閉じにくくなるのを防ぐ）
+    const closeDist=Math.max(state.frontCutEdgeWidth*.45,24/Math.max(.01,state.frontWorkspaceZoom));
+    if((evt&&evt.detail>=2)||frontCutPointDistance(point,anchors[0])<=closeDist){
+      finishFrontCutLasso();
+      return;
+    }
+  }
+  if(anchors.length>0){
+    const last=anchors[anchors.length-1];
+    state.frontCutLassoSegments.push(findFrontCutEdgePath(last,point));
+  }
+  anchors.push(point);
+  state.frontCutLassoPreviewPath=null;
+  state.frontCutLassoPreviewPoint=null;
+  renderFrontCutWorkspaceOverlay();
+  updateFrontCutoutUI();
+}
+function undoFrontCutLassoAnchor(){
+  if(state.frontCutTool!=='edgeLasso'||state.frontCutLassoAnchors.length===0)return;
+  state.frontCutLassoAnchors.pop();
+  if(state.frontCutLassoSegments.length)state.frontCutLassoSegments.pop();
+  state.frontCutLassoPreviewPath=null;
+  state.frontCutLassoPreviewPoint=null;
+  renderFrontCutWorkspaceOverlay();
+  updateFrontCutoutUI();
+}
+function finishFrontCutLasso(){
+  const anchors=state.frontCutLassoAnchors;
+  if(state.frontCutTool!=='edgeLasso'||anchors.length<3)return;
+  const last=anchors[anchors.length-1];
+  const closing=findFrontCutEdgePath(last,anchors[0]);
+  const path=buildFrontCutCommittedLassoPath(false);
+  for(let i=1;i<closing.length;i++)path.push(closing[i]);
+  if(path.length<3)return;
+  const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
+  const c=makeCanvas(w,h);
+  const ctx=c.getContext('2d',{willReadFrequently:true});
+  ctx.beginPath();
+  ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++)ctx.lineTo(path[i].x,path[i].y);
+  ctx.closePath();
+  ctx.fillStyle='#fff';
+  ctx.fill();
+  const im=ctx.getImageData(0,0,w,h).data;
+  const src=state.frontCutSourceData.data;
+  const value=state.frontCutAction==='add'?255:0;
+  let changed=0;
+  pushFrontCutHistory();
+  for(let p=0;p<state.frontCutMask.length;p++){
+    if(im[p*4+3]===0||src[p*4+3]===0)continue;
+    if(setFrontCutMaskValue(p,value))changed++;
+  }
+  if(changed===0)state.frontCutUndoStack.pop();
+  resetFrontCutLasso();
+  if(changed>0)markFrontCutoutDirty({renderFinalToo:true});
+  else{renderFrontCutWorkspaceOverlay();updateFrontCutoutUI();}
+}
+function cancelFrontCutLasso(){
+  if(state.frontCutLassoAnchors.length===0)return;
+  resetFrontCutLasso();
+  renderFrontCutWorkspaceOverlay();
+  updateFrontCutoutUI();
+}
 function applyFrontCutFreehandAt(x,y){
   const w=state.frontCutSourceCanvas.width,h=state.frontCutSourceCanvas.height;
   const r=Math.max(1,Math.floor(state.frontCutBrushSize/2));
@@ -922,7 +1488,7 @@ function applyFrontCutFreehandAt(x,y){
     for(let dx=-r;dx<=r;dx++){
       if(dx*dx+dy*dy>r2)continue;
       const px=x+dx;if(px<0||px>=w)continue;
-      state.frontCutMask[py*w+px]=value;
+      setFrontCutMaskValue(py*w+px,value);
     }
   }
 }
@@ -942,7 +1508,7 @@ function applyFrontCutAssistedAt(x,y){
       const p=py*w+px;
       const i=p*4;
       if(data[i+3]===0)continue;
-      if(colorDistance(data[i],data[i+1],data[i+2],sample)<=limit)state.frontCutMask[p]=value;
+      if(colorDistance(data[i],data[i+1],data[i+2],sample)<=limit)setFrontCutMaskValue(p,value);
     }
   }
 }
@@ -951,7 +1517,7 @@ function drawFrontCutStroke(from,to){
   const dist=Math.max(1,Math.hypot(dx,dy));
   const step=Math.max(1,state.frontCutBrushSize*.22);
   const count=Math.ceil(dist/step);
-  if(state.frontCutTool==='pan')return;
+  if(state.frontCutTool!=='assisted'&&state.frontCutTool!=='freehand')return;
   const fn=state.frontCutTool==='assisted'?applyFrontCutAssistedAt:applyFrontCutFreehandAt;
   for(let i=0;i<=count;i++){
     const t=i/count;
@@ -960,20 +1526,29 @@ function drawFrontCutStroke(from,to){
 }
 function undoFrontCutout(){
   if(!state.frontCutMask||state.frontCutUndoStack.length===0)return;
+  // 描きかけがある場合は、まずその一筆を取り消す
+  if(state.frontCutStrokeActive){abortFrontCutStroke();return;}
   state.frontCutRedoStack.push(state.frontCutMask.slice());
   state.frontCutMask=state.frontCutUndoStack.pop();
+  recountFrontCutMask();
+  markFrontCutOverlayFullDirty();
   markFrontCutoutDirty({renderFinalToo:true});
 }
 function redoFrontCutout(){
   if(!state.frontCutMask||state.frontCutRedoStack.length===0)return;
   state.frontCutUndoStack.push(state.frontCutMask.slice());
   state.frontCutMask=state.frontCutRedoStack.pop();
+  recountFrontCutMask();
+  markFrontCutOverlayFullDirty();
   markFrontCutoutDirty({renderFinalToo:true});
 }
 function clearFrontCutout(){
   if(!state.frontCutMask)return;
+  if(state.frontCutMaskCount===0)return;
   pushFrontCutHistory();
   state.frontCutMask.fill(0);
+  state.frontCutMaskCount=0;
+  markFrontCutOverlayFullDirty();
   markFrontCutoutDirty({renderFinalToo:true});
 }
 function processFrontCutComponents(targetValue,fillValue,limit,protectEdges){
@@ -981,6 +1556,7 @@ function processFrontCutComponents(targetValue,fillValue,limit,protectEdges){
   const visited=new Uint8Array(w*h);
   const queue=new Int32Array(w*h);
   const pixels=new Int32Array(w*h);
+  let changed=0;
   for(let start=0;start<state.frontCutMask.length;start++){
     if(visited[start]||state.frontCutMask[start]!==targetValue)continue;
     let head=0,tail=0,count=0,touchesEdge=false;
@@ -993,43 +1569,60 @@ function processFrontCutComponents(targetValue,fillValue,limit,protectEdges){
       if(x===0)nbs[0]=-1;if(x===w-1)nbs[1]=-1;if(y===0)nbs[2]=-1;if(y===h-1)nbs[3]=-1;
       for(let i=0;i<4;i++){const np=nbs[i];if(np<0||visited[np]||state.frontCutMask[np]!==targetValue)continue;visited[np]=1;queue[tail++]=np;}
     }
-    if(count<=limit&&!(protectEdges&&touchesEdge)){for(let i=0;i<count;i++)state.frontCutMask[pixels[i]]=fillValue;}
+    if(count<=limit&&!(protectEdges&&touchesEdge)){for(let i=0;i<count;i++)if(setFrontCutMaskValue(pixels[i],fillValue))changed++;}
   }
+  return changed;
 }
 function cleanupFrontCutout(){
   if(!state.frontCutMask)return;
   pushFrontCutHistory();
-  processFrontCutComponents(255,0,100,false);
-  processFrontCutComponents(0,255,160,true);
+  const total=state.frontCutMask.length||1;
+  const speckLimit=Math.max(100,Math.min(1200,Math.round(total*.00018)));
+  const holeLimit=Math.max(160,Math.min(1600,Math.round(total*.00026)));
+  const changed=processFrontCutComponents(255,0,speckLimit,false)+processFrontCutComponents(0,255,holeLimit,true);
+  if(changed===0){state.frontCutUndoStack.pop();updateFrontCutoutUI();return;}
   markFrontCutoutDirty({renderFinalToo:true});
+}
+function beginFrontPinch(){
+  const info=getFrontPinchInfo();
+  const rect=$('frontCutWorkCanvas').getBoundingClientRect();
+  state.frontPinching=true;
+  state.frontLastPinchDistance=info?info.distance:0;
+  state.frontLastPinchCenter=info?{x:info.centerX-rect.left,y:info.centerY-rect.top}:null;
 }
 function handleFrontCutPointerDown(evt){
   if(state.frontMode!=='create' || !state.frontCutMask || !isFrontCutEditActive()) return;
   storeFrontTouchPointer(evt);
   if(evt.pointerType==='touch' && countFrontTouchPointers()>=2){
-    state.frontCutPointerDown=false;
-    state.frontCutLastPoint=null;
+    // 2本目の指が付いた時点で、1本目が描き始めた点は取り消す
+    abortFrontCutStroke();
     state.frontCutPanning=false;
-    state.frontPinching=true;
-    const info=getFrontPinchInfo();
-    state.frontLastPinchDistance=info?info.distance:0;
+    state.frontCutLastScreenPoint=null;
+    beginFrontPinch();
     evt.preventDefault();
     return;
   }
   evt.preventDefault();
   const screen = frontCutScreenPoint(evt);
   state.frontCutCursor = frontCutImagePointFromScreen(screen);
-  const wantsPan = state.frontCutTool==='pan' || state.frontSpaceDown || evt.button===1 || evt.button===2;
+  const wantsPan = state.frontSpaceDown || evt.button===1 || evt.button===2;
   if(wantsPan){
     state.frontCutPanning = true;
     state.frontCutLastScreenPoint = screen;
     try{ evt.currentTarget.setPointerCapture(evt.pointerId); }catch(e){}
+    updateFrontCutWorkspaceMode();
     renderFrontCutWorkspaceOverlay();
     return;
   }
   const p = state.frontCutCursor;
   if(!frontCutInImage(p)) return;
+  if(state.frontCutTool==='edgeLasso'){
+    addFrontCutLassoAnchor(p,evt);
+    try{ evt.currentTarget.setPointerCapture(evt.pointerId); }catch(e){}
+    return;
+  }
   pushFrontCutHistory();
+  state.frontCutStrokeActive = true;
   state.frontCutPointerDown = true;
   state.frontCutLastPoint = p;
   drawFrontCutStroke(p,p);
@@ -1037,19 +1630,28 @@ function handleFrontCutPointerDown(evt){
   try{ evt.currentTarget.setPointerCapture(evt.pointerId); }catch(e){}
 }
 function handleFrontCutPointerMove(evt){
-  if(state.frontMode!=='create' || !state.frontCutMask) return;
+  if(!isFrontCutEditActive()) return;
+  const wasTracked=evt.pointerType!=='touch'||Object.prototype.hasOwnProperty.call(state.frontTouchPointers,evt.pointerId);
   storeFrontTouchPointer(evt);
-  if(state.frontPinching || (evt.pointerType==='touch' && countFrontTouchPointers()>=2)){
+  if(state.frontPinching || (evt.pointerType==='touch' && wasTracked && countFrontTouchPointers()>=2)){
     const info=getFrontPinchInfo();
     if(info){
+      const rect=$('frontCutWorkCanvas').getBoundingClientRect();
+      const center={x:info.centerX-rect.left,y:info.centerY-rect.top};
       if(!state.frontPinching){
-        state.frontPinching=true;
+        abortFrontCutStroke();
+        beginFrontPinch();
+      }else{
+        // 2本指: 指の間隔で拡大縮小、中心の移動で表示位置を動かす
+        if(state.frontLastPinchDistance>0){
+          const factor=info.distance/state.frontLastPinchDistance;
+          if(Math.abs(factor-1)>0.002)zoomFrontWorkspaceBy(factor,center);
+        }
+        if(state.frontLastPinchCenter){
+          panFrontWorkspaceBy(center.x-state.frontLastPinchCenter.x,center.y-state.frontLastPinchCenter.y);
+        }
         state.frontLastPinchDistance=info.distance;
-      }else if(state.frontLastPinchDistance>0){
-        const rect=$('frontCutWorkCanvas').getBoundingClientRect();
-        const factor=info.distance/state.frontLastPinchDistance;
-        zoomFrontWorkspaceBy(factor,{x:info.centerX-rect.left,y:info.centerY-rect.top});
-        state.frontLastPinchDistance=info.distance;
+        state.frontLastPinchCenter=center;
       }
       evt.preventDefault();
       renderFrontCutWorkspaceOverlay();
@@ -1058,18 +1660,21 @@ function handleFrontCutPointerMove(evt){
     state.frontCutLastPoint=null;
     return;
   }
-  if(!isFrontCutEditActive()) return;
   const screen = frontCutScreenPoint(evt);
   if(state.frontCutPanning && state.frontCutLastScreenPoint){
     evt.preventDefault();
-    state.frontWorkspacePanX += screen.x - state.frontCutLastScreenPoint.x;
-    state.frontWorkspacePanY += screen.y - state.frontCutLastScreenPoint.y;
+    panFrontWorkspaceBy(screen.x - state.frontCutLastScreenPoint.x, screen.y - state.frontCutLastScreenPoint.y);
     state.frontCutLastScreenPoint = screen;
     renderFrontCutWorkspaceOverlay();
     return;
   }
   const p = frontCutImagePointFromScreen(screen);
   state.frontCutCursor = p;
+  if(state.frontCutTool==='edgeLasso'){
+    if(frontCutInImage(p))updateFrontCutLassoPreview({x:p.x,y:p.y});
+    renderFrontCutWorkspaceOverlay();
+    return;
+  }
   if(state.frontCutPointerDown && state.frontCutLastPoint){
     evt.preventDefault();
     if(!frontCutInImage(p)){ renderFrontCutWorkspaceOverlay(); return; }
@@ -1085,15 +1690,22 @@ function handleFrontCutPointerEnd(evt){
   if(state.frontPinching && countFrontTouchPointers()<2){
     state.frontPinching=false;
     state.frontLastPinchDistance=0;
+    state.frontLastPinchCenter=null;
+    // 指が1本残っていても、そのまま描き始めない（意図しない線を防ぐ）
+    state.frontCutPointerDown=false;
+    state.frontCutLastPoint=null;
   }
   const wasDrawing = state.frontCutPointerDown;
   state.frontCutPointerDown = false;
+  state.frontCutStrokeActive = false;
   state.frontCutPanning = false;
   state.frontCutLastPoint = null;
   state.frontCutLastScreenPoint = null;
+  if(evt.pointerType==='touch')state.frontCutCursor=null;
   try{ evt.currentTarget.releasePointerCapture(evt.pointerId); }catch(e){}
+  updateFrontCutWorkspaceMode();
   if(wasDrawing) markFrontCutoutDirty({renderFinalToo:true});
-  else renderFrontCutWorkspaceOverlay();
+  else{renderFrontCutWorkspaceOverlay();updateFrontCutoutUI();}
 }
 function handleFrontCutPointerLeave(){
   if(state.frontCutPointerDown || state.frontCutPanning || state.frontPinching) return;
@@ -1226,13 +1838,14 @@ function concatArrays(arrays){let len=0;arrays.forEach(a=>len+=a.length);const o
 function chunk(type,data){const t=ascii(type);const body=concatArrays([t,data]);return concatArrays([u32be(data.length),t,data,u32be(crc32(body))])}
 function adler32(data){let a=1,b=0;for(let i=0;i<data.length;i++){a=(a+data[i])%65521;b=(b+a)%65521}return((b<<16)|a)>>>0}
 async function zlibDeflate(data){if('CompressionStream' in window){try{const cs=new CompressionStream('deflate');const writer=cs.writable.getWriter();writer.write(data);writer.close();const resp=new Response(cs.readable);return new Uint8Array(await resp.arrayBuffer())}catch(e){}}const blocks=[];blocks.push(new Uint8Array([0x78,0x01]));let pos=0;while(pos<data.length){const len=Math.min(65535,data.length-pos);const final=(pos+len)>=data.length?1:0;const block=new Uint8Array(5+len);block[0]=final;block[1]=len&255;block[2]=(len>>>8)&255;const nlen=(~len)&0xffff;block[3]=nlen&255;block[4]=(nlen>>>8)&255;block.set(data.subarray(pos,pos+len),5);blocks.push(block);pos+=len}blocks.push(u32be(adler32(data)));return concatArrays(blocks)}
-function buildColorHistogram(data){const map=new Map();for(let i=0;i<data.length;i+=4){if(data[i+3]===0)continue;const key=(data[i]<<16)|(data[i+1]<<8)|data[i+2];const item=map.get(key);if(item)item.count++;else map.set(key,{r:data[i],g:data[i+1],b:data[i+2],count:1})}return Array.from(map.values())}
+function colorBinKey(r,g,b){return((r>>3)<<10)|((g>>3)<<5)|(b>>3)}
+function buildColorHistogram(data){const map=new Map();for(let i=0;i<data.length;i+=4){if(data[i+3]===0)continue;const r=data[i],g=data[i+1],b=data[i+2],key=colorBinKey(r,g,b);const item=map.get(key);if(item){item.r+=r;item.g+=g;item.b+=b;item.count++;}else map.set(key,{r,g,b,count:1})}return Array.from(map.values(),item=>({r:Math.round(item.r/item.count),g:Math.round(item.g/item.count),b:Math.round(item.b/item.count),count:item.count}))}
 function makeBox(colors){let rMin=255,rMax=0,gMin=255,gMax=0,bMin=255,bMax=0,count=0;for(const c of colors){if(c.r<rMin)rMin=c.r;if(c.r>rMax)rMax=c.r;if(c.g<gMin)gMin=c.g;if(c.g>gMax)gMax=c.g;if(c.b<bMin)bMin=c.b;if(c.b>bMax)bMax=c.b;count+=c.count}return{colors,rMin,rMax,gMin,gMax,bMin,bMax,count}}
 function splitBox(box){const rRange=box.rMax-box.rMin,gRange=box.gMax-box.gMin,bRange=box.bMax-box.bMin;const channel=(rRange>=gRange&&rRange>=bRange)?'r':(gRange>=bRange?'g':'b');const colors=box.colors.slice().sort((a,b)=>a[channel]-b[channel]);const half=box.count/2;let acc=0,split=1;for(let i=0;i<colors.length;i++){acc+=colors[i].count;if(acc>=half){split=Math.max(1,Math.min(colors.length-1,i+1));break}}return[makeBox(colors.slice(0,split)),makeBox(colors.slice(split))]}
 function boxAverage(box){let r=0,g=0,b=0,total=0;for(const c of box.colors){r+=c.r*c.count;g+=c.g*c.count;b+=c.b*c.count;total+=c.count}if(total===0)return[0,0,0,255];return[Math.round(r/total),Math.round(g/total),Math.round(b/total),255]}
 function medianCutPalette(colors,maxColors){if(colors.length===0)return[];let boxes=[makeBox(colors)];while(boxes.length<maxColors){boxes.sort((a,b)=>{const ar=Math.max(a.rMax-a.rMin,a.gMax-a.gMin,a.bMax-a.bMin)*a.count;const br=Math.max(b.rMax-b.rMin,b.gMax-b.gMin,b.bMax-b.bMin)*b.count;return br-ar});const box=boxes.shift();if(!box||box.colors.length<=1){if(box)boxes.push(box);break}const [a,b]=splitBox(box);boxes.push(a,b)}return boxes.map(boxAverage)}
 function nearestPaletteIndex(r,g,b,palette){let best=1,bestD=Infinity;for(let i=1;i<palette.length;i++){const p=palette[i];const d=(r-p[0])*(r-p[0])+(g-p[1])*(g-p[1])+(b-p[2])*(b-p[2]);if(d<bestD){bestD=d;best=i}}return best}
-function buildIndexedImage(canvas){const ctx=canvas.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,canvas.width,canvas.height);const d=im.data;const hist=buildColorHistogram(d);const opaquePalette=medianCutPalette(hist,MAX_OPAQUE_COLORS);const palette=[[0,0,0,0],...opaquePalette];const indices=new Uint8Array(canvas.width*canvas.height);const cache=new Map();for(let p=0,i=0;i<d.length;i+=4,p++){if(d[i+3]===0){indices[p]=0;continue}const key=(d[i]<<16)|(d[i+1]<<8)|d[i+2];let idx=cache.get(key);if(idx===undefined){idx=nearestPaletteIndex(d[i],d[i+1],d[i+2],palette);cache.set(key,idx)}indices[p]=idx}return{width:canvas.width,height:canvas.height,palette,indices}}
+function buildIndexedImage(canvas){const ctx=canvas.getContext('2d',{willReadFrequently:true});const im=ctx.getImageData(0,0,canvas.width,canvas.height);const d=im.data;const hist=buildColorHistogram(d);const opaquePalette=medianCutPalette(hist,MAX_OPAQUE_COLORS);const palette=[[0,0,0,0],...opaquePalette];const indices=new Uint8Array(canvas.width*canvas.height);const cache=new Int16Array(32768);cache.fill(-1);for(let p=0,i=0;i<d.length;i+=4,p++){if(d[i+3]===0){indices[p]=0;continue}const key=colorBinKey(d[i],d[i+1],d[i+2]);let idx=cache[key];if(idx<0){idx=nearestPaletteIndex(d[i],d[i+1],d[i+2],palette);cache[key]=idx}indices[p]=idx}return{width:canvas.width,height:canvas.height,palette,indices}}
 async function encodePNG8(canvas){const info=buildIndexedImage(canvas);state.lastPaletteCount=info.palette.length;const scan=new Uint8Array((info.width+1)*info.height);let sp=0,ip=0;for(let y=0;y<info.height;y++){scan[sp++]=0;scan.set(info.indices.subarray(ip,ip+info.width),sp);sp+=info.width;ip+=info.width}const compressed=await zlibDeflate(scan);const ihdr=new Uint8Array(13);ihdr.set(u32be(info.width),0);ihdr.set(u32be(info.height),4);ihdr[8]=8;ihdr[9]=3;ihdr[10]=0;ihdr[11]=0;ihdr[12]=0;const plte=new Uint8Array(info.palette.length*3);const trns=new Uint8Array(info.palette.length);for(let i=0;i<info.palette.length;i++){plte[i*3]=info.palette[i][0];plte[i*3+1]=info.palette[i][1];plte[i*3+2]=info.palette[i][2];trns[i]=info.palette[i][3]}const sig=new Uint8Array([137,80,78,71,13,10,26,10]);const png=concatArrays([sig,chunk('IHDR',ihdr),chunk('PLTE',plte),chunk('tRNS',trns),chunk('IDAT',compressed),chunk('IEND',new Uint8Array(0))]);return new Blob([png],{type:'image/png'})}
 async function updateDiagnostics(){
   const token=++state.diagnosticsToken;
@@ -1263,7 +1876,7 @@ async function renderAll(){
   await updateDiagnostics();
 }
 async function savePNG8(){
-  await renderAll();
+  if(!state.lastPng8Blob||state.renderRequestId)await renderAll();
   const blob=state.lastPng8Blob||await encodePNG8($('finalCanvas'));
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -1272,7 +1885,7 @@ async function savePNG8(){
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function saveNormalPNG(){
   clearTimeout(state.diagnosticsTimer);
@@ -1288,13 +1901,15 @@ function saveNormalPNG(){
     document.body.appendChild(a);
     a.click();
     a.remove();
-    URL.revokeObjectURL(url);
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
   },'image/png');
 }
 function resetAll(){
   state.baseImg=null;
   state.frontImg=null;
   state.frontMode='upload';
+  state.frontCutTool='assisted';
+  state.frontCutAction='add';
   resetFrontCutoutState();
   state.stamps=[];
   state.selectedStampId=null;
@@ -1308,11 +1923,7 @@ function resetAll(){
   $('canvasW').value='800';
   $('canvasH').value='800';
   $('outputSize').value='original';
-  window.addEventListener('resize',()=>{if(isFrontCutEditActive()){fitFrontCutWorkspaceToView();renderFrontCutWorkspaceOverlay();}});
-window.addEventListener('keydown',evt=>{if(evt.code==='Space'&&isFrontCutEditActive()){state.frontSpaceDown=true;evt.preventDefault();renderFrontCutWorkspaceOverlay();}});
-window.addEventListener('keyup',evt=>{if(evt.code==='Space'){state.frontSpaceDown=false;renderFrontCutWorkspaceOverlay();}});
-
-resetCustomSizeToBase();
+  resetCustomSizeToBase();
   updateCustomSizePanel();
   $('stampPreset').value='Tap me!';
   $('stampTextInput').value='Tap me!';
@@ -1320,6 +1931,67 @@ resetCustomSizeToBase();
   updateStampListUI();
   renderAll();
 }
+
+function isTypingTarget(el){
+  if(!el)return false;
+  const tag=(el.tagName||'').toLowerCase();
+  return tag==='input'||tag==='textarea'||tag==='select'||el.isContentEditable;
+}
+function handleFrontCutKeyDown(evt){
+  if(!isFrontCutEditActive()||isTypingTarget(evt.target))return;
+  if(evt.code==='Space'){
+    if(state.frontSpaceDown)return;
+    state.frontSpaceDown=true;
+    evt.preventDefault();
+    updateFrontCutWorkspaceMode();
+    renderFrontCutWorkspaceOverlay();
+    return;
+  }
+  if(evt.code==='KeyX'&&!evt.ctrlKey&&!evt.metaKey){
+    evt.preventDefault();
+    setFrontCutAction(state.frontCutAction==='add'?'remove':'add');
+    return;
+  }
+  if(evt.code==='BracketLeft'||evt.code==='BracketRight'){
+    if(state.frontCutTool!=='assisted'&&state.frontCutTool!=='freehand')return;
+    evt.preventDefault();
+    const delta=evt.code==='BracketRight'?4:-4;
+    const next=frontClamp(state.frontCutBrushSize+delta,2,180);
+    state.frontCutBrushSize=next;
+    $('cutBrushSize').value=next;
+    updateFrontCutoutUI();
+    renderFrontCutWorkspaceOverlay();
+    return;
+  }
+  if(state.frontCutTool!=='edgeLasso')return;
+  if(evt.code==='Backspace'){
+    evt.preventDefault();
+    undoFrontCutLassoAnchor();
+  }else if(evt.code==='Escape'){
+    evt.preventDefault();
+    cancelFrontCutLasso();
+  }else if(evt.code==='Enter'){
+    evt.preventDefault();
+    finishFrontCutLasso();
+  }
+}
+function handleFrontCutKeyUp(evt){
+  if(evt.code==='Space'){
+    state.frontSpaceDown=false;
+    updateFrontCutWorkspaceMode();
+    renderFrontCutWorkspaceOverlay();
+  }
+}
+
+// リサイズでは拡大率・表示位置を保持する。以前は毎回フィットに戻っていたため、
+// スマホのアドレスバー開閉だけで編集中の表示が飛んでいた。
+window.addEventListener('resize',()=>{
+  if(!isFrontCutEditActive())return;
+  clampFrontWorkspacePan();
+  renderFrontCutWorkspaceOverlay();
+});
+window.addEventListener('keydown',handleFrontCutKeyDown);
+window.addEventListener('keyup',handleFrontCutKeyUp);
 
 $('baseInput').addEventListener('change',async e=>{
   const file=e.target.files[0];
@@ -1332,7 +2004,8 @@ $('baseInput').addEventListener('change',async e=>{
   invalidateLayerCache();
   updateCustomSizePanel();
   renderFrontCutoutEditor();
-  renderAll();
+  await renderAll();
+  scheduleFrontCutFit();
 });
 $('frontInput').addEventListener('change',async e=>{
   const file=e.target.files[0];
@@ -1373,36 +2046,40 @@ $('frontMode').addEventListener('change',()=>{
   state.frontCutEditing=$('frontMode').value==='create';
   updateFrontModeUI();
   invalidateLayerCache();
-  renderAll().then(()=>{if(isFrontCutEditActive()){fitFrontCutWorkspaceToView();renderFrontCutWorkspaceOverlay();}});
+  renderAll().then(()=>{scheduleFrontCutFit();});
 });
-$('cutAssistedBtn').addEventListener('click',()=>{state.frontCutTool='assisted';updateFrontCutoutUI();renderFrontCutoutEditor();});
-$('cutFreehandBtn').addEventListener('click',()=>{state.frontCutTool='freehand';updateFrontCutoutUI();renderFrontCutoutEditor();});
-$('cutPanBtn').addEventListener('click',()=>{state.frontCutTool='pan';updateFrontCutoutUI();renderFrontCutoutEditor();});
-$('cutAddBtn').addEventListener('click',()=>{state.frontCutAction='add';updateFrontCutoutUI();});
-$('cutRemoveBtn').addEventListener('click',()=>{state.frontCutAction='remove';updateFrontCutoutUI();});
+$('cutAssistedBtn').addEventListener('click',()=>setFrontCutTool('assisted'));
+$('cutEdgeLassoBtn').addEventListener('click',()=>setFrontCutTool('edgeLasso'));
+$('cutFreehandBtn').addEventListener('click',()=>setFrontCutTool('freehand'));
+$('cutAddBtn').addEventListener('click',()=>setFrontCutAction('add'));
+$('cutRemoveBtn').addEventListener('click',()=>setFrontCutAction('remove'));
+$('cutLassoCloseBtn').addEventListener('click',finishFrontCutLasso);
+$('cutLassoBackBtn').addEventListener('click',undoFrontCutLassoAnchor);
+$('cutLassoCancelBtn').addEventListener('click',cancelFrontCutLasso);
+$('cutZoomInBtn').addEventListener('click',()=>zoomFrontWorkspaceFromButton(1.25));
+$('cutZoomOutBtn').addEventListener('click',()=>zoomFrontWorkspaceFromButton(0.8));
+$('cutZoomFitBtn').addEventListener('click',()=>{if(!isFrontCutEditActive())return;fitFrontCutWorkspaceToView();renderFrontCutWorkspaceOverlay();updateFrontCutoutUI();});
 $('cutBrushSize').addEventListener('input',()=>{state.frontCutBrushSize=Number($('cutBrushSize').value)||28;updateFrontCutoutUI();});
 $('cutTolerance').addEventListener('input',()=>{state.frontCutTolerance=Number($('cutTolerance').value)||34;updateFrontCutoutUI();});
 $('cutSampleSize').addEventListener('input',()=>{state.frontCutSampleSize=Number($('cutSampleSize').value)||9;updateFrontCutoutUI();});
+$('cutEdgeWidth').addEventListener('input',()=>{state.frontCutEdgeWidth=Number($('cutEdgeWidth').value)||28;state.frontCutLassoPreviewPath=null;updateFrontCutoutUI();renderFrontCutWorkspaceOverlay();});
+$('cutEdgeContrast').addEventListener('input',()=>{state.frontCutEdgeContrast=Number($('cutEdgeContrast').value)||50;state.frontCutLassoPreviewPath=null;updateFrontCutoutUI();renderFrontCutWorkspaceOverlay();});
 $('cutUndoBtn').addEventListener('click',undoFrontCutout);
 $('cutRedoBtn').addEventListener('click',redoFrontCutout);
 $('cutCleanupBtn').addEventListener('click',cleanupFrontCutout);
 $('cutClearBtn').addEventListener('click',clearFrontCutout);
 $('cutConfirmBtn').addEventListener('click',confirmFrontCutout);
 $('cutReeditBtn').addEventListener('click',reeditFrontCutout);
-$('frontCutCanvas').addEventListener('pointerdown',handleFrontCutPointerDown);
-$('frontCutCanvas').addEventListener('pointermove',handleFrontCutPointerMove);
-$('frontCutCanvas').addEventListener('pointerup',handleFrontCutPointerEnd);
-$('frontCutCanvas').addEventListener('pointercancel',handleFrontCutPointerEnd);
 $('frontCutWorkCanvas').addEventListener('pointerdown',handleFrontCutPointerDown);
 $('frontCutWorkCanvas').addEventListener('pointermove',handleFrontCutPointerMove);
 $('frontCutWorkCanvas').addEventListener('pointerup',handleFrontCutPointerEnd);
 $('frontCutWorkCanvas').addEventListener('pointercancel',handleFrontCutPointerEnd);
 $('frontCutWorkCanvas').addEventListener('pointerleave',handleFrontCutPointerLeave);
+$('frontCutWorkCanvas').addEventListener('lostpointercapture',handleFrontCutPointerEnd);
 $('frontCutWorkCanvas').addEventListener('wheel',handleFrontCutWheel,{passive:false});
 $('frontCutWorkCanvas').addEventListener('contextmenu',evt=>evt.preventDefault());
 $('frontCutWorkCanvas').addEventListener('auxclick',evt=>evt.preventDefault());
 $('frontCutWorkCanvas').addEventListener('mousedown',evt=>{if(evt.button===1||evt.button===2)evt.preventDefault();});
-$('frontCutWorkCanvas').addEventListener('contextmenu',evt=>evt.preventDefault());
 
 $('stampPreset').addEventListener('change',()=>{if($('stampPreset').value!=='__custom__')$('stampTextInput').value=$('stampPreset').value;});
 $('addStampBtn').addEventListener('click',()=>{openStampCreatePanel();});

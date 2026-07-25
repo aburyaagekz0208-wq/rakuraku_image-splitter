@@ -112,7 +112,7 @@ a {
 .site-cta,
 .btn,
 .btn-primary,
-button:not(.secondary):not(.sns-tab-btn):not(.tab-btn):not(.danger),
+button:not(.secondary):not(.sns-tab-btn):not(.tab-btn):not(.danger):not(.tool-btn):not(.mode-btn),
 .download-btn {
   min-height: 44px;
   border: 1px solid var(--nv-green) !important;
@@ -128,7 +128,7 @@ button:not(.secondary):not(.sns-tab-btn):not(.tab-btn):not(.danger),
 .site-cta:hover,
 .btn:hover,
 .btn-primary:hover,
-button:not(.secondary):not(.sns-tab-btn):not(.tab-btn):not(.danger):hover,
+button:not(.secondary):not(.sns-tab-btn):not(.tab-btn):not(.danger):not(.tool-btn):not(.mode-btn):hover,
 .download-btn:hover {
   background: var(--nv-green-dark) !important;
   border-color: var(--nv-green-dark) !important;
@@ -466,9 +466,14 @@ aside::before,
 }
 
 .tool-page .sub,
-.tool-page .lead,
-.tool-hero .sub {
+.tool-hero .sub,
+.tool-hero .lead {
   color: var(--on-dark-muted) !important;
+}
+
+/* 黒帯の外に置かれたリード文。白背景に白文字で消えてしまうのを防ぐ。 */
+.tool-page .lead {
+  color: var(--muted) !important;
 }
 
 .form-group,
@@ -851,3 +856,14 @@ footer.site-footer .section__inner {
     white-space: normal;
   }
 }
+
+/* 前面レイヤーガイドへの補助リンク（ツールカード内） */
+.tool-card .tool-sub-link {
+  display: inline-block;
+  margin-top: 10px;
+  color: var(--nv-green-dark) !important;
+  font-size: .85rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+.tool-card .tool-sub-link:hover { text-decoration: underline; }
