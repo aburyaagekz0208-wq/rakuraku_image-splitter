@@ -867,3 +867,16 @@ footer.site-footer .section__inner {
   text-decoration: none;
 }
 .tool-card .tool-sub-link:hover { text-decoration: underline; }
+
+/* タップチェンジは前面レイヤー編集の作業領域の広さが作業性に直結するため、
+   このページだけ他のツールページの横幅上限(1180px)を適用しない。 */
+.tap-change-page main {
+  width: min(1680px, calc(100% - 24px)) !important;
+  max-width: none !important;
+}
+
+@media (min-width: 1600px) {
+  .tap-change-page main {
+    width: min(1880px, calc(100% - 28px)) !important;
+  }
+}

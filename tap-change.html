@@ -31,7 +31,17 @@
     canvas{width:100%;height:auto;border-radius:12px;border:1px solid var(--line);display:block;background:#fff;touch-action:none;cursor:default}
     #frontCutWorkCanvas{position:absolute;inset:0;width:100%;height:100%;border:1px solid transparent;background:transparent;display:none;pointer-events:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
     .cutout-work-active{position:relative;overflow:hidden;max-height:none;padding:0;background-color:#fafafa;background-image:linear-gradient(45deg,#e8edf1 25%,transparent 25%),linear-gradient(-45deg,#e8edf1 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8edf1 75%),linear-gradient(-45deg,transparent 75%,#e8edf1 75%);background-size:24px 24px;background-position:0 0,0 12px,12px -12px,-12px 0}
-    .cutout-work-active .canvas-stack{position:relative;width:100%!important;height:clamp(360px,72vh,860px)!important;aspect-ratio:auto!important;margin:0;line-height:0}
+    .cutout-work-active .canvas-stack{position:relative;width:100%!important;height:clamp(420px,calc(100vh - 150px),1100px)!important;aspect-ratio:auto!important;margin:0;line-height:0}
+
+    /* 編集画面の最大化：ウィンドウいっぱいを作業領域にする */
+    body.front-edit-max{overflow:hidden}
+    .front-edit-max .controls{position:fixed;left:0;top:0;bottom:0;width:300px;height:100vh;max-height:100vh;margin:0;border-radius:0;overflow:auto;z-index:61}
+    .front-edit-max #finalCanvasWrap{position:fixed;left:300px;right:0;top:0;bottom:0;margin:0;padding:0;border-radius:0;max-height:none;z-index:60}
+    .front-edit-max .cutout-work-active .canvas-stack{height:100%!important}
+    @media(max-width:960px){
+      .front-edit-max .controls{left:0;right:0;top:auto;bottom:0;width:auto;height:42vh;max-height:42vh;border-radius:0}
+      .front-edit-max #finalCanvasWrap{left:0;right:0;top:0;bottom:42vh}
+    }
     .cutout-work-active #finalCanvas{position:absolute;inset:0;visibility:hidden;display:block;width:100%;height:100%;border:0}
     .cutout-work-active #frontCutWorkCanvas{display:block;pointer-events:auto;position:absolute;inset:0;width:100%;height:100%}
     .kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-size:.82rem;line-height:1.6}.kv div:nth-child(odd){color:#666}
@@ -179,6 +189,9 @@
           <button id="cutZoomInBtn" type="button" class="secondary">＋ 拡大</button>
         </div>
         <div class="mini-actions">
+          <button id="cutMaximizeBtn" type="button">⛶ 編集画面を最大化 / Expand</button>
+        </div>
+        <div class="mini-actions">
           <button id="cutUndoBtn" type="button" class="secondary">Undo</button>
           <button id="cutRedoBtn" type="button" class="secondary">Redo</button>
         </div>
@@ -190,7 +203,7 @@
           <button id="cutConfirmBtn" type="button">前面レイヤー確定 / Confirm</button>
           <button id="cutReeditBtn" type="button" class="secondary">再編集 / Re-edit</button>
         </div>
-        <p class="small">表示の移動はマウスホイール（横方向はShift＋ホイール）、スマホは2本指スワイプ。拡大縮小はCtrl＋ホイール／ピンチ／上の＋−ボタンです。</p>
+        <p class="small">細かい作業は「編集画面を最大化」で画面いっぱいに広げられます（Escで戻る）。表示の移動はマウスホイール（横方向はShift＋ホイール）、スマホは2本指スワイプ。拡大縮小はCtrl＋ホイール／ピンチ／上の＋−ボタンです。</p>
         <div class="meter-mini">
           <div>選択範囲 / Mask</div><div id="cutMaskInfo">-</div>
           <div>状態 / Status</div><div id="cutStatus">本体画像を読み込んでください</div>
@@ -427,7 +440,8 @@ const state={
   frontPinching:false,
   frontLastPinchDistance:0,
   frontLastPinchCenter:null,
-  frontCutFitRequestId:null
+  frontCutFitRequestId:null,
+  frontEditMaximized:false
 };
 const WHITE_THRESHOLD=255;
 const MAX_OPAQUE_COLORS=255;
@@ -623,6 +637,7 @@ function updateFrontModeUI(){
     initFrontCutoutFromBase(false);
   }else{
     state.frontCutEditing=false;
+    setFrontEditMaximized(false);
   }
   updateFrontCutoutUI();
   updateFrontCutWorkspaceMode();
@@ -648,6 +663,7 @@ function resetFrontCutoutState(){
   state.frontCutRedoStack=[];
   state.frontCutEditing=false;
   state.frontCutStrokeActive=false;
+  setFrontEditMaximized(false);
   clearFrontTouchState();
   state.frontWorkspaceZoom=1;
   state.frontWorkspacePanX=0;
@@ -820,6 +836,20 @@ function setFrontWorkspaceZoom(nextZoom,anchor=null){
   clampFrontWorkspacePan();
 }
 function zoomFrontWorkspaceBy(factor,anchor){setFrontWorkspaceZoom(state.frontWorkspaceZoom*factor,anchor);}
+// 最大化中はコントロールと作業領域をウィンドウいっぱいに固定配置する。
+// 拡大率は保持したままにして、見えている範囲だけを広げる。
+function setFrontEditMaximized(on){
+  const next=!!on && isFrontCutEditActive();
+  if(state.frontEditMaximized===next)return;
+  state.frontEditMaximized=next;
+  document.body.classList.toggle('front-edit-max',next);
+  updateFrontCutoutUI();
+  requestAnimationFrame(()=>{
+    clampFrontWorkspacePan();
+    renderFrontCutWorkspaceOverlay();
+  });
+}
+function toggleFrontEditMaximized(){setFrontEditMaximized(!state.frontEditMaximized);}
 function zoomFrontWorkspaceFromButton(factor){
   if(!isFrontCutEditActive())return;
   zoomFrontWorkspaceBy(factor,null);
@@ -848,6 +878,7 @@ function clearFrontTouchState(){
 function confirmFrontCutout(){
   if(state.frontMode!=='create'||!state.frontCutMask)return;
   const empty=!hasFrontCutoutPixels();
+  setFrontEditMaximized(false);
   state.frontCutEditing=false;
   state.frontCutCursor=null;
   state.frontCutStrokeActive=false;
@@ -913,7 +944,8 @@ function updateFrontCutoutUI(){
   $('cutLassoCloseBtn').disabled=!editing || !lasso || state.frontCutLassoAnchors.length<3;
   $('cutLassoBackBtn').disabled=!editing || !lasso || state.frontCutLassoAnchors.length===0;
   $('cutLassoCancelBtn').disabled=!editing || !lasso || state.frontCutLassoAnchors.length===0;
-  ['cutAssistedBtn','cutEdgeLassoBtn','cutFreehandBtn','cutAddBtn','cutRemoveBtn','cutBrushSize','cutTolerance','cutSampleSize','cutEdgeWidth','cutEdgeContrast','cutZoomInBtn','cutZoomOutBtn','cutZoomFitBtn'].forEach(id=>{$(id).disabled=!editing;});
+  ['cutAssistedBtn','cutEdgeLassoBtn','cutFreehandBtn','cutAddBtn','cutRemoveBtn','cutBrushSize','cutTolerance','cutSampleSize','cutEdgeWidth','cutEdgeContrast','cutZoomInBtn','cutZoomOutBtn','cutZoomFitBtn','cutMaximizeBtn'].forEach(id=>{$(id).disabled=!editing;});
+  $('cutMaximizeBtn').textContent=state.frontEditMaximized?'✕ 元のレイアウトに戻す / Exit':'⛶ 編集画面を最大化 / Expand';
   updateFrontCutMaskInfo();
   const mode=state.frontCutAction==='add'?'追加':'削除';
   if(!create)$('cutStatus').textContent='アップロードモード';
@@ -1963,6 +1995,12 @@ function handleFrontCutKeyDown(evt){
     renderFrontCutWorkspaceOverlay();
     return;
   }
+  // Escは「投げ縄を取消」を優先し、投げ縄が無ければ最大化を解除する
+  if(evt.code==='Escape' && state.frontEditMaximized && state.frontCutLassoAnchors.length===0){
+    evt.preventDefault();
+    setFrontEditMaximized(false);
+    return;
+  }
   if(state.frontCutTool!=='edgeLasso')return;
   if(evt.code==='Backspace'){
     evt.preventDefault();
@@ -2059,6 +2097,7 @@ $('cutLassoCancelBtn').addEventListener('click',cancelFrontCutLasso);
 $('cutZoomInBtn').addEventListener('click',()=>zoomFrontWorkspaceFromButton(1.25));
 $('cutZoomOutBtn').addEventListener('click',()=>zoomFrontWorkspaceFromButton(0.8));
 $('cutZoomFitBtn').addEventListener('click',()=>{if(!isFrontCutEditActive())return;fitFrontCutWorkspaceToView();renderFrontCutWorkspaceOverlay();updateFrontCutoutUI();});
+$('cutMaximizeBtn').addEventListener('click',toggleFrontEditMaximized);
 $('cutBrushSize').addEventListener('input',()=>{state.frontCutBrushSize=Number($('cutBrushSize').value)||28;updateFrontCutoutUI();});
 $('cutTolerance').addEventListener('input',()=>{state.frontCutTolerance=Number($('cutTolerance').value)||34;updateFrontCutoutUI();});
 $('cutSampleSize').addEventListener('input',()=>{state.frontCutSampleSize=Number($('cutSampleSize').value)||9;updateFrontCutoutUI();});
