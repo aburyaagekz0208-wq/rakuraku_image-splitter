@@ -12,7 +12,7 @@
       --ink:#333;
       --muted:#666;
       --line:#e5e8ea;
-      --accent:#007bff;
+      --accent:#005fcc;
       --accent-dark:#0056b3;
       --good:#008b73;
       --soft:#f4f7f6;
@@ -100,7 +100,7 @@
 
   <header class="tool-hero">
     <p class="eyebrow">高品質画像縮小ツール</p>
-    <h1>ぎゅうぎゅう圧縮君</h1>
+    <h1>🗜️ ぎゅうぎゅう圧縮君</h1>
     <p class="sub">画像比率を保ったまま、できるだけ見た目の劣化を抑えてサイズダウン。SNS投稿・ブログ掲載・保存用画像をブラウザだけで軽量化します。</p>
   </header>
 
@@ -195,7 +195,7 @@
         <span id="status" class="pill">画像を読み込んでください / Load an image</span>
       </div>
       <div class="canvas-wrap">
-        <canvas id="previewCanvas" width="900" height="600"></canvas>
+        <canvas id="previewCanvas" width="900" height="600" aria-label="元画像または変換後画像のプレビュー"></canvas>
       </div>
     </section>
   </main>
@@ -211,7 +211,9 @@ const state = {
   outputBlob:null,
   scale:.5,
   view:'output',
-  busy:false
+  busy:false,
+  methodNote:'',
+  settingsRevision:0
 };
 
 function init(){
@@ -235,11 +237,13 @@ function bindEvents(){
   dom.scaleRange.addEventListener('input', () => setScale(Number(dom.scaleRange.value) / 100, false));
   dom.targetWidth.addEventListener('change', () => setTargetFromWidth());
   dom.targetHeight.addEventListener('change', () => setTargetFromHeight());
-  dom.sharpen.addEventListener('input', updateUi);
-  dom.sharpenRadius.addEventListener('input', updateUi);
-  dom.sharpenThreshold.addEventListener('input', updateUi);
-  dom.quality.addEventListener('input', updateUi);
-  dom.format.addEventListener('change', updateUi);
+  const invalidateFromSettings = () => { invalidateOutput(); updateUi(); renderCurrent(); };
+  dom.method.addEventListener('change', invalidateFromSettings);
+  dom.sharpen.addEventListener('input', invalidateFromSettings);
+  dom.sharpenRadius.addEventListener('input', invalidateFromSettings);
+  dom.sharpenThreshold.addEventListener('input', invalidateFromSettings);
+  dom.quality.addEventListener('input', invalidateFromSettings);
+  dom.format.addEventListener('change', invalidateFromSettings);
   dom.convertBtn.addEventListener('click', convert);
   dom.downloadBtn.addEventListener('click', downloadOutput);
   dom.originalViewBtn.addEventListener('click', () => setView('original'));
@@ -251,29 +255,50 @@ function readImage(file){
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = reject;
+    img.onerror = error => { URL.revokeObjectURL(url); reject(error); };
     img.src = url;
   });
 }
 
 async function loadFile(file){
   if(!file) return;
-  state.file = file;
-  state.image = await readImage(file);
-  state.originalCanvas = document.createElement('canvas');
-  state.originalCanvas.width = state.image.naturalWidth;
-  state.originalCanvas.height = state.image.naturalHeight;
-  state.originalCanvas.getContext('2d').drawImage(state.image,0,0);
-  setScale(.5);
+  try{
+    setStatus('画像を読み込み中... / Loading...');
+    state.file = file;
+    state.image = await readImage(file);
+    state.originalCanvas = document.createElement('canvas');
+    state.originalCanvas.width = state.image.naturalWidth;
+    state.originalCanvas.height = state.image.naturalHeight;
+    state.originalCanvas.getContext('2d').drawImage(state.image,0,0);
+    setScale(.5);
+    invalidateOutput();
+    setStatus('設定後に変換してください / Choose settings, then convert');
+    updateUi();
+    renderCurrent();
+  }catch(error){
+    console.error(error);
+    state.file = null;
+    state.image = null;
+    state.originalCanvas = null;
+    invalidateOutput();
+    renderEmpty();
+    setStatus('画像を読み込めませんでした / Could not load image');
+    updateUi();
+  }
+}
+
+function invalidateOutput(){
+  state.settingsRevision++;
   state.outputCanvas = null;
   state.outputBlob = null;
+  state.methodNote = '';
   state.view = 'original';
-  updateUi();
-  renderCurrent();
+  if(state.image && !state.busy && dom.status) setStatus('設定が変更されました。再変換してください / Settings changed');
 }
 
 function setScale(scale){
   state.scale = Math.max(.05, Math.min(1, scale));
+  invalidateOutput();
   if(state.image){
     dom.targetWidth.value = Math.max(1, Math.round(state.image.naturalWidth * state.scale));
     dom.targetHeight.value = Math.max(1, Math.round(state.image.naturalHeight * state.scale));
@@ -288,17 +313,21 @@ function setPresetButtonState(button, active){
 
 function setTargetFromWidth(){
   if(!state.image) return;
-  const w = Math.max(1, Number(dom.targetWidth.value) || 1);
+  const w = Math.max(1, Math.min(state.image.naturalWidth, Number(dom.targetWidth.value) || 1));
   state.scale = w / state.image.naturalWidth;
+  dom.targetWidth.value = Math.round(w);
   dom.targetHeight.value = Math.max(1, Math.round(state.image.naturalHeight * state.scale));
+  invalidateOutput();
   updateUi();
 }
 
 function setTargetFromHeight(){
   if(!state.image) return;
-  const h = Math.max(1, Number(dom.targetHeight.value) || 1);
+  const h = Math.max(1, Math.min(state.image.naturalHeight, Number(dom.targetHeight.value) || 1));
   state.scale = h / state.image.naturalHeight;
+  dom.targetHeight.value = Math.round(h);
   dom.targetWidth.value = Math.max(1, Math.round(state.image.naturalWidth * state.scale));
+  invalidateOutput();
   updateUi();
 }
 
@@ -318,8 +347,13 @@ function makeCanvas(w,h){
 }
 
 function drawHighQuality(source, w, h, method){
+  state.methodNote = '';
   if(method === 'single') return drawScaled(source, w, h);
-  if(method === 'lanczos') return resizeLanczos(source, w, h, 3);
+  if(method === 'lanczos'){
+    const estimatedBytes = w * source.height * 16 + source.width * source.height * 4;
+    if(estimatedBytes <= 192 * 1024 * 1024 && source.width * source.height <= 24000000) return resizeLanczos(source, w, h, 3);
+    state.methodNote = '大画像のため段階縮小を使用 / Multipass used for a large image';
+  }
   let current = source;
   let cw = source.width;
   let ch = source.height;
@@ -492,27 +526,40 @@ function gaussianBlurRgba(src, w, h, radius){
 }
 
 function canvasToBlob(canvas, type, quality){
-  return new Promise(resolve => canvas.toBlob(resolve, type, quality));
+  return new Promise((resolve,reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('画像のエンコードに失敗しました。')), type, quality));
 }
 
 async function convert(){
   if(!state.originalCanvas || state.busy) return;
+  const revision = state.settingsRevision;
   state.busy = true;
   setStatus('変換中... / Converting...');
   updateUi();
-  await new Promise(requestAnimationFrame);
-  const size = targetSize();
-  let out = drawHighQuality(state.originalCanvas, size.w, size.h, dom.method.value);
-  out = applySharpen(out, Number(dom.sharpen.value), Number(dom.sharpenRadius.value), Number(dom.sharpenThreshold.value));
-  const type = dom.format.value;
-  const quality = Number(dom.quality.value) / 100;
-  state.outputBlob = await canvasToBlob(out, type, type === 'image/png' ? undefined : quality);
-  state.outputCanvas = out;
-  state.view = 'output';
-  state.busy = false;
-  setStatus('変換完了 / Done');
-  updateUi();
-  renderCurrent();
+  try{
+    await new Promise(requestAnimationFrame);
+    const size = targetSize();
+    let out = drawHighQuality(state.originalCanvas, size.w, size.h, dom.method.value);
+    out = applySharpen(out, Number(dom.sharpen.value), Number(dom.sharpenRadius.value), Number(dom.sharpenThreshold.value));
+    const type = dom.format.value;
+    const quality = Number(dom.quality.value) / 100;
+    const blob = await canvasToBlob(out, type, type === 'image/png' ? undefined : quality);
+    if(revision !== state.settingsRevision){
+      setStatus('設定が変更されました。再変換してください / Settings changed');
+      return;
+    }
+    state.outputBlob = blob;
+    state.outputCanvas = out;
+    state.view = 'output';
+    setStatus(state.methodNote || '変換完了 / Done');
+  }catch(error){
+    console.error(error);
+    invalidateOutput();
+    setStatus('変換に失敗しました。画像または出力サイズを小さくしてください / Conversion failed');
+  }finally{
+    state.busy = false;
+    updateUi();
+    renderCurrent();
+  }
 }
 
 function setView(view){
@@ -561,7 +608,7 @@ function downloadOutput(){
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function formatBytes(bytes){
