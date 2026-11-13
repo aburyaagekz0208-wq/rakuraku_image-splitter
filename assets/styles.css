@@ -600,32 +600,34 @@ canvas,
   border-top: 1px solid var(--line) !important;
 }
 
-.splitter-page .container {
+/* 画像分割: 左に設定、右にプレビュー。スマホでは 1 列で、使う順（画像 → モード → プレビュー → 設定 → X の見え方 → 出力）に並べる */
+.splitter-page .split-layout {
   display: grid;
   grid-template-columns: 360px minmax(0, 1fr);
   gap: 18px;
+  align-items: start;
 }
 
-.splitter-page .container > h1,
-.splitter-page .container > .seo-content {
-  grid-column: 1 / -1;
+.splitter-page .split-side,
+.splitter-page .split-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  min-width: 0;
 }
 
-.splitter-page .container > .form-group:nth-of-type(1),
-.splitter-page .container > .form-group:nth-of-type(2),
-.splitter-page #splitProcessBtn {
-  grid-column: 1;
+.splitter-page .split-side > *,
+.splitter-page .split-main > * {
+  margin: 0 !important;
 }
 
-.splitter-page #splitPreviewGroup,
-.splitter-page #xSplitPreviewArea,
-.splitter-page #splitResultArea {
-  grid-column: 2;
+.splitter-page .seo-content {
+  margin-top: 18px !important;
 }
 
 .splitter-page #xSplitPreviewArea {
-  margin: 0 0 18px !important;
-  border-color: var(--line) !important;
+  border: 1px solid var(--line) !important;
+  border-radius: var(--radius) !important;
   background: var(--canvas) !important;
 }
 
@@ -681,35 +683,108 @@ footer.site-footer .section__inner {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .splitter-page .container {
-    grid-template-columns: 1fr;
+  .splitter-page .split-layout {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .splitter-page .container > * {
-    grid-column: 1 !important;
+  .splitter-page .split-side > *,
+  .splitter-page .split-main > * {
+    min-width: 0;
+    max-width: 100%;
   }
+
+  .splitter-page .split-side,
+  .splitter-page .split-main {
+    display: contents;
+  }
+
+  .splitter-page #uploadGroup { order: 1; }
+  .splitter-page #splitModeGroup { order: 2; }
+  .splitter-page #splitPreviewGroup { order: 3; }
+  .splitter-page #splitSettingsGroup { order: 4; }
+  .splitter-page #xSplitPreviewArea { order: 5; }
+  .splitter-page #splitProcessBtn { order: 6; }
+  .splitter-page #splitResultArea { order: 7; }
 }
 
 @media (max-width: 720px) {
+  /* スマホでも一段のバーにする。ツールのリンクは横にスクロールし、端はぼかして続きがあると分かるようにする */
   .navbar,
   .site-nav {
     position: static;
-    padding: 14px 20px;
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 8px;
+    min-height: 52px;
+    padding: 0 0 0 14px;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand,
+  .site-brand {
+    flex: 0 0 auto;
+    min-height: 52px;
+    padding-left: 15px;
+    font-size: .86rem !important;
+  }
+
+  .brand::before,
+  .site-brand::before {
+    width: 8px;
+    height: 8px;
   }
 
   .nav-links,
   .site-links {
+    flex: 1 1 auto;
+    min-width: 0;
+    flex-wrap: nowrap;
     justify-content: flex-start;
-    gap: 4px 14px;
+    gap: 0 16px;
+    padding-right: 16px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .nav-links::-webkit-scrollbar,
+  .site-links::-webkit-scrollbar {
+    display: none;
   }
 
   .nav-links a,
   .site-links a {
-    min-height: 44px;
+    flex: 0 0 auto;
+    min-height: 52px;
+    margin-left: 0 !important; /* 各ページに残る古い余白指定（margin-left: 20px）を打ち消し、間隔を gap にそろえる */
+    white-space: nowrap;
     font-size: .82rem !important;
+  }
+
+  .site-links .site-cta {
+    min-height: 36px;
+    padding: 0 12px;
+  }
+
+  .nav-links.can-right,
+  .site-links.can-right {
+    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
+  }
+
+  .nav-links.can-left,
+  .site-links.can-left {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px);
+    mask-image: linear-gradient(90deg, transparent, #000 24px);
+  }
+
+  .nav-links.can-left.can-right,
+  .site-links.can-left.can-right {
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 32px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 32px), transparent);
   }
 
   .home-hero {
@@ -851,10 +926,23 @@ footer.site-footer .section__inner {
     font-size: 1.45rem !important;
   }
 
-  .navbar .brand,
-  .site-brand {
-    white-space: normal;
-  }
+}
+
+/* 今いるページのリンク */
+.nav-links a[aria-current="page"],
+.site-links a[aria-current="page"] {
+  color: var(--on-dark) !important;
+  box-shadow: inset 0 -3px 0 var(--nv-green);
+}
+
+/* 一括保存ボタンの下の、スマホ向けの説明 */
+.save-hint {
+  max-width: 520px;
+  margin: 10px auto 0;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.6;
+  text-align: center;
 }
 
 /* 前面レイヤーガイドへの補助リンク（ツールカード内） */

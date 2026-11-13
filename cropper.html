@@ -87,7 +87,8 @@
         .download-btn { display: inline-block; background-color: #1f7a38; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.9rem; width: 100%; box-sizing: border-box;}
         .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 30px; color: #444; }
     </style>
-    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="assets/styles.css?v=20261113">
+    <script src="assets/site.js?v=20261113"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
 </head>
@@ -436,8 +437,9 @@
             const div = document.createElement('div'); div.className = 'result-item';
             div.innerHTML = `<h3 style="margin-top:0; color:#1da1f2;">${target === 'icon' ? 'アイコン' : 'ヘッダー'}</h3>
                 <img src="${dataUrl}" alt="${target === 'icon' ? 'アイコン' : 'ヘッダー'}出力プレビュー" style="${target === 'icon' ? 'border-radius:50%; max-width:150px;' : 'width:100%;'}">
-                <a href="${dataUrl}" download="${fileName}" class="download-btn crop-dl-btn">⬇️ ${fileName} を保存</a>`;
+                <a href="${dataUrl}" download="${fileName}" class="download-btn crop-dl-btn">${RakurakuSave.env === 'pc' ? '⬇️' : '📷'} ${fileName} を保存</a>`;
             container.appendChild(div);
+            RakurakuSave.track(div.querySelector('.crop-dl-btn'));
         });
         
         if (outCount === 0) { alert("画像がアップロードされていません。"); return; }
@@ -446,13 +448,8 @@
         document.getElementById('cropResultArea').style.display = 'block'; document.getElementById('cropResultArea').scrollIntoView({ behavior: 'smooth' });
     });
 
-    document.getElementById('cropDownloadAllBtn').addEventListener('click', async (e) => {
-        const links = document.querySelectorAll('.crop-dl-btn');
-        if (links.length === 0 || !confirm('一括ダウンロードします。許可を求められたら「許可」を押してください。')) return;
-        const btn = e.target; btn.disabled = true; btn.textContent = '📦 ダウンロード中...';
-        for (let i = 0; i < links.length; i++) { links[i].click(); await new Promise(r => setTimeout(r, 500)); }
-        btn.textContent = '✅ 完了！'; setTimeout(() => { btn.disabled = false; btn.textContent = '📦 すべて一括保存'; }, 3000);
-    });
+    // 一括保存（スマホは写真アプリ・ギャラリーに入る画像として保存。くわしくは assets/site.js）
+    RakurakuSave.bindBulk(document.getElementById('cropDownloadAllBtn'), () => document.querySelectorAll('.crop-dl-btn'));
 
     // 初期化表示
     updateUIForCurrentState();

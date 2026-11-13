@@ -3,75 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>らくらく画像分割君 | X(Twitter)プレビュー対応で綺麗にスライス画像分割ツール</title>
+    <title>ちょきちょきカットくん | Xのカルーセル表示に対応 横分割・縦分割の画像分割ツール</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>">
-    <meta name="description" content="ブラウザ上で画像を縦分割・グリッド分割できる無料ツール。X(Twitter)のタイムライン表示をリアルタイムプレビュー！スマホ対応、ドラッグ操作可能。">
+    <meta name="description" content="ブラウザ上で画像を横分割・縦分割・グリッド分割できる無料ツール。Xの新しいカルーセル表示（横スワイプ）での見え方をリアルタイムでプレビュー。横長の絵をスワイプでつながる画像に分割できます。スマホは写真アプリに直接保存。">
     <style>
         /* 基本・共通CSS */
         body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; line-height: 1.6; }
         .navbar { background: #fff; padding: 15px 30px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
         .navbar a { text-decoration: none; color: #333; font-weight: bold; }
-        .nav-links a { margin-left: 20px; color: #005fcc; }
+        .nav-links a { margin-left: 0; color: #005fcc; }
         .nav-links a:hover { text-decoration: underline; }
-        
+
         .container { max-width: 750px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { font-size: 1.6rem; text-align: center; margin-bottom: 20px; color: #222; border-bottom: 2px solid #005fcc; padding-bottom: 10px; display: inline-block; width: 100%;}
-        
+
         .form-group { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #eee; }
-        .form-group:last-child { border-bottom: none; }
         label { display: block; font-weight: bold; margin-bottom: 8px; color: #444; }
         input[type="file"], input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 1rem; }
-        
-        .radio-group { display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap; }
-        .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer; background: #f1f3f5; padding: 8px 15px; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s;}
-        .radio-group input[type="radio"]:checked + span { font-weight: bold; color: #005fcc; }
-        .radio-group label:hover { background: #e2e6ea; }
+
+        .radio-group { display: flex; gap: 8px; margin-top: 5px; flex-direction: column; }
+        .radio-group label { font-weight: normal; display: flex; align-items: center; gap: 8px; cursor: pointer; background: #f1f3f5; padding: 8px 12px; border-radius: 20px; border: 1px solid #ddd; transition: 0.2s; margin: 0; }
+        .radio-group label:has(input:checked) { border-color: #000 !important; }
+        .radio-group input[type="radio"]:checked + span { font-weight: bold; }
+        .radio-group small { color: #757575; font-weight: normal; }
+        .mode-new { display: inline-block; margin-left: 6px; padding: 0 6px; background: #76b900; color: #000; font-size: .7rem; font-weight: 700; border-radius: 2px; vertical-align: 1px; }
 
         button { padding: 12px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
-        .btn-primary { width: 100%; background-color: #005fcc; color: white; margin-top: 10px; font-weight: bold; font-size: 1.1rem; padding: 15px;}
-        .btn-primary:hover { background-color: #0056b3; }
+        .btn-primary { width: 100%; background-color: #005fcc; color: white; font-weight: bold; font-size: 1.1rem; padding: 15px;}
         .btn-primary:disabled { background-color: #ccc; cursor: not-allowed; }
-        .btn-secondary { background-color: #6c757d; color: white; padding: 8px 15px; font-size: 0.9rem; margin-bottom: 15px;}
-        .btn-secondary:hover { background-color: #5a6268; }
-        .btn-warning { background-color: #b45309; color: white; font-weight: bold; padding: 12px 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .btn-warning:hover { background-color: #8a3500; }
+        .btn-secondary { background-color: #6c757d; color: white; padding: 8px 15px; font-size: 0.9rem; }
+        .btn-warning { background-color: #b45309; color: white; font-weight: bold; padding: 12px 30px; }
+        .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 12px; }
+        .btn-row .btn-secondary { flex: 1 1 auto; }
+        .setting-note { margin: 6px 0 0; color: #757575; font-size: .82rem; line-height: 1.6; }
+        .piece-info { margin: 12px 0 0; padding: 10px 12px; background: #f7f7f7; border: 1px solid #ccc; border-radius: 2px; font-size: .85rem; line-height: 1.6; }
 
         /* 分割特有CSS */
-        .cut-point-row { display: flex; align-items: center; margin-bottom: 10px; background: #f9f9f9; padding: 10px; border-radius: 4px; }
-        .cut-point-row label { margin-bottom: 0; margin-right: 15px; white-space: nowrap; font-weight: normal; width: 120px;}
+        .cut-point-row { display: flex; align-items: center; margin-bottom: 8px; background: #f9f9f9; padding: 8px 10px; border-radius: 4px; gap: 10px; }
+        .cut-point-row label { margin: 0; white-space: nowrap; font-weight: normal; flex: 0 0 auto; min-width: 92px; }
+        .cut-point-row input { flex: 1 1 auto; min-width: 0; }
+        .cut-point-row .unit { flex: 0 0 auto; color: #757575; font-size: .85rem; }
         .grid-inputs { display: flex; gap: 15px; }
         .grid-inputs div { flex: 1; }
-        .preview-container { text-align: center; border: 2px dashed #ccc; padding: 10px; background: #fafafa; border-radius: 4px; margin-bottom: 20px; position: relative;}
-        #previewCanvas { width: 100%; height: auto; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.1); touch-action: none; cursor: crosshair; }
-        
-        #xSplitPreviewArea { margin-top: 30px; margin-bottom: 30px; border: 2px solid #1da1f2; border-radius: 8px; padding: 20px; display: none; background-color: #f5f8fa; }
-        .x-preview-box { background: #fff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 15px; max-width: 500px; margin: 0 auto; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .x-dummy-header { display: flex; margin-bottom: 10px; }
-        .x-dummy-icon { width: 40px; height: 40px; background: #ccc; border-radius: 50%; margin-right: 10px; }
-        .x-dummy-text { flex: 1; }
-        .x-dummy-name { font-weight: bold; font-size: 0.9rem; }
-        .x-dummy-id { color: #657786; font-size: 0.85rem; }
-        .x-dummy-content { font-size: 0.95rem; margin-bottom: 10px; }
-        #xGridContainer { display: grid; gap: 2px; border-radius: 12px; overflow: hidden; border: 1px solid #cfd9de; aspect-ratio: 16 / 9; }
+        .preview-container { text-align: center; padding: 10px; position: relative; }
+        /* 縦長の画像でも画面に収まるよう、高さは画面の8割まで（横幅に合わせて縮む） */
+        #previewCanvas { width: auto; height: auto; max-width: 100%; max-height: 80vh; margin: 0 auto; display: block; touch-action: none; cursor: crosshair; }
+        .preview-help { margin: 8px 0 0; color: #757575; font-size: .82rem; }
+
+        /* X の見え方 */
+        #xSplitPreviewArea { padding: 20px; display: none; }
+        #xSplitPreviewArea h2 { margin: 0 0 4px; font-size: 1.2rem; }
+        .x-lead { margin: 0 0 12px; color: #757575; font-size: .82rem; line-height: 1.6; }
+        .x-view-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+        .x-view-tabs .tab-btn { flex: 1 1 0; width: auto !important; min-height: 40px; padding: 8px 10px; border: 1px solid #ccc !important; background: #fff; color: #000; font-size: .85rem; font-weight: 700; line-height: 1.3; }
+        .x-view-tabs .tab-btn small { display: block; font-weight: 400; font-size: .72rem; opacity: .75; }
+
+        .x-preview-box { background: #fff; border: 1px solid #e1e8ed; padding: 12px 0 10px 12px; max-width: 560px; margin: 0 auto; overflow: hidden; color: #0f1419; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif; }
+        .x-post { display: flex; gap: 10px; }
+        .x-dummy-icon { flex: 0 0 40px; width: 40px; height: 40px; background: linear-gradient(135deg, #cfd9de, #8b98a5); border-radius: 50%; }
+        .x-post-body { flex: 1 1 auto; min-width: 0; }
+        .x-dummy-name { font-weight: 700; font-size: .92rem; line-height: 1.3; padding-right: 12px; }
+        .x-dummy-id { color: #536471; font-weight: 400; }
+        .x-dummy-content { font-size: .92rem; margin: 2px 12px 10px 0; line-height: 1.45; }
+        .x-dummy-actions { display: flex; justify-content: space-between; max-width: 360px; margin: 10px 12px 0 0; color: #536471; font-size: .8rem; }
+
+        /* カルーセル（2026年7〜8月からの表示）: 高さをそろえて横に並べ、横スワイプで見る */
+        .x-carousel-wrap { position: relative; }
+        .x-carousel { display: flex; gap: 4px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-left: 0; padding-right: 12px; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; }
+        .x-carousel::-webkit-scrollbar { display: none; }
+        .x-car-item { position: relative; flex: 0 0 auto; overflow: hidden; border-radius: 14px; border: 1px solid #cfd9de; background: #f0f0f0; scroll-snap-align: start; }
+        .x-car-item canvas { display: block; width: 100%; height: 100%; border: 0 !important; border-radius: 0 !important; }
+        .x-crop-badge { position: absolute; left: 6px; bottom: 6px; padding: 2px 6px; border-radius: 4px; background: rgba(180, 0, 0, .85); color: #fff; font-size: .68rem; font-weight: 700; line-height: 1.4; }
+        .x-num-badge { position: absolute; right: 6px; top: 6px; padding: 1px 7px; border-radius: 10px; background: rgba(0, 0, 0, .6); color: #fff; font-size: .7rem; font-weight: 700; }
+        .x-car-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 34px !important; height: 34px; min-height: 0 !important; padding: 0 !important; border-radius: 50% !important; border: 0 !important; background: rgba(15, 20, 25, .75) !important; color: #fff !important; font-size: 1.1rem; line-height: 34px; display: none; }
+        .x-car-nav.prev { left: 6px; }
+        .x-car-nav.next { right: 18px; }
+        .x-carousel-wrap.can-prev .x-car-nav.prev,
+        .x-carousel-wrap.can-next .x-car-nav.next { display: block; }
+        @media (hover: none) { .x-carousel-wrap .x-car-nav { display: none !important; } }
+
+        /* 旧表示（田の字グリッド。Android アプリの一部に残る） */
+        #xGridContainer { display: grid; gap: 2px; border-radius: 14px; overflow: hidden; border: 1px solid #cfd9de; aspect-ratio: 16 / 9; margin-right: 12px; }
         .x-grid-item { position: relative; width: 100%; height: 100%; overflow: hidden; background: #f0f0f0; }
-        .x-grid-item canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        .x-grid-item canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border: 0 !important; border-radius: 0 !important; }
         #xGridContainer.x-layout-1 { display: block; aspect-ratio: auto; border: none;}
-        #xGridContainer.x-layout-1 .x-grid-item { border-radius: 12px; border: 1px solid #cfd9de; max-height: 500px; }
+        #xGridContainer.x-layout-1 .x-grid-item { border-radius: 14px; border: 1px solid #cfd9de; max-height: 500px; }
         #xGridContainer.x-layout-1 canvas { position: static; height: auto; max-height: 500px; object-fit: contain; }
         #xGridContainer.x-layout-2 { grid-template-columns: 1fr 1fr; }
         #xGridContainer.x-layout-3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
         #xGridContainer.x-layout-3 .x-grid-item:nth-child(1) { grid-row: span 2; }
         #xGridContainer.x-layout-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
 
-        #splitResultArea { margin-top: 40px; border-top: 3px solid #1f7a38; padding-top: 20px; display: none; }
-        .result-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 20px; }
-        .result-item { text-align: center; background: #fdfdfd; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
-        .result-item img { max-width: 100%; height: auto; display: block; margin: 0 auto 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .download-btn { display: inline-block; background-color: #1f7a38; color: white; padding: 8px 15px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 0.9rem; width: 100%; box-sizing: border-box;}
-        
-        .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 30px; color: #444; }
+        .x-notes { list-style: none; margin: 14px 0 0; padding: 0; font-size: .85rem; line-height: 1.6; }
+        .x-notes li { position: relative; padding: 8px 10px 8px 30px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 2px; background: #f7f7f7; }
+        .x-notes li::before { position: absolute; left: 9px; top: 8px; }
+        .x-notes li.ok::before { content: "✓"; color: #3f7d00; font-weight: 700; }
+        .x-notes li.warn { border-color: #e0a800; background: #fff8e1; }
+        .x-notes li.warn::before { content: "!"; color: #b45309; font-weight: 900; left: 13px; }
+        .x-notes li.info::before { content: "i"; color: #555; font-weight: 900; left: 13px; font-family: Georgia, serif; }
+        .x-disclaimer { margin: 10px 0 0; color: #898989; font-size: .75rem; line-height: 1.5; }
+
+        #splitResultArea { padding-top: 20px; display: none; }
+        #splitResultArea h2 { text-align: center; margin: 0 0 14px; }
+        .bulk-save { text-align: center; margin-bottom: 20px; }
+        .result-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 20px; }
+        .result-item { text-align: center; padding: 12px; }
+        .result-item img { max-width: 100%; max-height: 260px; height: auto; display: block; margin: 0 auto 10px; }
+        .download-btn { display: inline-flex; align-items: center; justify-content: center; padding: 8px 10px; text-decoration: none; font-weight: bold; font-size: 0.85rem; width: 100%; box-sizing: border-box; }
+
+        .seo-content { color: #444; }
+        .seo-content h3 { margin-top: 0; }
+        .seo-content h4 { margin: 18px 0 4px; }
+
+        @media (max-width: 720px) {
+            .x-view-tabs .tab-btn { width: auto !important; }
+            .btn-row .btn-secondary { width: auto; }
+        }
     </style>
-    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="assets/styles.css?v=20261113">
+    <script src="assets/site.js?v=20261113"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
 </head>
@@ -89,151 +139,351 @@
 </nav>
 
     <div class="container">
-        <h1>✂️ らくらく画像分割君</h1>
+        <h1>✂️ ちょきちょきカットくん</h1>
 
-        <div class="form-group">
-            <label for="splitImageInput">1. 分割する画像をアップロード</label>
-            <input type="file" id="splitImageInput" accept="image/png, image/jpeg, image/webp">
-        </div>
-
-        <div class="form-group" id="splitModeGroup" style="display: none;">
-            <label>2. 分割モード</label>
-            <div class="radio-group">
-                <label><input type="radio" name="splitMode" value="vertical" checked> <span>縦分割（自由配置）</span></label>
-                <label><input type="radio" name="splitMode" value="grid"> <span>縦＋横（均等グリッド）</span></label>
-            </div>
-        </div>
-
-        <div class="form-group" id="splitPreviewGroup" style="display: none;">
-            <label>分割位置の調整（プレビュー）</label>
-            <div class="preview-container">
-                <canvas id="previewCanvas" style="display: none;" aria-label="分割位置を調整する画像プレビュー"></canvas>
-            </div>
-            
-            <div id="verticalSettings">
-                <label style="margin-top:15px;">縦の分割数</label>
-                <input type="number" id="splitCount" value="2" min="2" max="50">
-                <button type="button" id="resetEvenBtn" class="btn-secondary" style="margin-top:10px;">🔄 均等割りにリセット</button>
-                <div id="cutPointsContainer"></div>
+        <div class="split-layout">
+        <div class="split-side">
+            <div class="form-group" id="uploadGroup">
+                <label for="splitImageInput">1. 分割する画像をアップロード</label>
+                <input type="file" id="splitImageInput" accept="image/png, image/jpeg, image/webp">
             </div>
 
-            <div id="gridSettings" style="display: none; margin-top:15px;">
-                <div class="grid-inputs">
-                    <div><label>縦の行数</label><input type="number" id="gridRows" value="2" min="1" max="20"></div>
-                    <div><label>横の列数</label><input type="number" id="gridCols" value="2" min="1" max="20"></div>
+            <div class="form-group" id="splitModeGroup" style="display: none;">
+                <label>2. 分割モード</label>
+                <div class="radio-group">
+                    <label><input type="radio" name="splitMode" value="horizontal"> <span>横に分割（左 → 右）<span class="mode-new">X向け</span><br><small>横長の絵を、スワイプでつながる画像に</small></span></label>
+                    <label><input type="radio" name="splitMode" value="vertical"> <span>縦に分割（上 → 下）<br><small>縦読みマンガ・縦長の絵に</small></span></label>
+                    <label><input type="radio" name="splitMode" value="grid"> <span>縦＋横（均等グリッド）</span></label>
                 </div>
             </div>
-        </div>
 
-        <div id="xSplitPreviewArea">
-            <h2 style="text-align: center; color: #1da1f2; margin-top: 0; margin-bottom: 15px; font-size: 1.3rem;">📱 X (Twitter) 投稿時の見え方</h2>
-            <p style="text-align: center; font-size: 0.85rem; margin-top: -10px; color: #666;">※線を動かすとリアルタイムで反映されます（先頭4枚まで）</p>
-            <div class="x-preview-box">
-                <div class="x-dummy-header">
-                    <div class="x-dummy-icon"></div>
-                    <div class="x-dummy-text">
-                        <div class="x-dummy-name">あなたの名前 <span class="x-dummy-id">@your_id · 今</span></div>
-                        <div class="x-dummy-content">分割した画像を投稿するとこんな感じで表示されます！ #画像分割</div>
+            <div class="form-group" id="splitSettingsGroup" style="display: none;">
+                <label>3. 分割の設定</label>
+                <div id="lineSettings">
+                    <label for="splitCount" id="splitCountLabel" style="font-weight:normal;">分割数</label>
+                    <input type="number" id="splitCount" value="2" min="2" max="50" inputmode="numeric">
+                    <div class="btn-row">
+                        <button type="button" id="recommendBtn" class="secondary btn-secondary">⭐ おすすめの枚数</button>
+                        <button type="button" id="resetEvenBtn" class="secondary btn-secondary">🔄 均等割りに戻す</button>
+                    </div>
+                    <p class="setting-note" id="recommendNote"></p>
+                    <div id="cutPointsContainer"></div>
+                </div>
+
+                <div id="gridSettings" style="display: none;">
+                    <div class="grid-inputs">
+                        <div><label for="gridRows" style="font-weight:normal;">縦の行数</label><input type="number" id="gridRows" value="2" min="1" max="20" inputmode="numeric"></div>
+                        <div><label for="gridCols" style="font-weight:normal;">横の列数</label><input type="number" id="gridCols" value="2" min="1" max="20" inputmode="numeric"></div>
                     </div>
                 </div>
-                <div id="xGridContainer"></div>
+                <div class="piece-info" id="pieceInfo"></div>
             </div>
+
+            <button id="splitProcessBtn" type="button" class="btn-primary" disabled>✂️ 分割して画像を出力</button>
         </div>
 
-        <button id="splitProcessBtn" type="button" class="btn-primary" disabled>✂️ 分割して画像を出力</button>
-
-        <div id="splitResultArea">
-            <h2 style="text-align: center; color: #1f7a38;">出力結果</h2>
-            <div style="text-align: center; margin-bottom: 20px;">
-                <button id="splitDownloadAllBtn" type="button" class="btn-warning">📦 すべて一括保存</button>
+        <div class="split-main">
+            <div class="form-group" id="splitPreviewGroup" style="display: none;">
+                <label>分割位置の調整（プレビュー）</label>
+                <div class="preview-container">
+                    <canvas id="previewCanvas" style="display: none;" aria-label="分割位置を調整する画像プレビュー"></canvas>
+                </div>
+                <p class="preview-help" id="previewHelp">赤い線をマウスや指でドラッグすると、切る位置を動かせます。</p>
             </div>
-            <div id="splitResultContainer" class="result-grid"></div>
+
+            <div id="xSplitPreviewArea">
+                <h2>📱 X に投稿した時の見え方</h2>
+                <p class="x-lead">線を動かすとすぐに反映されます（1投稿の4枚まで）。</p>
+                <div class="x-view-tabs" role="tablist" aria-label="Xの表示の種類">
+                    <button type="button" class="tab-btn active" data-view="carousel" role="tab" aria-selected="true">いまのX（横スワイプ）<small>iPhone・PC</small></button>
+                    <button type="button" class="tab-btn" data-view="grid" role="tab" aria-selected="false">旧表示（田の字）<small>Androidの一部</small></button>
+                </div>
+                <div class="x-preview-box">
+                    <div class="x-post">
+                        <div class="x-dummy-icon" aria-hidden="true"></div>
+                        <div class="x-post-body">
+                            <div class="x-dummy-name">あなたの名前 <span class="x-dummy-id">@your_id · 今</span></div>
+                            <div class="x-dummy-content">分割した画像を投稿するとこんな感じで表示されます！ #画像分割</div>
+                            <div class="x-carousel-wrap" id="xCarouselWrap">
+                                <div class="x-carousel" id="xCarousel" aria-label="カルーセル表示のプレビュー"></div>
+                                <button type="button" class="tool-btn x-car-nav prev" aria-label="前の画像">‹</button>
+                                <button type="button" class="tool-btn x-car-nav next" aria-label="次の画像">›</button>
+                            </div>
+                            <div id="xGridContainer" style="display:none;"></div>
+                            <div class="x-dummy-actions" aria-hidden="true"><span>💬 12</span><span>🔁 34</span><span>♡ 567</span><span>📊 8.9万</span></div>
+                        </div>
+                    </div>
+                </div>
+                <ul class="x-notes" id="xNotes"></ul>
+                <p class="x-disclaimer">※ Xは表示のくわしい決まりを公開していません。2026年7〜8月の切り替え後に報告されている実際の表示（高さをそろえて横に並べる・横長すぎる画像は左右を切る）をもとにした目安です。</p>
+            </div>
+
+            <div id="splitResultArea">
+                <h2>出力結果</h2>
+                <div class="bulk-save">
+                    <button id="splitDownloadAllBtn" type="button" class="btn-warning">📦 すべて一括保存</button>
+                </div>
+                <div id="splitResultContainer" class="result-grid"></div>
+            </div>
+        </div>
         </div>
 
         <div class="seo-content">
             <h3>このツールについて</h3>
-            <p>指定したピクセル数や均等グリッドで画像を綺麗にスライスできます。プレビュー画面上の赤い線をマウスや指でドラッグすることで、直感的にカット位置を調整できます。</p>
-            <p><strong>活用事例:</strong> Webtoon（縦読みマンガ）の制作や、長尺のAIイラストの分割、X（旧Twitter）のアルゴリズムに合わせたタイムライン画像分割などに最適です。</p>
+            <p>画像を左右（横）・上下（縦）・均等グリッドで綺麗にスライスできます。プレビュー画面上の赤い線をマウスや指でドラッグすることで、直感的にカット位置を調整できます。画像はサーバーに送られず、すべて端末の中で処理されます。</p>
+            <h4>Xの「横スワイプ（カルーセル）」表示に対応</h4>
+            <p>Xは2026年7月（iPhoneアプリ）・8月（PCブラウザ）から、複数枚の画像を田の字に並べる表示をやめ、高さをそろえて横に並べてスワイプで見る表示に変わりました。上下に分けた画像はつながって見えなくなったため、横長の絵は「横に分割」で左から右へ切るのがおすすめです。スワイプすると1枚の絵がつながって流れます。3枚・4枚の投稿では、1枚あたり 20:17（約1.18）より横長の画像は左右が切れて表示されるので、プレビューで確認しながら枚数を決めてください。</p>
+            <h4>スマホでの保存</h4>
+            <p>iPhone・iPadでは共有メニューから「画像を保存」を選ぶと、写真アプリにまとめて入ります。Androidでは画像が1枚ずつ保存され、フォトやギャラリーのアプリにそのまま表示されます。</p>
+            <p><strong>活用事例:</strong> 横長イラストやパノラマ写真のX投稿、Webtoon（縦読みマンガ）の制作、長尺のAIイラストの分割などに最適です。</p>
         </div>
     </div>
 
 <script>
     function loadImage(file) { return new Promise((r, j) => { const url = URL.createObjectURL(file); const i = new Image(); i.onload = () => { URL.revokeObjectURL(url); r(i); }; i.onerror = error => { URL.revokeObjectURL(url); j(error); }; i.src = url; }); }
-    
-    const state = { img: null, mode: 'vertical', isDragging: false, draggedLineIndex: -1, resultUrls: [] };
-    const elPreview = document.getElementById('previewCanvas');
+
+    const $ = id => document.getElementById(id);
+    const state = { img: null, mode: 'horizontal', view: 'carousel', isDragging: false, draggedLineIndex: -1, resultUrls: [], slices: [] };
+    const elPreview = $('previewCanvas');
     const ctx = elPreview.getContext('2d');
-    const xPreviewArea = document.getElementById('xSplitPreviewArea');
-    const xGrid = document.getElementById('xGridContainer');
-    
-    document.getElementById('splitImageInput').addEventListener('change', async (e) => {
-        if (!e.target.files[0]) return;
-        clearSplitResults();
-        state.img = await loadImage(e.target.files[0]);
-        document.getElementById('splitModeGroup').style.display = 'block';
-        document.getElementById('splitPreviewGroup').style.display = 'block';
-        document.getElementById('splitResultArea').style.display = 'none';
-        document.getElementById('splitProcessBtn').disabled = false;
-        updateUI(); generateInputs();
-    });
+    const xPreviewArea = $('xSplitPreviewArea');
+    const xCarousel = $('xCarousel');
+    const xCarouselWrap = $('xCarouselWrap');
+    const xGrid = $('xGridContainer');
+    const MAX_PER_POST = 4;
+    const WIDE_LIMIT = 20 / 17; // 3〜4枚投稿で、これより横長だと左右が切れる
 
-    document.getElementsByName('splitMode').forEach(r => r.addEventListener('change', e => { state.mode = e.target.value; updateUI(); draw(); }));
-
-    function updateUI() {
-        if (state.mode === 'vertical') {
-            document.getElementById('verticalSettings').style.display = 'block'; document.getElementById('gridSettings').style.display = 'none'; elPreview.style.cursor = 'crosshair';
-        } else {
-            document.getElementById('verticalSettings').style.display = 'none'; document.getElementById('gridSettings').style.display = 'block'; elPreview.style.cursor = 'default';
-        }
+    /* ---------- 比率の表示 ---------- */
+    const COMMON_RATIOS = [[1,1],[4,5],[3,4],[2,3],[9,16],[1,2],[5,4],[4,3],[3,2],[16,9],[2,1],[20,17],[21,9],[3,1]];
+    function ratioLabel(r) {
+        let best = null, bestErr = Infinity;
+        COMMON_RATIOS.forEach(([a, b]) => { const err = Math.abs(Math.log(r / (a / b))); if (err < bestErr) { bestErr = err; best = `${a}:${b}`; } });
+        if (bestErr < 0.025) return best;
+        if (bestErr < 0.06) return `約 ${best}`;
+        return r >= 1 ? `${r.toFixed(2)}:1` : `1:${(1 / r).toFixed(2)}`;
     }
 
-    document.getElementById('splitCount').addEventListener('input', generateInputs);
-    document.getElementById('resetEvenBtn').addEventListener('click', generateInputs);
-    document.getElementById('gridRows').addEventListener('input', draw);
-    document.getElementById('gridCols').addEventListener('input', draw);
+    /* ---------- 画像の読み込み ---------- */
+    $('splitImageInput').addEventListener('change', async (e) => {
+        if (!e.target.files[0]) return;
+        clearSplitResults();
+        try { state.img = await loadImage(e.target.files[0]); }
+        catch (err) { alert('画像を読み込めませんでした。PNG・JPEG・WebP の画像を選んでください。'); return; }
+        // 横長の絵は「横に分割」、縦長は「縦に分割」から始める
+        state.mode = state.img.width > state.img.height ? 'horizontal' : 'vertical';
+        document.querySelector(`input[name="splitMode"][value="${state.mode}"]`).checked = true;
+        ['splitModeGroup', 'splitSettingsGroup', 'splitPreviewGroup'].forEach(id => $(id).style.display = 'block');
+        $('splitResultArea').style.display = 'none';
+        $('splitProcessBtn').disabled = false;
+        updateUI();
+        $('splitCount').value = state.mode === 'horizontal' ? recommendCount() : 2;
+        generateInputs();
+    });
+
+    document.getElementsByName('splitMode').forEach(r => r.addEventListener('change', e => {
+        state.mode = e.target.value; updateUI();
+        if (state.mode !== 'grid') { $('splitCount').value = state.mode === 'horizontal' ? recommendCount() : 2; generateInputs(); }
+        else draw();
+    }));
+
+    function isLineMode() { return state.mode === 'horizontal' || state.mode === 'vertical'; }
+
+    function updateUI() {
+        const horizontal = state.mode === 'horizontal';
+        $('lineSettings').style.display = isLineMode() ? 'block' : 'none';
+        $('gridSettings').style.display = state.mode === 'grid' ? 'block' : 'none';
+        $('splitCountLabel').textContent = horizontal ? '横の分割数（左から右へ並ぶ枚数）' : '縦の分割数（上から下へ並ぶ枚数）';
+        $('recommendBtn').style.display = horizontal ? '' : 'none';
+        $('previewHelp').style.display = isLineMode() ? '' : 'none';
+        elPreview.style.cursor = isLineMode() ? 'crosshair' : 'default';
+        updateRecommendNote();
+    }
+
+    /* ---------- おすすめの枚数（横分割） ----------
+       カルーセルでは高さがそろって並ぶので、1枚が縦長〜正方形（4:5 前後）だと大きく見える。
+       3〜4枚で 20:17 より横長になると左右が切れるので避ける。 */
+    function recommendCount() {
+        if (!state.img) return 2;
+        const R = state.img.width / state.img.height;
+        let best = 2, bestScore = Infinity;
+        for (let n = 2; n <= MAX_PER_POST; n++) {
+            const r = R / n;
+            let score = Math.abs(Math.log(r / 0.8));
+            if (n >= 3 && r > WIDE_LIMIT) score += 10;
+            if (score < bestScore - 1e-9) { bestScore = score; best = n; }
+        }
+        return best;
+    }
+    function updateRecommendNote() {
+        const note = $('recommendNote');
+        if (!state.img || state.mode !== 'horizontal') { note.textContent = ''; return; }
+        const n = recommendCount(); const r = state.img.width / state.img.height / n;
+        let text = `この画像のおすすめは ${n} 枚（1枚あたり ${ratioLabel(r)}）。Xでは1投稿4枚まで、縦長〜正方形に近いほど大きく表示されます。`;
+        if (r > WIDE_LIMIT) text += ' とても横長な絵なので、切れずに載せられるのは2枚までです。3〜4枚にすると1枚は大きく見えますが、左右が少し切れます。';
+        note.textContent = text;
+    }
+    $('recommendBtn').addEventListener('click', () => { $('splitCount').value = recommendCount(); generateInputs(); });
+
+    $('splitCount').addEventListener('input', () => { if ((parseInt($('splitCount').value, 10) || 0) >= 2) generateInputs(); });
+    $('resetEvenBtn').addEventListener('click', generateInputs);
+    $('gridRows').addEventListener('input', draw);
+    $('gridCols').addEventListener('input', draw);
+
+    function axisSize() { return state.mode === 'horizontal' ? state.img.width : state.img.height; }
 
     function generateInputs() {
-        const container = document.getElementById('cutPointsContainer'); container.innerHTML = '';
-        const count = parseInt(document.getElementById('splitCount').value, 10) || 2;
-        const totalHeight = state.img.height; const baseH = Math.floor(totalHeight / count); const rem = totalHeight % count;
-        let currentY = 0;
+        if (!state.img || !isLineMode()) return;
+        const container = $('cutPointsContainer'); container.innerHTML = '';
+        const size = axisSize();
+        const count = Math.max(2, Math.min(50, size, parseInt($('splitCount').value, 10) || 2));
+        const base = Math.floor(size / count); const rem = size % count;
+        const word = state.mode === 'horizontal' ? '左から' : '上から';
+        let pos = 0;
         for (let i = 1; i < count; i++) {
-            currentY += baseH + (i <= rem ? 1 : 0);
+            pos += base + (i <= rem ? 1 : 0);
             const row = document.createElement('div'); row.className = 'cut-point-row';
-            row.innerHTML = `<label>上から ${i}本目:</label><input type="number" class="cut-input" value="${currentY}">`;
+            row.innerHTML = `<label>${word} ${i}本目</label><input type="number" class="cut-input" min="1" max="${size - 1}" value="${pos}" inputmode="numeric"><span class="unit">px</span>`;
             row.querySelector('input').addEventListener('input', draw); container.appendChild(row);
         }
         draw();
     }
 
-    function draw() {
-        if (!state.img) return;
-        elPreview.width = state.img.width; elPreview.height = state.img.height;
-        ctx.drawImage(state.img, 0, 0); ctx.strokeStyle = 'red'; ctx.lineWidth = Math.max(3, Math.floor(state.img.width / 300)); 
-        const slices = []; 
+    /* ---------- 分割する範囲 ---------- */
+    function getCuts() {
+        const size = axisSize();
+        let cuts = Array.from(document.querySelectorAll('.cut-input')).map(i => parseInt(i.value, 10)).filter(v => !isNaN(v) && v > 0 && v < size);
+        cuts.push(0, size); cuts.sort((a, b) => a - b); return [...new Set(cuts)];
+    }
 
-        if (state.mode === 'vertical') {
-            let cuts = Array.from(document.querySelectorAll('.cut-input')).map(i => parseInt(i.value, 10)).filter(y => !isNaN(y) && y > 0 && y < state.img.height);
-            cuts.forEach(y => { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(state.img.width, y); ctx.stroke(); });
-            cuts.push(0, state.img.height); cuts.sort((a, b) => a - b); cuts = [...new Set(cuts)];
-            for (let i = 0; i < cuts.length - 1 && slices.length < 4; i++) slices.push({ x: 0, y: cuts[i], w: state.img.width, h: cuts[i + 1] - cuts[i] });
+    function gridSize() {
+        const rows = Math.max(1, Math.min(state.img.height, parseInt($('gridRows').value, 10) || 1));
+        const cols = Math.max(1, Math.min(state.img.width, parseInt($('gridCols').value, 10) || 1));
+        return { rows, cols };
+    }
+
+    function computeSlices() {
+        const W = state.img.width, H = state.img.height, slices = [];
+        if (state.mode === 'horizontal') {
+            const cuts = getCuts();
+            for (let i = 0; i < cuts.length - 1; i++) slices.push({ x: cuts[i], y: 0, w: cuts[i + 1] - cuts[i], h: H });
+        } else if (state.mode === 'vertical') {
+            const cuts = getCuts();
+            for (let i = 0; i < cuts.length - 1; i++) slices.push({ x: 0, y: cuts[i], w: W, h: cuts[i + 1] - cuts[i] });
         } else {
-            const rows = Math.max(1, Math.min(state.img.height, parseInt(document.getElementById('gridRows').value, 10) || 1));
-            const cols = Math.max(1, Math.min(state.img.width, parseInt(document.getElementById('gridCols').value, 10) || 1));
-            for (let c = 1; c < cols; c++) { const x = Math.floor(c * state.img.width / cols); ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, state.img.height); ctx.stroke(); }
-            for (let r = 1; r < rows; r++) { const y = Math.floor(r * state.img.height / rows); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(state.img.width, y); ctx.stroke(); }
-            for (let r = 0; r < rows && slices.length < 4; r++) for (let c = 0; c < cols && slices.length < 4; c++) {
-                const x0 = Math.floor(c * state.img.width / cols), x1 = Math.floor((c + 1) * state.img.width / cols);
-                const y0 = Math.floor(r * state.img.height / rows), y1 = Math.floor((r + 1) * state.img.height / rows);
+            const { rows, cols } = gridSize();
+            for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+                const x0 = Math.floor(c * W / cols), x1 = Math.floor((c + 1) * W / cols);
+                const y0 = Math.floor(r * H / rows), y1 = Math.floor((r + 1) * H / rows);
                 slices.push({ x: x0, y: y0, w: x1 - x0, h: y1 - y0 });
             }
         }
-        elPreview.style.display = 'block'; updateRealtimeXPreview(slices);
+        return slices;
     }
 
-    function updateRealtimeXPreview(slices) {
-        const count = slices.length; if (count === 0) { xPreviewArea.style.display = 'none'; return; }
-        xPreviewArea.style.display = 'block'; xGrid.className = `x-layout-${count}`;
+    /* ---------- プレビューの描画 ---------- */
+    function draw() {
+        if (!state.img) return;
+        const W = state.img.width, H = state.img.height;
+        elPreview.width = W; elPreview.height = H;
+        ctx.drawImage(state.img, 0, 0);
+        const slices = computeSlices(); state.slices = slices;
+
+        // 切る線
+        ctx.strokeStyle = 'red'; ctx.lineWidth = Math.max(3, Math.floor(Math.max(W, H) / 400));
+        const lines = new Set();
+        slices.forEach(s => { if (s.x > 0) lines.add(`v${s.x}`); if (s.y > 0) lines.add(`h${s.y}`); });
+        lines.forEach(key => {
+            const v = parseInt(key.slice(1), 10); ctx.beginPath();
+            if (key[0] === 'v') { ctx.moveTo(v, 0); ctx.lineTo(v, H); } else { ctx.moveTo(0, v); ctx.lineTo(W, v); }
+            ctx.stroke();
+        });
+
+        // 並び順の番号（Xに並ぶ順）
+        const fs = Math.max(16, Math.round(Math.min(W, H) / 14));
+        ctx.font = `bold ${fs}px sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        slices.forEach((s, i) => {
+            const r = Math.min(fs * 0.85, s.w / 2.4, s.h / 2.4); if (r < 8) return;
+            const cx = s.x + s.w / 2, cy = s.y + s.h / 2;
+            ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = '#fff'; ctx.font = `bold ${Math.round(r * 1.05)}px sans-serif`; ctx.fillText(String(i + 1), cx, cy + r * 0.04);
+        });
+
+        elPreview.style.display = 'block';
+        updatePieceInfo(slices);
+        updateXPreview();
+    }
+
+    function updatePieceInfo(slices) {
+        const el = $('pieceInfo');
+        if (!slices.length) { el.textContent = ''; return; }
+        const same = slices.every(s => Math.abs(s.w - slices[0].w) <= 1 && Math.abs(s.h - slices[0].h) <= 1);
+        const posts = Math.ceil(slices.length / MAX_PER_POST);
+        let text = same
+            ? `${slices.length} 枚 · 各 ${slices[0].w}×${slices[0].h} px（${ratioLabel(slices[0].w / slices[0].h)}）`
+            : `${slices.length} 枚 · ` + slices.slice(0, 4).map((s, i) => `${i + 1}枚目 ${s.w}×${s.h}`).join('、') + (slices.length > 4 ? ' …' : '');
+        if (posts > 1) text += ` · Xでは ${posts} 投稿に分けて載せます`;
+        el.textContent = text;
+    }
+
+    /* ---------- X の見え方 ---------- */
+    // カルーセルでの各画像の表示比率（横 ÷ 縦）。これより横長な分は左右が切れる。
+    // 2枚: 横長な方は、縦長な方の約4倍まで。3〜4枚: 1・2枚目から決まる上限 T（最大 20:17）を全部に当てる。
+    function carouselRatios(rs) {
+        if (rs.length <= 1) return rs.slice();
+        if (rs.length === 2) { const cap = Math.min(rs[0], rs[1]) * 4; return rs.map(r => Math.min(r, cap)); }
+        const T = Math.min(WIDE_LIMIT, Math.max(rs[1], 4 / 15 * (3 * rs[0] + 2 * rs[1])));
+        return rs.map(r => Math.min(r, T));
+    }
+
+    function updateXPreview() {
+        const slices = state.slices.slice(0, MAX_PER_POST);
+        if (!slices.length) { xPreviewArea.style.display = 'none'; return; }
+        xPreviewArea.style.display = 'block';
+        xCarouselWrap.style.display = state.view === 'carousel' ? '' : 'none';
+        xGrid.style.display = state.view === 'grid' ? '' : 'none';
+        const cropped = state.view === 'carousel' ? renderCarousel(slices) : (renderGrid(slices), []);
+        renderNotes(cropped);
+    }
+
+    function renderCarousel(slices) {
+        const rs = slices.map(s => s.w / s.h);
+        const ds = carouselRatios(rs);
+        const avail = Math.max(200, xCarousel.clientWidth - 12);
+        // 1枚目を大きく見せ、2枚目の頭が少しのぞく高さにそろえる（高さは幅の1.2倍まで）
+        const Hd = slices.length === 1 ? Math.min(avail / ds[0], avail * 1.25) : Math.min(avail * 0.86 / ds[0], avail * 1.2);
+        while (xCarousel.children.length > slices.length) xCarousel.lastChild.remove();
+        while (xCarousel.children.length < slices.length) {
+            const item = document.createElement('div'); item.className = 'x-car-item';
+            item.innerHTML = '<canvas></canvas><span class="x-num-badge"></span>';
+            xCarousel.appendChild(item);
+        }
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        const cropped = [];
+        slices.forEach((s, i) => {
+            const item = xCarousel.children[i];
+            const d = ds[i]; const wDisp = Math.max(1, Math.round(Hd * d)); const hDisp = Math.round(Hd);
+            item.style.width = `${wDisp}px`; item.style.height = `${hDisp}px`;
+            // 左右を切る（真ん中を残す）
+            const sw = Math.min(s.w, s.h * d), sx = s.x + (s.w - sw) / 2;
+            const canvas = item.querySelector('canvas');
+            const cw = Math.max(1, Math.round(Math.min(wDisp * dpr, 900))), ch = Math.max(1, Math.round(cw / d));
+            if (canvas.width !== cw) canvas.width = cw; if (canvas.height !== ch) canvas.height = ch;
+            canvas.getContext('2d').drawImage(state.img, sx, s.y, sw, s.h, 0, 0, cw, ch);
+            item.querySelector('.x-num-badge').textContent = `${i + 1}/${slices.length}`;
+            let badge = item.querySelector('.x-crop-badge');
+            const isCropped = sw < s.w - 1;
+            if (isCropped) {
+                if (!badge) { badge = document.createElement('span'); badge.className = 'x-crop-badge'; item.appendChild(badge); }
+                badge.textContent = `左右が切れる（約${Math.round((1 - sw / s.w) * 100)}%）`;
+                cropped.push(i + 1);
+            } else if (badge) badge.remove();
+        });
+        updateCarouselNav();
+        return cropped;
+    }
+
+    function renderGrid(slices) {
+        const count = slices.length; xGrid.className = `x-layout-${count}`;
         let items = xGrid.querySelectorAll('.x-grid-item');
         if (items.length !== count) {
             xGrid.innerHTML = '';
@@ -241,40 +491,102 @@
             items = xGrid.querySelectorAll('.x-grid-item');
         }
         for (let i = 0; i < count; i++) {
-            const canvas = items[i].querySelector('canvas'); const slice = slices[i]; const scale = Math.min(1, 800 / slice.w); 
-            const drawW = Math.floor(slice.w * scale); const drawH = Math.floor(slice.h * scale);
-            if (canvas.width !== drawW) canvas.width = drawW; if (canvas.height !== drawH) canvas.height = drawH;
-            canvas.getContext('2d').drawImage(state.img, slice.x, slice.y, slice.w, slice.h, 0, 0, drawW, drawH);
+            const canvas = items[i].querySelector('canvas'); const s = slices[i]; const scale = Math.min(1, 800 / s.w);
+            const dw = Math.max(1, Math.floor(s.w * scale)), dh = Math.max(1, Math.floor(s.h * scale));
+            if (canvas.width !== dw) canvas.width = dw; if (canvas.height !== dh) canvas.height = dh;
+            canvas.getContext('2d').drawImage(state.img, s.x, s.y, s.w, s.h, 0, 0, dw, dh);
         }
     }
 
-    function getPointerY(e) { return (e.clientY - elPreview.getBoundingClientRect().top) * (elPreview.height / elPreview.getBoundingClientRect().height); }
+    function renderNotes(cropped) {
+        const notes = [];
+        const total = state.slices.length;
+        if (state.view === 'carousel') {
+            if (cropped.length) {
+                notes.push(['warn', `${cropped.join('・')}枚目は横長すぎるため、左右が切れて表示されます（3〜4枚の投稿では 1枚あたり 20:17 ≒ 1.18 より横長だと切れます）。${state.mode === 'horizontal' ? '分割数を増やすと切れなくなります。' : ''}`]);
+            }
+            if (state.mode === 'horizontal' && total >= 2 && !cropped.length) {
+                notes.push(['ok', 'スワイプすると、絵が左から右へつながって流れます（画像の間には細いすき間が入ります）。']);
+            } else if (state.mode === 'vertical' && total >= 2) {
+                notes.push(['info', 'いまのXは画像を横に並べるので、上下に分けた画像はつながって見えません。横長の絵を1枚の絵としてつなげたい時は「横に分割」がおすすめです。']);
+            } else if (state.mode === 'grid' && total >= 2) {
+                notes.push(['info', 'いまのXでは、グリッドの画像も 1 → 2 → 3 … の順に横に並びます（田の字には並びません）。']);
+            }
+        } else {
+            notes.push(['info', '田の字の旧表示です。iPhoneアプリとPCブラウザは2026年7〜8月に横スワイプの表示へ切り替わりました。Androidアプリは端末によってまだこの表示のことがあります。']);
+        }
+        if (total > MAX_PER_POST) {
+            notes.push(['info', `Xは1投稿に4枚までです。5枚目からは返信（ツリー）で続けて投稿してください（全 ${Math.ceil(total / MAX_PER_POST)} 投稿、プレビューは最初の4枚）。`]);
+        }
+        $('xNotes').innerHTML = '';
+        notes.forEach(([cls, text]) => { const li = document.createElement('li'); li.className = cls; li.textContent = text; $('xNotes').appendChild(li); });
+    }
+
+    // 表示の切り替え（いまのX / 旧表示）
+    document.querySelectorAll('.x-view-tabs .tab-btn').forEach(btn => btn.addEventListener('click', () => {
+        state.view = btn.dataset.view;
+        document.querySelectorAll('.x-view-tabs .tab-btn').forEach(b => { const on = b === btn; b.classList.toggle('active', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+        updateXPreview();
+    }));
+
+    // パソコン用の左右ボタン
+    function updateCarouselNav() {
+        const max = xCarousel.scrollWidth - xCarousel.clientWidth;
+        xCarouselWrap.classList.toggle('can-prev', xCarousel.scrollLeft > 4);
+        xCarouselWrap.classList.toggle('can-next', max > 4 && xCarousel.scrollLeft < max - 4);
+    }
+    xCarousel.addEventListener('scroll', updateCarouselNav, { passive: true });
+    function stepCarousel(dir) {
+        const items = Array.from(xCarousel.children); const left = xCarousel.scrollLeft;
+        const offs = items.map(it => it.offsetLeft - xCarousel.firstElementChild.offsetLeft);
+        const target = dir > 0 ? offs.find(o => o > left + 4) : [...offs].reverse().find(o => o < left - 4);
+        xCarousel.scrollTo({ left: target === undefined ? (dir > 0 ? xCarousel.scrollWidth : 0) : target, behavior: 'smooth' });
+    }
+    document.querySelector('.x-car-nav.prev').addEventListener('click', () => stepCarousel(-1));
+    document.querySelector('.x-car-nav.next').addEventListener('click', () => stepCarousel(1));
+
+    let resizeRaf = 0;
+    window.addEventListener('resize', () => { cancelAnimationFrame(resizeRaf); resizeRaf = requestAnimationFrame(() => { if (state.img) updateXPreview(); }); });
+
+    /* ---------- 線のドラッグ ---------- */
+    function pointerPos(e) {
+        const rect = elPreview.getBoundingClientRect();
+        return state.mode === 'horizontal'
+            ? (e.clientX - rect.left) * (elPreview.width / rect.width)
+            : (e.clientY - rect.top) * (elPreview.height / rect.height);
+    }
+    function tolerance() { const rect = elPreview.getBoundingClientRect(); return 20 * (elPreview.width / rect.width); }
+    function dragCursor() { return state.mode === 'horizontal' ? 'ew-resize' : 'ns-resize'; }
+
     elPreview.addEventListener('pointerdown', e => {
-        if (!state.img || state.mode !== 'vertical') return;
-        elPreview.setPointerCapture(e.pointerId); const y = getPointerY(e);
-        const inputs = Array.from(document.querySelectorAll('.cut-input')); const tol = 20 * (elPreview.height / elPreview.getBoundingClientRect().height); 
-        for (let i = 0; i < inputs.length; i++) if (Math.abs(y - parseInt(inputs[i].value, 10)) <= tol) { state.isDragging = true; state.draggedLineIndex = i; elPreview.style.cursor = 'ns-resize'; break; }
+        if (!state.img || !isLineMode()) return;
+        const p = pointerPos(e); const inputs = Array.from(document.querySelectorAll('.cut-input')); const tol = tolerance();
+        let best = -1, bestDist = Infinity;
+        inputs.forEach((input, i) => { const d = Math.abs(p - parseInt(input.value, 10)); if (d <= tol && d < bestDist) { best = i; bestDist = d; } });
+        if (best >= 0) { elPreview.setPointerCapture(e.pointerId); state.isDragging = true; state.draggedLineIndex = best; elPreview.style.cursor = dragCursor(); e.preventDefault(); }
     });
     elPreview.addEventListener('pointermove', e => {
-        if (!state.img || state.mode !== 'vertical') return;
-        const y = getPointerY(e); const inputs = Array.from(document.querySelectorAll('.cut-input'));
+        if (!state.img || !isLineMode()) return;
+        const p = pointerPos(e); const inputs = Array.from(document.querySelectorAll('.cut-input'));
         if (state.isDragging && state.draggedLineIndex !== -1) {
-            let newY = Math.max(1, Math.min(Math.round(y), state.img.height - 1));
-            if (state.draggedLineIndex > 0) newY = Math.max(newY, parseInt(inputs[state.draggedLineIndex - 1].value, 10) + 1);
-            if (state.draggedLineIndex < inputs.length - 1) newY = Math.min(newY, parseInt(inputs[state.draggedLineIndex + 1].value, 10) - 1);
-            inputs[state.draggedLineIndex].value = newY; draw(); 
+            const size = axisSize(); const i = state.draggedLineIndex;
+            let v = Math.max(1, Math.min(Math.round(p), size - 1));
+            if (i > 0) v = Math.max(v, parseInt(inputs[i - 1].value, 10) + 1);
+            if (i < inputs.length - 1) v = Math.min(v, parseInt(inputs[i + 1].value, 10) - 1);
+            inputs[i].value = v; draw();
         } else {
-            const tol = 20 * (elPreview.height / elPreview.getBoundingClientRect().height);
-            elPreview.style.cursor = inputs.some(input => Math.abs(y - parseInt(input.value, 10)) <= tol) ? 'ns-resize' : 'crosshair';
+            const tol = tolerance();
+            elPreview.style.cursor = inputs.some(input => Math.abs(p - parseInt(input.value, 10)) <= tol) ? dragCursor() : 'crosshair';
         }
     });
-    const endDrag = e => { if(state.isDragging) { state.isDragging = false; state.draggedLineIndex = -1; elPreview.releasePointerCapture(e.pointerId); elPreview.style.cursor = 'crosshair'; } };
+    const endDrag = e => { if (state.isDragging) { state.isDragging = false; state.draggedLineIndex = -1; try { elPreview.releasePointerCapture(e.pointerId); } catch (_) {} elPreview.style.cursor = 'crosshair'; } };
     elPreview.addEventListener('pointerup', endDrag); elPreview.addEventListener('pointercancel', endDrag);
 
+    /* ---------- 出力 ---------- */
     function clearSplitResults() {
         state.resultUrls.forEach(url => URL.revokeObjectURL(url));
         state.resultUrls = [];
-        document.getElementById('splitResultContainer').innerHTML = '';
+        $('splitResultContainer').innerHTML = '';
     }
 
     function canvasToBlob(canvas) {
@@ -283,44 +595,30 @@
 
     function setSplitControlsDisabled(disabled) {
         const controls = [
-            document.getElementById('splitImageInput'), document.getElementById('splitCount'), document.getElementById('resetEvenBtn'),
-            document.getElementById('gridRows'), document.getElementById('gridCols'), ...document.getElementsByName('splitMode')
+            $('splitImageInput'), $('splitCount'), $('resetEvenBtn'), $('recommendBtn'),
+            $('gridRows'), $('gridCols'), ...document.getElementsByName('splitMode'), ...document.querySelectorAll('.cut-input')
         ];
         controls.forEach(control => { control.disabled = disabled; });
     }
 
-    document.getElementById('splitProcessBtn').addEventListener('click', async () => {
+    $('splitProcessBtn').addEventListener('click', async () => {
         if (!state.img) return;
-        const button = document.getElementById('splitProcessBtn');
-        const container = document.getElementById('splitResultContainer');
+        const button = $('splitProcessBtn');
+        const container = $('splitResultContainer');
         clearSplitResults();
         button.disabled = true;
         button.textContent = '処理中...';
         setSplitControlsDisabled(true);
-        const workCanvas = document.createElement('canvas'); const workCtx = workCanvas.getContext('2d'); let count = 0;
+        const workCanvas = document.createElement('canvas'); const workCtx = workCanvas.getContext('2d');
         try {
-            if (state.mode === 'vertical') {
-                let cuts = Array.from(document.querySelectorAll('.cut-input')).map(i => parseInt(i.value, 10)).filter(y => y > 0 && y < state.img.height);
-                cuts.push(0, state.img.height); cuts.sort((a, b) => a - b); cuts = [...new Set(cuts)];
-                workCanvas.width = state.img.width;
-                for (let i = 0; i < cuts.length - 1; i++) {
-                    const h = cuts[i + 1] - cuts[i]; workCanvas.height = h;
-                    workCtx.drawImage(state.img, 0, cuts[i], state.img.width, h, 0, 0, state.img.width, h);
-                    createResultItem(await canvasToBlob(workCanvas), ++count, container);
-                }
-            } else {
-                const rows = Math.max(1, Math.min(state.img.height, parseInt(document.getElementById('gridRows').value, 10) || 1));
-                const cols = Math.max(1, Math.min(state.img.width, parseInt(document.getElementById('gridCols').value, 10) || 1));
-                for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-                    const x0 = Math.floor(c * state.img.width / cols), x1 = Math.floor((c + 1) * state.img.width / cols);
-                    const y0 = Math.floor(r * state.img.height / rows), y1 = Math.floor((r + 1) * state.img.height / rows);
-                    const sliceW = x1 - x0, sliceH = y1 - y0;
-                    workCanvas.width = sliceW; workCanvas.height = sliceH;
-                    workCtx.drawImage(state.img, x0, y0, sliceW, sliceH, 0, 0, sliceW, sliceH);
-                    createResultItem(await canvasToBlob(workCanvas), ++count, container);
-                }
+            const slices = computeSlices();
+            for (let i = 0; i < slices.length; i++) {
+                const s = slices[i];
+                workCanvas.width = s.w; workCanvas.height = s.h;
+                workCtx.drawImage(state.img, s.x, s.y, s.w, s.h, 0, 0, s.w, s.h);
+                createResultItem(await canvasToBlob(workCanvas), i + 1, container);
             }
-            document.getElementById('splitResultArea').style.display = 'block'; document.getElementById('splitResultArea').scrollIntoView({ behavior: 'smooth' });
+            $('splitResultArea').style.display = 'block'; $('splitResultArea').scrollIntoView({ behavior: 'smooth' });
         } catch (error) {
             console.error(error);
             alert('画像の分割出力に失敗しました。画像サイズや分割数を小さくして再度お試しください。');
@@ -335,17 +633,13 @@
         const item = document.createElement('div'); item.className = 'result-item'; const fileName = `slice_${String(index).padStart(2, '0')}.png`;
         const url = URL.createObjectURL(blob); state.resultUrls.push(url);
         const img = document.createElement('img'); img.src = url; img.alt = `${fileName} のプレビュー`;
-        const link = document.createElement('a'); link.href = url; link.download = fileName; link.className = 'download-btn split-dl-btn'; link.textContent = `⬇️ ${fileName} を保存`;
+        const link = document.createElement('a'); link.href = url; link.download = fileName; link.className = 'download-btn split-dl-btn';
+        link.textContent = RakurakuSave.env === 'pc' ? `⬇️ ${fileName} を保存` : `📷 ${index}枚目を保存`;
+        RakurakuSave.track(link, blob);
         item.append(img, link); container.appendChild(item);
     }
-    
-    document.getElementById('splitDownloadAllBtn').addEventListener('click', async (e) => {
-        const links = document.querySelectorAll('.split-dl-btn');
-        if (links.length === 0 || !confirm('一括ダウンロードします。許可を求められたら「許可」を押してください。')) return;
-        const btn = e.target; btn.disabled = true; btn.textContent = '📦 ダウンロード中...';
-        for (let i = 0; i < links.length; i++) { links[i].click(); await new Promise(r => setTimeout(r, 500)); }
-        btn.textContent = '✅ 完了！'; setTimeout(() => { btn.disabled = false; btn.textContent = '📦 すべて一括保存'; }, 3000);
-    });
+
+    RakurakuSave.bindBulk($('splitDownloadAllBtn'), () => document.querySelectorAll('.split-dl-btn'));
 </script>
 
 </body>

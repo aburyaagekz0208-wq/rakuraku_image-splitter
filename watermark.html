@@ -59,7 +59,8 @@
         
         .seo-content { margin-top: 50px; border-top: 2px solid #eee; padding-top: 30px; color: #444; }
     </style>
-    <link rel="stylesheet" href="assets/styles.css">
+    <link rel="stylesheet" href="assets/styles.css?v=20261113">
+    <script src="assets/site.js?v=20261113"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
 </head>
@@ -604,7 +605,8 @@
                 link.href = resultUrl;
                 link.download = outFileName;
                 link.className = 'download-btn wm-dl-btn';
-                link.textContent = '⬇️ 保存';
+                link.textContent = RakurakuSave.env === 'pc' ? '⬇️ 保存' : '📷 保存';
+                RakurakuSave.track(link, blob);
                 itemDiv.append(title, preview, link);
                 els.resultContainer.appendChild(itemDiv);
             }
@@ -622,27 +624,8 @@
     });
 
     // 一括保存ボタン
-    els.downloadAllBtn.addEventListener('click', async (e) => {
-        const links = document.querySelectorAll('.wm-dl-btn');
-        if (links.length === 0) return;
-        
-        if (!confirm(`${links.length}枚の画像を順番にダウンロードします。ブラウザから許可を求められた場合は「許可」を押してください。`)) return;
-
-        const btn = e.target;
-        btn.disabled = true;
-        btn.textContent = '📦 ダウンロード中...';
-
-        for (let i = 0; i < links.length; i++) {
-            links[i].click();
-            await new Promise(r => setTimeout(r, 500)); // ダウンロード間隔を空ける
-        }
-
-        btn.textContent = '✅ 完了！';
-        setTimeout(() => {
-            btn.disabled = false;
-            btn.textContent = '📦 すべて一括保存';
-        }, 3000);
-    });
+    // スマホは写真アプリ・ギャラリーに入る画像として保存（くわしくは assets/site.js）
+    RakurakuSave.bindBulk(els.downloadAllBtn, () => document.querySelectorAll('.wm-dl-btn'));
 
 </script>
 
