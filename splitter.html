@@ -26,7 +26,7 @@
         .radio-group label:has(input:checked) { border-color: #000 !important; }
         .radio-group input[type="radio"]:checked + span { font-weight: bold; }
         .radio-group small { color: #757575; font-weight: normal; }
-        .mode-new { display: inline-block; margin-left: 6px; padding: 0 6px; background: #76b900; color: #000; font-size: .7rem; font-weight: 700; border-radius: 2px; vertical-align: 1px; }
+        .mode-new { display: inline-block; margin-left: 6px; padding: 0 7px; background: #d3ebcd; border: 1.5px solid #2b2a2e; color: #2b2a2e; font-family: var(--hand); font-size: .78rem; font-weight: 400; border-radius: 8px 5px 9px 6px; vertical-align: 1px; }
 
         button { padding: 12px; border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
         .btn-primary { width: 100%; background-color: #005fcc; color: white; font-weight: bold; font-size: 1.1rem; padding: 15px;}
@@ -36,7 +36,7 @@
         .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 12px; }
         .btn-row .btn-secondary { flex: 1 1 auto; }
         .setting-note { margin: 6px 0 0; color: #757575; font-size: .82rem; line-height: 1.6; }
-        .piece-info { margin: 12px 0 0; padding: 10px 12px; background: #f7f7f7; border: 1px solid #ccc; border-radius: 2px; font-size: .85rem; line-height: 1.6; }
+        .piece-info { margin: 12px 0 0; padding: 10px 12px; background: var(--paper); border: 1.5px dashed var(--ink4); border-radius: 10px; font-size: .85rem; line-height: 1.6; }
 
         /* 分割特有CSS */
         .cut-point-row { display: flex; align-items: center; margin-bottom: 8px; background: #f9f9f9; padding: 8px 10px; border-radius: 4px; gap: 10px; }
@@ -55,7 +55,7 @@
         #xSplitPreviewArea h2 { margin: 0 0 4px; font-size: 1.2rem; }
         .x-lead { margin: 0 0 12px; color: #757575; font-size: .82rem; line-height: 1.6; }
         .x-view-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
-        .x-view-tabs .tab-btn { flex: 1 1 0; width: auto !important; min-height: 40px; padding: 8px 10px; border: 1px solid #ccc !important; background: #fff; color: #000; font-size: .85rem; font-weight: 700; line-height: 1.3; }
+        .x-view-tabs .tab-btn { flex: 1 1 0; width: auto !important; min-height: 44px; padding: 6px 10px; border: 1.5px solid var(--ink4) !important; background: var(--panel); color: var(--ink); font-size: .98rem; line-height: 1.3; cursor: pointer; }
         .x-view-tabs .tab-btn small { display: block; font-weight: 400; font-size: .72rem; opacity: .75; }
 
         .x-preview-box { background: #fff; border: 1px solid #e1e8ed; padding: 12px 0 10px 12px; max-width: 560px; margin: 0 auto; overflow: hidden; color: #0f1419; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif; }
@@ -95,10 +95,10 @@
         #xGridContainer.x-layout-4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
 
         .x-notes { list-style: none; margin: 14px 0 0; padding: 0; font-size: .85rem; line-height: 1.6; }
-        .x-notes li { position: relative; padding: 8px 10px 8px 30px; margin-bottom: 6px; border: 1px solid #ccc; border-radius: 2px; background: #f7f7f7; }
+        .x-notes li { position: relative; padding: 8px 10px 8px 30px; margin-bottom: 6px; border: 1.5px dashed var(--ink4); border-radius: 10px; background: var(--paper); }
         .x-notes li::before { position: absolute; left: 9px; top: 8px; }
         .x-notes li.ok::before { content: "✓"; color: #3f7d00; font-weight: 700; }
-        .x-notes li.warn { border-color: #e0a800; background: #fff8e1; }
+        .x-notes li.warn { border-style: solid; border-color: #e9b53a; background: #fbeab0; }
         .x-notes li.warn::before { content: "!"; color: #b45309; font-weight: 900; left: 13px; }
         .x-notes li.info::before { content: "i"; color: #555; font-weight: 900; left: 13px; font-family: Georgia, serif; }
         .x-disclaimer { margin: 10px 0 0; color: #898989; font-size: .75rem; line-height: 1.5; }
@@ -120,7 +120,7 @@
             .btn-row .btn-secondary { width: auto; }
         }
     </style>
-    <link rel="stylesheet" href="assets/styles.css?v=20261113">
+    <link rel="stylesheet" href="assets/styles.css?v=20261113b">
     <script src="assets/site.js?v=20261113"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
