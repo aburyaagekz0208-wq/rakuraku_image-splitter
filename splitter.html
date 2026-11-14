@@ -93,6 +93,13 @@
         #splitResultArea { padding-top: 20px; display: none; }
         #splitResultArea h2 { text-align: center; margin: 0 0 14px; }
         .bulk-save { text-align: center; margin-bottom: 20px; }
+        .save-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .fine-tune { margin-top: 4px; }
+        .fine-tune summary { padding: 8px 14px; font-size: 1rem; }
+        .fine-tune > div { padding: 2px 10px 6px; }
+        .result-item .download-btn { font-size: .95rem; padding: 6px 8px; white-space: nowrap; }
+        .result-item.is-copied { outline: 3px solid #4e9f5b; outline-offset: 2px; }
+        .result-item.is-copied::after { content: "コピー済み"; position: absolute; top: 8px; left: 8px; padding: 0 8px; border-radius: 8px; background: #d3ebcd; border: 1.5px solid #2b2a2e; font-family: var(--hand); font-size: .85rem; }
         .result-grid { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); margin-bottom: 20px; }
         .result-item { text-align: center; padding: 12px; }
         .result-item img { max-width: 100%; max-height: 260px; height: auto; display: block; margin: 0 auto 10px; }
@@ -108,7 +115,7 @@
         }
     </style>
     <link rel="stylesheet" href="assets/styles.css?v=20261113b">
-    <script src="assets/site.js?v=20261113"></script>
+    <script src="assets/site.js?v=20261114"></script>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3769360007517865"
      crossorigin="anonymous"></script>
 </head>
@@ -153,7 +160,10 @@
                         <button type="button" id="recommendBtn" class="secondary btn-secondary">⭐ おすすめの枚数</button>
                         <button type="button" id="resetEvenBtn" class="secondary btn-secondary">🔄 均等割りに戻す</button>
                     </div>
-                    <div id="cutPointsContainer"></div>
+                    <details class="fine-tune" id="fineTune">
+                        <summary>線の位置を px で調整</summary>
+                        <div id="cutPointsContainer"></div>
+                    </details>
                 </div>
 
                 <div id="gridSettings" style="display: none;">
@@ -203,7 +213,12 @@
             <div id="splitResultArea">
                 <h2>出力結果</h2>
                 <div class="bulk-save">
-                    <button id="splitDownloadAllBtn" type="button" class="btn-warning">📦 すべて一括保存</button>
+                    <div class="save-actions">
+                        <button id="splitDownloadAllBtn" type="button" class="btn-warning">📦 すべて一括保存</button>
+                        <button id="splitCopyBtn" type="button" class="secondary">📋 1枚目をコピー</button>
+                        <button id="splitShareXBtn" type="button" class="secondary">📤 X アプリへまとめて送る</button>
+                    </div>
+                    <p class="save-hint" id="splitCopyHint"></p>
                 </div>
                 <div id="splitResultContainer" class="result-grid"></div>
             </div>
@@ -562,6 +577,7 @@
                 workCtx.drawImage(state.img, s.x, s.y, s.w, s.h, 0, 0, s.w, s.h);
                 createResultItem(await canvasToBlob(workCanvas), i + 1, container);
             }
+            copySeq.reset();
             $('splitResultArea').style.display = 'block'; $('splitResultArea').scrollIntoView({ behavior: 'smooth' });
         } catch (error) {
             console.error(error);
@@ -578,12 +594,16 @@
         const url = URL.createObjectURL(blob); state.resultUrls.push(url);
         const img = document.createElement('img'); img.src = url; img.alt = `${fileName} のプレビュー`;
         const link = document.createElement('a'); link.href = url; link.download = fileName; link.className = 'download-btn split-dl-btn';
-        link.textContent = RakurakuSave.env === 'pc' ? `⬇️ ${fileName} を保存` : `📷 ${index}枚目を保存`;
+        link.textContent = `${RakurakuSave.env === 'pc' ? '⬇️' : '📷'} ${index}枚目を保存`;
+        link.title = fileName;
         RakurakuSave.track(link, blob);
         item.append(img, link); container.appendChild(item);
     }
 
-    RakurakuSave.bindBulk($('splitDownloadAllBtn'), () => document.querySelectorAll('.split-dl-btn'));
+    const splitLinks = () => document.querySelectorAll('.split-dl-btn');
+    RakurakuSave.bindBulk($('splitDownloadAllBtn'), splitLinks);
+    const copySeq = RakurakuSave.bindCopySequence($('splitCopyBtn'), splitLinks, $('splitCopyHint'));
+    RakurakuSave.bindShareTo($('splitShareXBtn'), splitLinks);
 </script>
 
 </body>
